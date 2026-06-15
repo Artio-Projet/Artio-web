@@ -621,6 +621,10 @@ function renderDossierCard(dos){
           ${doc.type==="devis"&&!doc.accepte?`<button class="btn-small" style="background:rgba(62,207,207,.12);color:var(--teal);border-color:rgba(62,207,207,.3);" onclick="markAccepte('${dos.id}','${doc.docNumber}')">Marquer accepté</button>`:""}
           ${doc.type==="devis"&&doc.accepte?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="downloadSignedProof('${doc.docNumber}')">📄 Preuve signée</button>`:""}
           ${doc.type==="devis"&&doc.accepte&&!hasF?`<button class="btn-small btn-teal" onclick="convertToFacture('${dos.id}','${doc.docNumber}')">${S.convertingId===doc.docNumber?"...":"💶 Convertir"}</button>`:""}
+          ${(()=>{
+            const vs=window.VIEWED_SIGS&&window.VIEWED_SIGS[doc.docNumber];
+            return vs?`<span class="btn-small" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.25);cursor:default;" title="Consulté ${vs.open_count} fois — 1ère ouverture : ${new Date(vs.link_opened_at).toLocaleString('fr-FR')}">👁 Vu${vs.open_count>1?' ('+vs.open_count+'×)':''}</span>`:'';
+          })()}
           ${doc.type==="devis"&&!doc.accepte?(isPro?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="sendForSignature('${dos.id}','${doc.docNumber}')">✍️ Signature</button>`:`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Signature électronique')">🔒 Signature</button>`):""}
           ${doc.type==="devis"&&!doc.accepte?(isPro?`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);" onclick="genererRelance('${dos.id}','${doc.docNumber}')">📩 Relance</button>`:`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Relances clients IA')">🔒 Relance</button>`):""}
           ${doc.type==="facture"?`${doc.paye?`<span class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3);cursor:default;">✓ Payée le ${doc.date_paye}</span>`:`<button class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border-color:rgba(74,222,128,.3);" onclick="markPaye('${dos.id}','${doc.docNumber}')">💶 Marquer payée</button>`}${!doc.paye?(S.rappelLoadingId===doc.docNumber?`<button class="btn-small" disabled>⏳ Génération...</button>`:isPro?`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);" onclick="genererRappelPaiement('${dos.id}','${doc.docNumber}')">📨 Rappel</button>`:`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);opacity:.45;" onclick="window.PlanGuard?.showProModal('Rappels de paiement IA')">🔒 Rappel</button>`):""}
@@ -741,6 +745,20 @@ function renderPage(){
     renderModals();
 }
 
+window.VIEWED_SIGS = {};
+
+async function loadViewedSigs(userId) {
+  try {
+    const { data } = await sb
+      .from("signatures")
+      .select("doc_number, open_count, link_opened_at")
+      .eq("user_id", userId)
+      .eq("status", "pending")
+      .not("link_opened_at", "is", null);
+    if (data) data.forEach(s => { window.VIEWED_SIGS[s.doc_number] = s; });
+  } catch(e) { console.warn("loadViewedSigs:", e); }
+}
+
 async function loadUserData(userId){
   try{
     const{data:profil,error:pe}=await sb.from("profils").select("*").eq("user_id",userId).single();
@@ -752,6 +770,7 @@ async function loadUserData(userId){
     const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",userId).order("nom",{ascending:true});
     if(cls)S.clients=cls;
   }catch(e){console.error("loadUserData exception:",e);}
+  await loadViewedSigs(userId);
   checkDevisAConvertir();
   renderPage();
   // Ouvrir un dossier spécifique depuis un lien externe (ex: email relance paiement J+30)

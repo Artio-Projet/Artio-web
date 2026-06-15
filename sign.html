@@ -615,14 +615,19 @@ function startCountdown(expiresAt) {
   document.getElementById("content").innerHTML = renderDoc(sig);
   setTimeout(initCanvas, 100);
 
-  // Marquer le lien comme ouvert et récupérer expires_at (set à now+7j par la RPC).
-  // Si déjà ouvert, la RPC ne touche rien mais on retourne expires_at existant.
+  // Marquer le lien comme ouvert (open_count++, link_opened_at au 1er accès).
+  // La RPC retourne un JSONB avec is_first_view + expires_at.
+  // Si première vue → appel à notify-viewed pour email + push au pro.
   try {
-    await sb.rpc("mark_signature_opened", { p_token: token });
-    // Relire expires_at mis à jour
-    const { data: fresh } = await sb.from("signatures")
-      .select("expires_at").eq("token", token).single();
-    if (fresh?.expires_at) startCountdown(fresh.expires_at);
+    const { data: viewData } = await sb.rpc("mark_signature_opened", { p_token: token });
+    if (viewData?.expires_at) startCountdown(viewData.expires_at);
+    if (viewData?.is_first_view === true) {
+      fetch(SUPABASE_URL + "/functions/v1/notify-viewed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      }).catch(e => console.warn("notify-viewed:", e));
+    }
   } catch (e) { console.warn("mark_signature_opened:", e); }
 })();
 </script>
