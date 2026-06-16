@@ -39,10 +39,13 @@ Artio permet de :
 - Satisfaction 7 jours : remboursement intégral du 1er mois si usage non significatif.
 
 == PAGES DE L'APPLICATION ==
-- app.html → créer/modifier devis et factures (onglets : Devis, Facture, Rédiger email, Dossiers, Messagerie Pro)
+- home.html → page d'accueil après connexion
+- app.html → création de devis et factures par dictée vocale ou formulaire (onglets : Devis, Facture uniquement)
+- dossiers.html → consultation de tous les dossiers clients, statuts des devis et factures, envoi en signature, conversion devis→facture
+- rediger.html → rédaction d'emails assistée par IA
+- clients.html → gestion des fiches clients
 - dashboard.html → tableau de bord financier (CA, stats, évolution)
-- calendar.html → agenda et rendez-vous
-- clients.html → gestion des clients
+- calendar.html → agenda et rendez-vous (sync Google Calendar)
 - settings.html → paramètres entreprise, abonnement, connexion Google, FactPulse
 - aide.html → documentation et FAQ complète
 
@@ -74,6 +77,12 @@ GMAIL ET GOOGLE :
 SIGNATURE ÉLECTRONIQUE :
 - "La signature est-elle légale ?" → Oui, c'est une signature électronique simple au sens du règlement eIDAS. Elle est juridiquement valable pour les devis commerciaux.
 - "Mon client n'a pas reçu le lien" → Vérifier l'adresse email du client dans le dossier. Le lien peut aussi être copié manuellement et envoyé par SMS ou autre moyen.
+- "Que se passe-t-il quand mon client signe ?" → Vous recevez un email + une notification push instantanément. Le dossier passe automatiquement en statut "Devis accepté" et le bouton "Créer la facture" devient disponible. Pas besoin de rafraîchir la page.
+- "Mon devis vient d'être signé mais je vois encore 'Devis envoyé'" → La page Dossiers se rafraîchit automatiquement toutes les 30 secondes. Le statut apparaîtra sous peu sans action de votre part. Vous pouvez aussi changer d'onglet et revenir : le rafraîchissement est immédiat au retour de focus.
+
+DEVIS ET FACTURES (suite) :
+- "Mon devis n'apparaît pas tout de suite après création" → Après la génération, vous êtes redirigé automatiquement vers la page Dossiers avec le dossier ouvert. Si ce n'est pas le cas, rendez-vous sur Dossiers — il y sera.
+- "Le statut de mon devis ne change pas" → La page Dossiers se met à jour automatiquement en arrière-plan. Le statut bascule dès qu'un événement intervient (signature client, paiement, etc.) sans nécessiter de rafraîchissement manuel.
 
 FACTURATION ÉLECTRONIQUE :
 - "Qu'est-ce que la facturation électronique ?" → Obligation légale pour les entreprises assujetties à la TVA à partir de 2026. Artio est compatible via FactPulse (PDP agréée DGFiP).
