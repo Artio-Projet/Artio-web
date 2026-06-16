@@ -376,7 +376,7 @@ pre{white-space:pre-wrap;font-size:13px;line-height:1.75;font-family:var(--fb);c
 .cf-bottom-totals .ttc{color:var(--cf-amber);font-weight:700;font-size:14px}
 .cf-bottom-spacer{flex:1}
 .cf-actions{display:flex;gap:8px}
-.cf-btn-primary{flex:1;padding:10px 18px;border-radius:10px;border:none;background:var(--cf-amber);color:#080b14;font-size:13.5px;font-weight:700;font-family:var(--cf-fh);cursor:pointer;box-shadow:0 0 24px var(--cf-amber-glow);transition:all .15s}
+.cf-btn-primary{flex:1;padding:14px 22px;min-height:48px;border-radius:10px;border:none;background:var(--cf-amber);color:#080b14;font-size:14px;font-weight:700;font-family:var(--cf-fh);cursor:pointer;box-shadow:0 0 24px var(--cf-amber-glow);transition:all .15s;position:relative;z-index:2;display:flex;align-items:center;justify-content:center}
 .cf-btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 36px var(--cf-amber-glow)}
 .cf-btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .cf-btn-secondary{padding:10px 14px;border-radius:10px;border:1px solid var(--cf-border);background:var(--cf-surface);color:var(--cf-text);font-size:12.5px;font-weight:500;font-family:var(--cf-fb);cursor:pointer;transition:all .15s}
@@ -1411,6 +1411,12 @@ const nom=civStr+(travStr?" — "+travStr:"");
     S.dossiers=[dos,...S.dossiers];
     // entryMode conservé pour pouvoir "Convertir" depuis le formulaire — réinitialisé à la fermeture
     set({loading:false,generatedDoc:doc,openDossier:dos.id});
+    // ✅ Feedback utilisateur + redirection vers le dossier nouvellement créé
+    const docLabel=tab==="devis"?"Devis":"Facture";
+    showToast("✅ "+docLabel+" "+docNumber+" créé — redirection…",1500);
+    setTimeout(()=>{
+      window.location.href="dossiers.html?dossier="+encodeURIComponent(dos.id);
+    },1500);
   }catch(err){set({loading:false});alert("Erreur : "+err.message)}
 };
 
@@ -1827,43 +1833,47 @@ window.downloadSignedProof=async function(docNumber){
     pdf.save("PREUVE_SIGNATURE_"+docNumber+".pdf");
   }catch(err){alert("Erreur : "+err.message);}
 };
-// ——— REALTIME SIGNATURE LISTENER ———
+// ——— REALTIME LISTENERS ———
 function setupSignatureListener(userId){
+  // 1) Listener signatures → toast de notification immédiat
   sb.channel("signatures_"+userId)
     .on("postgres_changes",{
       event:"UPDATE",
       schema:"public",
       table:"signatures",
       filter:"user_id=eq."+userId
-    }, async payload=>{
+    }, payload=>{
       if(payload.new?.status==="signed"){
-        const{data}=await sb.from("dossiers").select("*").eq("user_id",userId).order("updated_at",{ascending:false});
-        if(data){
-          S.dossiers=data.map(d=>{
-            let docs=[];
-            try{docs=typeof d.documents==="string"?JSON.parse(d.documents):(d.documents||[])}catch(e){}
-            return{...d,documents:docs};
-          });
-          render();
-          const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
-          const num=payload.new?.doc_number||"";
-          const dosId=payload.new?.dossier_id||(payload.new?.doc_data?._dossier_id)||"";
-          // Marquer le devis comme accepté sans créer de facture automatiquement
-          if(dosId&&num){
-            const dos=S.dossiers.find(d=>d.id===dosId);
-            if(dos){
-              dos.documents=dos.documents.map(d=>d.docNumber===num?{...d,accepte:true}:d);
-              if(dos.statut!=="devis_accepte"&&dos.statut!=="facture"){
-                dos.statut="devis_accepte";
-                await upsertDossier(dos);
-              }
-            }
-          }
-          showToast("✅ Devis "+num+" signé par "+nom+" !");
-          checkDevisAConvertir();
-          render();
-        }
+        const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
+        const num=payload.new?.doc_number||"";
+        showToast("✅ Devis "+num+" signé par "+nom+" !");
       }
+    })
+    .subscribe();
+
+  // 2) Listener dossiers → mise à jour UI automatique quand notify-signature
+  //    met à jour le dossier côté serveur (statut + doc.accepte).
+  //    Fonctionne que le pro soit ou non sur la plateforme au moment de la signature.
+  sb.channel("dossiers_"+userId)
+    .on("postgres_changes",{
+      event:"UPDATE",
+      schema:"public",
+      table:"dossiers",
+      filter:"user_id=eq."+userId
+    }, payload=>{
+      if(!payload.new) return;
+      const updated=payload.new;
+      let docs=[];
+      try{docs=typeof updated.documents==="string"?JSON.parse(updated.documents):(updated.documents||[]);}catch(e){}
+      // Mettre à jour le dossier dans le state local sans recharger toute la liste
+      const idx=S.dossiers.findIndex(d=>d.id===updated.id);
+      if(idx>=0){
+        S.dossiers[idx]={...updated,documents:docs};
+      } else {
+        S.dossiers.unshift({...updated,documents:docs});
+      }
+      if(typeof checkDevisAConvertir==="function") checkDevisAConvertir();
+      render();
     })
     .subscribe();
 }
