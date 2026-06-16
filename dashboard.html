@@ -413,6 +413,67 @@ window.onPeriodChange = function() {
   render();
 };
 
+function exportCSV() {
+  const sep = ";";
+  const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const dateISO = v => {
+    if (!v) return "";
+    if (v.includes("/")) { const [d, m, y] = v.split("/"); return `${y}-${m}-${d}`; }
+    return v.slice(0, 10);
+  };
+
+  const all = [];
+  dossiers.forEach(dos => {
+    (dos.documents || []).forEach(doc => {
+      all.push({ ...doc, _dosNom: dos.nom || dos.client || "" });
+    });
+  });
+
+  const filtered = filterDocs(all);
+
+  const rows = [[
+    "Type", "Numéro", "Date émission", "Date prestation", "Date paiement",
+    "Client", "Dossier", "Description",
+    "Total HT (€)", "TVA (€)", "Total TTC (€)",
+    "Statut"
+  ].map(q).join(sep)];
+
+  filtered.forEach(doc => {
+    rows.push([
+      doc.type === "facture" ? "Facture" : "Devis",
+      doc.docNumber || "",
+      dateISO(doc.date),
+      dateISO(doc.date_prestation),
+      dateISO(doc.date_paye),
+      doc.client?.nom || doc._dosNom || "",
+      doc._dosNom || "",
+      doc.description || "",
+      (doc.totalHT || 0).toFixed(2),
+      (doc.tva || 0).toFixed(2),
+      (doc.ttc || 0).toFixed(2),
+      doc.type === "facture"
+        ? (doc.paye ? "Payée" : "Impayée")
+        : (doc.accepte ? "Accepté" : "En attente")
+    ].map(q).join(sep));
+  });
+
+  const label = filterType === "mois" ? "mois-en-cours"
+    : filterType === "annee" ? new Date().getFullYear()
+    : (filterFrom || "debut") + "_" + (filterTo || "fin");
+
+  const BOM = "﻿";
+  const blob = new Blob([BOM + rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `artio-export-${label}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("✅ Export CSV téléchargé");
+}
+
 function render() {
   const kpi = calcKPIs();
   const now = new Date();
@@ -447,13 +508,16 @@ function render() {
   document.getElementById("main").innerHTML = `
     <div class="toolbar">
       <div class="page-title">Tableau de bord</div>
-      <div class="period-wrap">
-        <select class="field-select" id="period-type" onchange="onPeriodChange()">
-          <option value="mois" ${filterType==="mois"?"selected":""}>Mois en cours</option>
-          <option value="annee" ${filterType==="annee"?"selected":""}>Année en cours</option>
-          <option value="custom" ${filterType==="custom"?"selected":""}>Personnalisé</option>
-        </select>
-        ${customInputs}
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="period-wrap">
+          <select class="field-select" id="period-type" onchange="onPeriodChange()">
+            <option value="mois" ${filterType==="mois"?"selected":""}>Mois en cours</option>
+            <option value="annee" ${filterType==="annee"?"selected":""}>Année en cours</option>
+            <option value="custom" ${filterType==="custom"?"selected":""}>Personnalisé</option>
+          </select>
+          ${customInputs}
+        </div>
+        <button onclick="exportCSV()" style="font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap;">⬇ Export CSV</button>
       </div>
     </div>
 
