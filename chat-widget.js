@@ -106,6 +106,18 @@ DIVERS :
   let isOpen          = false;
   let isLoading       = false;
   let history         = loadHistory();
+  let hasUnread       = localStorage.getItem("artio_chat_unread") === "1";
+
+  function markUnread() {
+    if (!isOpen) {
+      hasUnread = true;
+      try { localStorage.setItem("artio_chat_unread", "1"); } catch(e) {}
+    }
+  }
+  function clearUnread() {
+    hasUnread = false;
+    try { localStorage.removeItem("artio_chat_unread"); } catch(e) {}
+  }
   let inactivityTimer = null;
 
   // ── SUPABASE ──────────────────────────────────────────
@@ -212,6 +224,7 @@ DIVERS :
     inactivityTimer = setTimeout(async () => {
       const conv = [...history];
       history.push({ role: "assistant", content: "Cette conversation a été fermée après 10 minutes d'inactivité. Un récap vous a été envoyé par email. N'hésitez pas à revenir ! 👋" });
+      markUnread();
       saveHistory();
       renderMessages();
       await sendRecapEmail(conv);
@@ -222,6 +235,7 @@ DIVERS :
   // ── CLÔTURE NATURELLE ─────────────────────────────────
   async function handleClose(cleanReply) {
     history.push({ role: "assistant", content: cleanReply });
+    markUnread();
     saveHistory();
     renderMessages();
     const conv = [...history];
@@ -265,7 +279,7 @@ DIVERS :
     container.scrollTop = container.scrollHeight;
 
     const badge = document.getElementById("artio-chat-badge");
-    if (badge) badge.style.display = (!isOpen && history.length > 0) ? "block" : "none";
+    if (badge) badge.style.display = (!isOpen && hasUnread) ? "block" : "none";
   }
 
   // Suggestion chip handler (global)
@@ -338,6 +352,7 @@ DIVERS :
       await handleClose(reply.replace("[CONVERSATION_CLOSE]", "").trim());
     } else {
       history.push({ role: "assistant", content: reply });
+      markUnread();
       saveHistory();
       renderMessages();
       resetInactivityTimer();
@@ -359,18 +374,19 @@ DIVERS :
 
   // ── TOGGLE ────────────────────────────────────────────
   function togglePanel() {
-    isOpen = !isOpen;
     const panel = document.getElementById("artio-chat-panel");
     const badge = document.getElementById("artio-chat-badge");
-    if (!panel) return;
-    if (isOpen) {
+    if (!isOpen) {
+      isOpen = true;
       panel.classList.add("open");
+      clearUnread();
       if (badge) badge.style.display = "none";
       renderMessages();
       setTimeout(() => document.getElementById("artio-chat-input")?.focus(), 200);
     } else {
+      isOpen = false;
       panel.classList.remove("open");
-      if (badge && history.length > 0) badge.style.display = "block";
+      if (badge) badge.style.display = hasUnread ? "block" : "none";
     }
   }
 
@@ -387,7 +403,8 @@ DIVERS :
       #artio-chat-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
       #artio-chat-header{padding:14px 16px;background:#141829;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
       #artio-chat-header-left{display:flex;align-items:center;gap:10px}
-      .artio-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f5a742,#3ecfcf);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#080b14;flex-shrink:0}
+      .artio-avatar{width:38px;height:38px;border-radius:50%;background:#fff5e6;object-fit:contain;object-position:center bottom;flex-shrink:0;border:1.5px solid rgba(245,167,66,0.25);padding:2px}
+      [data-theme="light"] .artio-avatar{background:#fff5e6;border-color:rgba(217,119,6,0.25)}
       #artio-chat-header-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:#e2e5f1}
       #artio-chat-header-sub{font-size:11px;color:#6b7494;margin-top:1px}
       .artio-hbtn{background:none;border:none;color:#6b7494;cursor:pointer;padding:5px;border-radius:6px;display:flex;align-items:center;transition:color .2s,background .2s}
@@ -438,6 +455,8 @@ DIVERS :
       [data-theme="light"] .artio-chat-empty strong{color:#1a1a1f}
       [data-theme="light"] .artio-chip{background:#f3efe6;border-color:rgba(20,18,12,0.12);color:#6a6b78}
       [data-theme="light"] .artio-chip:hover{background:rgba(217,119,6,0.10);color:#1a1a1f;border-color:rgba(217,119,6,0.25)}
+      #artio-chat-mascot{width:42px;height:42px;object-fit:contain;object-position:center bottom;pointer-events:none}
+      #artio-chat-btn{padding:0!important;overflow:visible!important}
       [data-theme="light"] #artio-chat-badge{border-color:#ffffff}
     `;
     document.head.appendChild(style);
@@ -448,7 +467,7 @@ DIVERS :
       <div id="artio-chat-panel">
         <div id="artio-chat-header">
           <div id="artio-chat-header-left">
-            <div class="artio-avatar">A</div>
+            <img src="mascotte-artio.png" class="artio-avatar" alt="Artio">
             <div>
               <div id="artio-chat-header-title">Assistant Artio</div>
               <div id="artio-chat-header-sub">Disponible pour vous aider</div>
@@ -468,9 +487,7 @@ DIVERS :
       </div>
       <button id="artio-chat-btn" title="Aide IA Artio">
         <div id="artio-chat-badge"></div>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
+        <img src="mascotte-artio.png" id="artio-chat-mascot" alt="Artio">
       </button>
     `;
     document.body.appendChild(wrapper);
