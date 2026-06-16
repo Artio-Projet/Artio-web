@@ -786,6 +786,69 @@ async function loadUserData(userId){
       },300);
     }
   }
+  // Démarrer le polling auto + Realtime signatures
+  setupAutoRefresh(userId);
+}
+
+// ——— AUTO-REFRESH DES DOSSIERS ———
+// Re-fetch toutes les 30s quand l'onglet est actif, et immédiat au retour de focus.
+// Plus simple et plus robuste que Realtime (pas de config publication/RLS à gérer).
+let _pollIntervalId=null;
+let _pollUserId=null;
+let _polling=false;
+
+async function refreshDossiers(){
+  if(!_pollUserId||_polling) return;
+  if(document.visibilityState!=="visible") return;
+  _polling=true;
+  try{
+    const{data,error}=await sb.from("dossiers").select("*").eq("user_id",_pollUserId).order("updated_at",{ascending:false});
+    if(error||!data){_polling=false;return;}
+    const fresh=data.map(d=>{
+      let docs=[];
+      try{docs=typeof d.documents==="string"?JSON.parse(d.documents):(d.documents||[]);}catch(e){docs=[];}
+      return{...d,documents:docs};
+    });
+    // Détecter un vrai changement avant de re-render (évite renders inutiles)
+    const sigOld=JSON.stringify(S.dossiers.map(d=>[d.id,d.statut,d.updated_at,(d.documents||[]).map(x=>[x.docNumber,x.accepte,x.paye]).flat()]));
+    const sigNew=JSON.stringify(fresh.map(d=>[d.id,d.statut,d.updated_at,(d.documents||[]).map(x=>[x.docNumber,x.accepte,x.paye]).flat()]));
+    if(sigOld!==sigNew){
+      S.dossiers=fresh;
+      S.dossiers.forEach(d=>(d.documents||[]).forEach(doc=>{if(doc.docNumber)storeDoc(doc);}));
+      if(typeof checkDevisAConvertir==="function") checkDevisAConvertir();
+      renderPage();
+    }
+  }catch(e){console.warn("refreshDossiers:",e);}
+  _polling=false;
+}
+
+function setupAutoRefresh(userId){
+  _pollUserId=userId;
+  // Realtime sur signatures → toast immédiat + refetch
+  try{
+    sb.channel("signatures_"+userId)
+      .on("postgres_changes",{
+        event:"UPDATE",
+        schema:"public",
+        table:"signatures",
+        filter:"user_id=eq."+userId
+      }, payload=>{
+        if(payload.new?.status==="signed"){
+          const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
+          const num=payload.new?.doc_number||"";
+          if(typeof showToast==="function") showToast("✅ Devis "+num+" signé par "+nom+" !");
+          setTimeout(refreshDossiers,800);
+        }
+      })
+      .subscribe();
+  }catch(e){console.warn("Realtime signature listener KO (non bloquant):",e);}
+  // Polling 30s
+  if(_pollIntervalId) clearInterval(_pollIntervalId);
+  _pollIntervalId=setInterval(refreshDossiers,30000);
+  // Refresh au retour de focus
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible") refreshDossiers();
+  });
 }
 
 async function initAuth(){

@@ -1047,7 +1047,6 @@ async function initAuth(){
     if(!S.entreprise.nom || !S.entreprise.onboarding_done){
       window.location.href="onboarding.html";return;
     }
-    setupSignatureListener(session.user.id);
     // Gérer les liens depuis autres pages : ?settings=profil ou ?settings=gmail
     const sp=new URLSearchParams(window.location.search).get("settings");
     if(sp==="profil"||sp==="gmail"||sp==="1"){
@@ -1833,50 +1832,7 @@ window.downloadSignedProof=async function(docNumber){
     pdf.save("PREUVE_SIGNATURE_"+docNumber+".pdf");
   }catch(err){alert("Erreur : "+err.message);}
 };
-// ——— REALTIME LISTENERS ———
-function setupSignatureListener(userId){
-  // 1) Listener signatures → toast de notification immédiat
-  sb.channel("signatures_"+userId)
-    .on("postgres_changes",{
-      event:"UPDATE",
-      schema:"public",
-      table:"signatures",
-      filter:"user_id=eq."+userId
-    }, payload=>{
-      if(payload.new?.status==="signed"){
-        const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
-        const num=payload.new?.doc_number||"";
-        showToast("✅ Devis "+num+" signé par "+nom+" !");
-      }
-    })
-    .subscribe();
 
-  // 2) Listener dossiers → mise à jour UI automatique quand notify-signature
-  //    met à jour le dossier côté serveur (statut + doc.accepte).
-  //    Fonctionne que le pro soit ou non sur la plateforme au moment de la signature.
-  sb.channel("dossiers_"+userId)
-    .on("postgres_changes",{
-      event:"UPDATE",
-      schema:"public",
-      table:"dossiers",
-      filter:"user_id=eq."+userId
-    }, payload=>{
-      if(!payload.new) return;
-      const updated=payload.new;
-      let docs=[];
-      try{docs=typeof updated.documents==="string"?JSON.parse(updated.documents):(updated.documents||[]);}catch(e){}
-      // Mettre à jour le dossier dans le state local sans recharger toute la liste
-      const idx=S.dossiers.findIndex(d=>d.id===updated.id);
-      if(idx>=0){
-        S.dossiers[idx]={...updated,documents:docs};
-      } else {
-        S.dossiers.unshift({...updated,documents:docs});
-      }
-      if(typeof checkDevisAConvertir==="function") checkDevisAConvertir();
-      render();
-    })
-    .subscribe();
-}
 
 function showToast(msg){
   let t=document.getElementById("artio-toast");
