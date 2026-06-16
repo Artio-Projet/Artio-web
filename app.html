@@ -966,7 +966,12 @@ Signe "${e.nom||""}".`,800);
     S.emailReplyDraft={...(S.emailReplyDraft||{}),[emailId]:{loading:false,text:raw}};
   }catch(err){
     S.emailReplyDraft={...(S.emailReplyDraft||{}),[emailId]:{loading:false,text:""}};
-    alert("Erreur : "+err.message);
+    if(err.code==="plan_required"){/* déjà géré */}
+    else if(err.code==="overloaded"){
+      showToast("⏳ IA saturée — réessaie dans 1 minute",5000);
+    }else{
+      showToast("❌ "+err.message,5000);
+    }
   }
   render();
 };
@@ -1057,6 +1062,41 @@ async function initAuth(){
     }
     checkDevisAConvertir();
     renderApp();
+    // Récupération d'une dictée vocale interrompue (surcharge IA précédente)
+    setTimeout(()=>{
+      const pendingDevis=ArtioDictation.get("devis");
+      const pendingSuivi=ArtioDictation.get("suivi");
+      const pending=pendingDevis||pendingSuivi;
+      if(pending){
+        const feature=pendingDevis?"devis":"suivi";
+        const mins=Math.round((Date.now()-pending.savedAt)/60000);
+        if(typeof showToast==="function"){
+          showToast(`💾 Dictée non aboutie il y a ${mins} min — clique 🔄 pour rejouer`,8000);
+        }
+        // Bouton flottant temporaire pour rejouer la dictée
+        const btn=document.createElement("button");
+        btn.id="artio-replay-dictation";
+        btn.innerHTML="🔄 Rejouer ma dictée";
+        btn.style.cssText="position:fixed;bottom:90px;right:20px;z-index:9999;background:linear-gradient(135deg,#534ab7,#7165d0);color:#fff;border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);cursor:pointer;";
+        btn.onclick=async()=>{
+          btn.disabled=true;btn.innerHTML="⏳ Génération…";
+          try{
+            if(feature==="devis"){
+              window.startVoice(pending.transcript); // mode replay, skip micro
+            }else{
+              window.startVoiceSuivi(pending.transcript);
+            }
+            // Le callback s'exécute en async, on retire le bouton après un délai
+            setTimeout(()=>btn.remove(),2000);
+          }catch(e){
+            btn.disabled=false;btn.innerHTML="🔄 Rejouer ma dictée";
+          }
+        };
+        document.body.appendChild(btn);
+        // Auto-retire au bout de 5 min
+        setTimeout(()=>{const el=document.getElementById("artio-replay-dictation");if(el)el.remove();},300000);
+      }
+    },1500);
     if(window.ArtioTour) window.ArtioTour.autoStart();
   }else{window.location.href="index.html";}
 }
@@ -1087,8 +1127,36 @@ async function handleLogout(){
   window.location.href="index.html";
 }
 
-// ——— API CLAUDE ———
-async function callClaude(prompt,maxTokens=400,retries=5){
+// ——— DICTATION RECOVERY ———
+// Sauvegarde la dictée vocale avant chaque appel IA risqué, pour pouvoir
+// la rejouer si l'IA est surchargée. Stocké dans localStorage par "feature".
+const ArtioDictation={
+  _key:f=>"artio_pending_dictation_"+f,
+  save(feature,transcript,extra){
+    try{
+      localStorage.setItem(this._key(feature),JSON.stringify({
+        transcript,extra:extra||null,savedAt:Date.now()
+      }));
+    }catch(e){}
+  },
+  get(feature){
+    try{
+      const raw=localStorage.getItem(this._key(feature));
+      if(!raw) return null;
+      const obj=JSON.parse(raw);
+      // Expire au bout de 24h
+      if(Date.now()-obj.savedAt>86400000){this.clear(feature);return null;}
+      return obj;
+    }catch(e){return null;}
+  },
+  clear(feature){try{localStorage.removeItem(this._key(feature));}catch(e){}}
+};
+window.ArtioDictation=ArtioDictation;
+
+// ——— API CLAUDE (v2 — résilience surcharge) ———
+// Le serveur gère désormais les retries + fallback Haiku.
+// Le client se contente d'1 retry réseau et d'un message clair sur "overloaded".
+async function callClaude(prompt,maxTokens=400){
   // ── Plan Guard : bloque l'IA pour les non-abonnés ──
   if(window.PlanGuard && window.PlanGuard.isFree()){
     _showReadonlyAlert("La génération par IA nécessite un abonnement actif.");
@@ -1096,9 +1164,13 @@ async function callClaude(prompt,maxTokens=400,retries=5){
   }
   const{data:{session}}=await sb.auth.getSession();
   if(!session){throw new Error("Session expirée, reconnecte-toi.");}
-  for(let attempt=1;attempt<=retries;attempt++){
+
+  // 1 seul retry réseau côté client (le serveur fait déjà 4+4 essais en interne)
+  let networkRetry=false;
+  while(true){
+    let res,d;
     try{
-      const res=await fetch(FUNCTIONS_URL+"/claude-proxy",{
+      res=await fetch(FUNCTIONS_URL+"/claude-proxy",{
         method:"POST",
         headers:{
           "Content-Type":"application/json",
@@ -1110,33 +1182,34 @@ async function callClaude(prompt,maxTokens=400,retries=5){
           messages:[{role:"user",content:prompt}]
         })
       });
-      const d=await res.json();
-      if(!res.ok){
-        if((d.code==="plan_required")||res.status===403){
-          _showReadonlyAlert("Abonnement requis pour utiliser l'IA.");
-          throw new Error("plan_required");
-        }
-        if((res.status===529||res.status===503||res.status===429)&&attempt<retries){
-          const wait=1500*Math.pow(1.5,attempt);
-          console.warn(`Proxy surchargé, retry ${attempt}/${retries} dans ${Math.round(wait)}ms`);
-          await new Promise(r=>setTimeout(r,wait));
-          continue;
-        }
-        throw new Error(d.error||d.message||"Erreur proxy IA");
-      }
-      return{
-        text:d.content?.map(b=>b.text||"").join("")||"",
-        usage:d.usage||null
-      };
-    }catch(e){
-      if(attempt===retries){
-        if(e.message==="plan_required")throw e;
-        throw new Error("L'IA est momentanément surchargée. Réessayez dans quelques instants.");
-      }
-      if(e.message==="plan_required")throw e;
-      const wait=1500*Math.pow(1.5,attempt);
-      await new Promise(r=>setTimeout(r,wait));
+      d=await res.json();
+    }catch(netErr){
+      if(!networkRetry){networkRetry=true;await new Promise(r=>setTimeout(r,1500));continue;}
+      const err=new Error("Connexion au serveur IA impossible. Vérifie ta connexion.");
+      err.code="network";throw err;
     }
+
+    if(!res.ok){
+      if(d.code==="plan_required"||res.status===403){
+        _showReadonlyAlert("Abonnement requis pour utiliser l'IA.");
+        const err=new Error("plan_required");err.code="plan_required";throw err;
+      }
+      if(d.code==="overloaded"||res.status===529){
+        const err=new Error(d.error||"Les serveurs IA sont saturés. Votre dictée est sauvegardée.");
+        err.code="overloaded";
+        err.retryAfter=d.retry_after_seconds||60;
+        throw err;
+      }
+      const err=new Error(d.error||d.message||"Erreur IA");
+      err.code=d.code||"unknown";throw err;
+    }
+
+    return{
+      text:d.content?.map(b=>b.text||"").join("")||"",
+      usage:d.usage||null,
+      fallbackUsed:d._artio?.fallback_used===true,
+      modelUsed:d._artio?.model_used||null
+    };
   }
 }
 
@@ -1252,15 +1325,17 @@ window.stopVoice=async()=>{
   try{
     if(voiceCallback) await voiceCallback(transcript);
   }catch(e){
-    alert("Erreur : "+e.message);
+    showToast("❌ "+e.message,5000);
   }
   set({voiceState:"idle"});
   setTimeout(()=>set({voiceTranscript:""}),3000);
 };
 
-window.startVoice=()=>{
+window.startVoice=(replayTranscript)=>{
   S.entryMode="voice";
   voiceCallback=async t=>{
+    // Sauvegarder la dictée AVANT l'appel IA — récupérable si surcharge
+    ArtioDictation.save("devis",t);
     try{
       const raw=await callClaude(
 `Tu es un assistant pour ${S.entreprise.secteur||"un prestataire indépendant"}. L'utilisateur parle en ${({'fr':'français','en':'anglais','es':'espagnol','zh':'chinois'})[S.langue]||'français'}. Analyse cette dictée et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou après, sans balises markdown.
@@ -1317,16 +1392,29 @@ JSON:
         });
         if(match) loadTemplate(match.id);
       }
+      // Succès : on efface la dictée sauvegardée
+      ArtioDictation.clear("devis");
+      if(raw.fallbackUsed){
+        showToast("⚡ Généré en mode rapide (IA principale saturée)");
+      }
       render();
     }catch(err){
-      alert("Erreur analyse : "+err.message);
+      if(err.code==="plan_required"){return;} // déjà géré par _showReadonlyAlert
+      if(err.code==="overloaded"){
+        showToast("⏳ IA saturée — dictée sauvegardée, retente dans 1 min via le bouton 🎤",6000);
+      }else{
+        showToast("❌ "+err.message,5000);
+      }
     }
   };
+  // Mode replay : on ne démarre pas le micro, on rejoue la dictée sauvegardée
+  if(replayTranscript){voiceCallback(replayTranscript);return;}
   startVoiceGeneric(voiceCallback);
 };
 
-window.startVoiceSuivi=()=>{
+window.startVoiceSuivi=(replayTranscript)=>{
   voiceCallback=async t=>{
+    ArtioDictation.save("suivi",t);
     try{
       const raw=await callClaude(
 `Tu es un assistant pour un prestataire indépendant français. Analyse ce résumé oral de prestation et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou après.
@@ -1350,11 +1438,21 @@ JSON:
         if(v!==null&&String(v)!=="null"&&String(v).trim()!=="") nf[k]=String(v);
       });
       S.fields=nf;
+      ArtioDictation.clear("suivi");
+      if(raw.fallbackUsed){
+        showToast("⚡ Généré en mode rapide (IA principale saturée)");
+      }
       render();
     }catch(err){
-      alert("Erreur : "+err.message);
+      if(err.code==="plan_required"){return;}
+      if(err.code==="overloaded"){
+        showToast("⏳ IA saturée — dictée sauvegardée, retente dans 1 min via le bouton 🎤",6000);
+      }else{
+        showToast("❌ "+err.message,5000);
+      }
     }
   };
+  if(replayTranscript){voiceCallback(replayTranscript);return;}
   startVoiceGeneric(voiceCallback);
 };
 
@@ -1827,43 +1925,47 @@ window.downloadSignedProof=async function(docNumber){
     pdf.save("PREUVE_SIGNATURE_"+docNumber+".pdf");
   }catch(err){alert("Erreur : "+err.message);}
 };
-// ——— REALTIME SIGNATURE LISTENER ———
+// ——— REALTIME LISTENERS ———
 function setupSignatureListener(userId){
+  // 1) Listener signatures → toast de notification immédiat
   sb.channel("signatures_"+userId)
     .on("postgres_changes",{
       event:"UPDATE",
       schema:"public",
       table:"signatures",
       filter:"user_id=eq."+userId
-    }, async payload=>{
+    }, payload=>{
       if(payload.new?.status==="signed"){
-        const{data}=await sb.from("dossiers").select("*").eq("user_id",userId).order("updated_at",{ascending:false});
-        if(data){
-          S.dossiers=data.map(d=>{
-            let docs=[];
-            try{docs=typeof d.documents==="string"?JSON.parse(d.documents):(d.documents||[])}catch(e){}
-            return{...d,documents:docs};
-          });
-          render();
-          const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
-          const num=payload.new?.doc_number||"";
-          const dosId=payload.new?.dossier_id||(payload.new?.doc_data?._dossier_id)||"";
-          // Marquer le devis comme accepté sans créer de facture automatiquement
-          if(dosId&&num){
-            const dos=S.dossiers.find(d=>d.id===dosId);
-            if(dos){
-              dos.documents=dos.documents.map(d=>d.docNumber===num?{...d,accepte:true}:d);
-              if(dos.statut!=="devis_accepte"&&dos.statut!=="facture"){
-                dos.statut="devis_accepte";
-                await upsertDossier(dos);
-              }
-            }
-          }
-          showToast("✅ Devis "+num+" signé par "+nom+" !");
-          checkDevisAConvertir();
-          render();
-        }
+        const nom=payload.new?.signer_email||payload.new?.doc_data?.client?.nom||"";
+        const num=payload.new?.doc_number||"";
+        showToast("✅ Devis "+num+" signé par "+nom+" !");
       }
+    })
+    .subscribe();
+
+  // 2) Listener dossiers → mise à jour UI automatique quand notify-signature
+  //    met à jour le dossier côté serveur (statut + doc.accepte).
+  //    Fonctionne que le pro soit ou non sur la plateforme au moment de la signature.
+  sb.channel("dossiers_"+userId)
+    .on("postgres_changes",{
+      event:"UPDATE",
+      schema:"public",
+      table:"dossiers",
+      filter:"user_id=eq."+userId
+    }, payload=>{
+      if(!payload.new) return;
+      const updated=payload.new;
+      let docs=[];
+      try{docs=typeof updated.documents==="string"?JSON.parse(updated.documents):(updated.documents||[]);}catch(e){}
+      // Mettre à jour le dossier dans le state local sans recharger toute la liste
+      const idx=S.dossiers.findIndex(d=>d.id===updated.id);
+      if(idx>=0){
+        S.dossiers[idx]={...updated,documents:docs};
+      } else {
+        S.dossiers.unshift({...updated,documents:docs});
+      }
+      checkDevisAConvertir();
+      render();
     })
     .subscribe();
 }
