@@ -433,7 +433,7 @@ function exportCSV() {
 
   const rows = [[
     "Type", "Numéro", "Date émission", "Date prestation", "Date paiement",
-    "Client", "Dossier", "Description",
+    "Client", "Dossier",
     "Total HT (€)", "TVA (€)", "Total TTC (€)",
     "Statut"
   ].map(q).join(sep)];
@@ -447,7 +447,6 @@ function exportCSV() {
       dateISO(doc.date_paye),
       doc.client?.nom || doc._dosNom || "",
       doc._dosNom || "",
-      doc.description || "",
       (doc.totalHT || 0).toFixed(2),
       (doc.tva || 0).toFixed(2),
       (doc.ttc || 0).toFixed(2),
