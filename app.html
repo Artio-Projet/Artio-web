@@ -593,6 +593,7 @@ let S={
   showMoreDrawer:false,
   manualMode:false,
   entryMode:null,
+  catalogue:[],
 };
 
 // ——— ICÔNES (SVG inline, trait fin) ———
@@ -668,7 +669,50 @@ async function loadUserData(userId){
       });
       S.dossiers.forEach(d=>(d.documents||[]).forEach(doc=>{if(doc.docNumber)storeDoc(doc);}));
     }
+    // Charger le catalogue prix (défensif : si la table n'existe pas encore, on ignore)
+    await loadCatalogue(userId);
   }catch(e){console.error("loadUserData exception:",e)}
+}
+
+// ——— CATALOGUE PRIX (apprentissage automatique) ———
+// Charge les prestations récurrentes de l'utilisateur, triées par fréquence.
+// Affichage des suggestions à partir de 5 documents générés (seuil de confiance).
+async function loadCatalogue(userId){
+  try{
+    const{data,error}=await sb.from("catalogue_prix")
+      .select("description,prix_unitaire,usage_count")
+      .eq("user_id",userId)
+      .order("usage_count",{ascending:false})
+      .limit(20);
+    if(error){console.warn("catalogue_prix indisponible:",error.message);return;}
+    S.catalogue=data||[];
+  }catch(e){console.warn("loadCatalogue:",e.message);S.catalogue=[];}
+}
+
+// Sauvegarde silencieuse des prestations après génération réussie.
+// Appelée depuis handleGenerate avec les pieces validées.
+async function saveCatalogue(pieces){
+  if(!S.user||!pieces||!pieces.length) return;
+  try{
+    for(const p of pieces){
+      const desc=(p.description||"").trim();
+      const prix=parseFloat(p.prix_unitaire);
+      if(!desc||!prix||prix<=0) continue;
+      // Description trop courte ou trop générique → ignorer
+      if(desc.length<3) continue;
+      await sb.rpc("upsert_catalogue",{p_desc:desc,p_prix:prix});
+    }
+    // Recharger pour avoir les usage_count à jour
+    await loadCatalogue(S.user.id);
+  }catch(e){console.warn("saveCatalogue:",e.message);}
+}
+
+// Seuil de confiance : on n'affiche les suggestions que si l'utilisateur
+// a déjà généré au moins 5 documents. Au-dessous, les prix proposés
+// risqueraient d'être erronés ou non représentatifs.
+function shouldShowSuggestions(){
+  const totalDocs=(S.dossiers||[]).reduce((n,d)=>n+(d.documents||[]).length,0);
+  return totalDocs>=5 && (S.catalogue||[]).length>0;
 }
 
 async function saveProfil(){
@@ -1384,6 +1428,8 @@ const nom=civStr+(travStr?" — "+travStr:"");
     const dos={id:uid(),nom,client:f.client_nom,statut:tab==="devis"?"devis_envoye":"facture",createdAt:todayFR(),documents:[doc]};
     await upsertDossier(dos);
     storeDoc(doc);
+    // Sauvegarde silencieuse du catalogue prix (apprentissage automatique)
+    saveCatalogue(pv).catch(e=>console.warn("catalogue:",e.message));
     // Sauvegarder le client dans la table clients s'il n'existe pas déjà
     if(f.client_nom&&f.client_nom.trim()){
       const clientNom=f.client_nom.trim();
@@ -1426,9 +1472,13 @@ window.togglePreview=num=>set({previewDocNum:S.previewDocNum===num?null:num});
 async function saveTemplate(){
   const nom = (S.templateNom||"").trim();
   if(!nom){ alert("Donnez un nom au template."); return; }
-  if(!S.user?.id) return;
+  if(!S.user?.id){ alert("Session expirée — reconnectez-vous."); return; }
   // Synchroniser les textareas (travaux, etc.) vers S.fields avant save
   document.querySelectorAll("input[data-fid],textarea[data-fid]").forEach(el=>{S.fields[el.dataset.fid]=el.value;});
+  document.querySelectorAll("input[data-pid]").forEach(el=>{
+    const[i,k]=el.dataset.pid.split("_");
+    if(!S.pieces[i])S.pieces[i]={};S.pieces[i][k]=el.value;
+  });
   set({savingTemplate:true});
   // Champs prestation (hors client)
   const prestFields={...S.fields};
@@ -1445,15 +1495,34 @@ async function saveTemplate(){
     nom,
     tab:           S.tab,
     fields:        prestFields,
-    pieces:        S.pieces.map(p=>({...p})),
+    pieces:        (S.pieces||[]).map(p=>({...p})),
     client_fields: clientFields,
   };
-  const{data,error}=await sb.from("templates").insert(payload).select().single();
-  if(error){ alert("Erreur : "+error.message); set({savingTemplate:false}); return; }
-  S.templates=[data,...S.templates];
-  const withClient=S.templateIncludeClient&&(S.fields.client_nom||"").trim();
-  set({savingTemplate:false,templateNom:"",templateIncludeClient:false});
-  showToast("✅ Modèle \""+nom+"\" sauvegardé !"+(withClient?" — 👤 client inclus":""));
+  try{
+    const{data,error}=await sb.from("templates").insert(payload).select().single();
+    if(error){
+      console.error("saveTemplate error:",error);
+      alert("Erreur sauvegarde modèle : "+error.message);
+      set({savingTemplate:false});
+      return;
+    }
+    if(!data||!data.id){
+      console.warn("saveTemplate: insert sans data retourné",data);
+      alert("Le modèle n'a pas pu être enregistré (réponse vide). Réessayez ou contactez le support.");
+      set({savingTemplate:false});
+      return;
+    }
+    // Recharger depuis la DB pour garantir la cohérence (évite un état local désynchronisé)
+    const{data:fresh}=await sb.from("templates").select("*").eq("user_id",S.user.id).order("created_at",{ascending:false});
+    if(fresh) S.templates=fresh;
+    const withClient=S.templateIncludeClient&&(S.fields.client_nom||"").trim();
+    set({savingTemplate:false,templateNom:"",templateIncludeClient:false});
+    showToast("✅ Modèle \""+nom+"\" sauvegardé !"+(withClient?" — 👤 client inclus":""));
+  }catch(e){
+    console.error("saveTemplate exception:",e);
+    alert("Erreur : "+e.message);
+    set({savingTemplate:false});
+  }
 }
 
 async function deleteTemplate(id){
@@ -2024,8 +2093,32 @@ function renderVoice(mode){
 
 function renderPieces(){
   const p=S.pieces;
+  // Suggestions catalogue : seulement si seuil de 5 docs atteint
+  const showSugg=shouldShowSuggestions();
+  let suggHTML="";
+  if(showSugg){
+    // Items déjà présents dans le formulaire (par description normalisée)
+    const present=new Set((p||[]).map(x=>(x?.description||"").trim().toLowerCase()).filter(Boolean));
+    // Top 5 du catalogue non déjà présents
+    const sugg=(S.catalogue||[])
+      .filter(c=>!present.has((c.description||"").trim().toLowerCase()))
+      .slice(0,5);
+    if(sugg.length){
+      suggHTML=`<div style="margin:8px 0 10px;padding:9px 12px;background:var(--amber-dim);border:1px solid rgba(245,167,66,.22);border-radius:10px;">
+        <div style="font-size:10.5px;font-weight:600;color:var(--amber);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;">💡 Vos tarifs habituels</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${sugg.map(c=>{
+            const desc=(c.description||"").replace(/'/g,"\\'");
+            const prix=parseFloat(c.prix_unitaire||0).toFixed(2);
+            return`<button onclick="addFromCatalogue('${esc(desc)}',${prix})" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--fb);transition:all .15s;" onmouseover="this.style.borderColor='var(--amber)';this.style.background='var(--surface-2)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'"><span>${esc(c.description)} · ${prix}€</span><span style="color:var(--amber);font-weight:700;">+</span></button>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
+  }
   return`<div style="margin-bottom:14px;">
     <label class="label" style="margin-bottom:8px;">Prestations / Articles</label>
+    ${suggHTML}
     <div class="pieces-grid" style="margin-bottom:4px;">
       ${["Description","Qté","Prix HT €",""].map(h=>`<span style="font-size:11px;color:#888;">${h}</span>`).join("")}
     </div>
@@ -2039,6 +2132,20 @@ function renderPieces(){
   </div>`;
 }
 
+// Ajoute une prestation depuis le catalogue suggéré.
+// Si la dernière ligne est vide, on la remplit ; sinon on en ajoute une nouvelle.
+window.addFromCatalogue=function(description,prix){
+  const p=S.pieces||[];
+  const last=p[p.length-1];
+  const newItem={description:description,quantite:"1",prix_unitaire:String(prix)};
+  if(last && !last.description && !last.prix_unitaire){
+    p[p.length-1]=newItem;
+  }else{
+    p.push(newItem);
+  }
+  render();
+};
+
 window.renderTotauxOnly=function(){
   const el=document.getElementById("totaux-container");
   if(el) el.innerHTML=renderTotaux();
@@ -2046,11 +2153,13 @@ window.renderTotauxOnly=function(){
 }
 function renderTotaux(){
   const f=S.fields,e=S.entreprise,p=S.pieces;
-  if(!f.nb_heures||!e.taux_horaire)return"";
-  const t=calcTotaux(f.nb_heures,e.taux_horaire,p,f.tva);
+  const hasPieces=(p||[]).some(x=>x&&x.description&&x.prix_unitaire);
+  const hasMO=f.nb_heures&&parseFloat(f.nb_heures)>0&&e.taux_horaire;
+  if(!hasMO && !hasPieces)return"";
+  const t=calcTotaux(f.nb_heures||"0",e.taux_horaire||"0",p,f.tva);
   return`<div class="totaux">
-    <div class="totaux-row"><span>Temps de travail (${f.nb_heures}h × ${e.taux_horaire}€)</span><span>${t.moHT.toFixed(2)} € HT</span></div>
-    <div class="totaux-row"><span>Articles / Prestations</span><span>${t.piecesHT.toFixed(2)} € HT</span></div>
+    ${hasMO?`<div class="totaux-row"><span>Temps de travail (${f.nb_heures}h × ${e.taux_horaire}€)</span><span>${t.moHT.toFixed(2)} € HT</span></div>`:""}
+    ${hasPieces?`<div class="totaux-row"><span>Articles / Prestations</span><span>${t.piecesHT.toFixed(2)} € HT</span></div>`:""}
     <div class="totaux-total"><span>Total HT</span><span>${t.totalHT.toFixed(2)} €</span></div>
     ${parseFloat(f.tva)>0?`<div class="totaux-total"><span>Total TTC (${f.tva}%)</span><span>${t.ttc.toFixed(2)} €</span></div>`:""}
   </div>`;
@@ -2061,11 +2170,13 @@ function _updateInlineTotaux(){
   const el=document.querySelector(".cf-bottom-totals");
   if(!el) return;
   const f=S.fields,e=S.entreprise;
-  if(!f.nb_heures || !e.taux_horaire){
-    el.innerHTML='<span style="font-size:11.5px;font-style:italic;opacity:.6;">Remplis temps de travail pour voir les totaux</span>';
+  const hasPieces=(S.pieces||[]).some(p=>p&&p.description&&p.prix_unitaire);
+  const hasMO=f.nb_heures&&parseFloat(f.nb_heures)>0&&e.taux_horaire;
+  if(!hasMO && !hasPieces){
+    el.innerHTML='<span style="font-size:11.5px;font-style:italic;opacity:.6;">Ajoute une prestation ou un temps de travail pour voir les totaux</span>';
     return;
   }
-  const t=calcTotaux(f.nb_heures,e.taux_horaire,S.pieces||[],f.tva);
+  const t=calcTotaux(f.nb_heures||"0",e.taux_horaire||"0",S.pieces||[],f.tva);
   const ttcVal=parseFloat(f.tva)>0?t.ttc:t.totalHT;
   el.innerHTML=
     '<span><span class="lbl">HT</span> <span class="val">'+t.totalHT.toFixed(2)+' €</span></span>'+
@@ -2278,7 +2389,7 @@ function renderDocPreview(doc){
     <table class="preview-table">
       <thead><tr><th style="text-align:left;">Description</th><th style="text-align:right;">Qté</th><th style="text-align:right;">Prix unit. HT</th><th style="text-align:right;">Total HT</th></tr></thead>
       <tbody>
-        <tr><td>Temps de travail (${doc.nb_heures}h × ${doc.entreprise.taux_horaire} €/h)</td><td style="text-align:right;">${doc.nb_heures}</td><td style="text-align:right;">${parseFloat(doc.entreprise.taux_horaire).toFixed(2)} €</td><td style="text-align:right;">${doc.moHT.toFixed(2)} €</td></tr>
+        ${doc.nb_heures && parseFloat(doc.nb_heures) > 0 ? `<tr><td>Temps de travail (${doc.nb_heures}h × ${doc.entreprise.taux_horaire} €/h)</td><td style="text-align:right;">${doc.nb_heures}</td><td style="text-align:right;">${parseFloat(doc.entreprise.taux_horaire).toFixed(2)} €</td><td style="text-align:right;">${doc.moHT.toFixed(2)} €</td></tr>` : ''}
         ${doc.pieces.map(p=>`<tr><td>${esc(p.description)}</td><td style="text-align:right;">${p.quantite}</td><td style="text-align:right;">${parseFloat(p.prix_unitaire).toFixed(2)} €</td><td style="text-align:right;">${(parseFloat(p.quantite)*parseFloat(p.prix_unitaire)).toFixed(2)} €</td></tr>`).join("")}
       </tbody>
     </table>
