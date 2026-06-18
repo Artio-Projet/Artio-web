@@ -275,6 +275,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // otpVerified est maintenant géré côté serveur (via verify_signature_otp RPC)
 let token = null, sigData = null, drawing = false, canvas = null, ctx = null, hasDrawn = false, otpVerified = false, signerEmail = "", docHash = null, signerIp = "";
+let sig = null; // données de la signature chargées via RPC, accessibles globalement
 
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function fmt(n) { return Number(n||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €"; }
@@ -606,7 +607,7 @@ function startCountdown(expiresAt) {
 
   // Charger la signature via RPC sécurisée (remplace les 2 appels directs)
   // get_signature_by_token() n'expose que les champs nécessaires, jamais les données sensibles
-  let sig = null;
+  sig = null; // utilise la variable globale
   let error = null;
   try {
     const { data: rpcData, error: rpcErr } = await sb.rpc("get_signature_by_token", { p_token: token });
