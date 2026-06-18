@@ -2099,10 +2099,10 @@ function renderPieces(){
   if(showSugg){
     // Items déjà présents dans le formulaire (par description normalisée)
     const present=new Set((p||[]).map(x=>(x?.description||"").trim().toLowerCase()).filter(Boolean));
-    // Top 5 du catalogue non déjà présents
+    // Top 3 du catalogue non déjà présents
     const sugg=(S.catalogue||[])
       .filter(c=>!present.has((c.description||"").trim().toLowerCase()))
-      .slice(0,5);
+      .slice(0,3);
     if(sugg.length){
       suggHTML=`<div style="margin:8px 0 10px;padding:9px 12px;background:var(--amber-dim);border:1px solid rgba(245,167,66,.22);border-radius:10px;">
         <div style="font-size:10.5px;font-weight:600;color:var(--amber);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;">💡 Vos tarifs habituels</div>
