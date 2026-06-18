@@ -597,10 +597,11 @@ function startCountdown(expiresAt) {
       </div>`;
     return;
   }
-  // Récupérer l'IP via la Edge Function (côté serveur, infalsifiable)
+  // Stocker l'IP côté serveur dans signature_otps (infalsifiable car lue depuis les headers)
+  // On utilise store-ip qui stocke l'IP en base ET la retourne pour info
   try {
     const { data: ipData } = await sb.functions.invoke("send-otp", {
-      body: { type: "get-ip" }
+      body: { type: "store-ip", token: token }
     });
     signerIp = ipData?.ip || "";
   } catch(e) { signerIp = ""; }
