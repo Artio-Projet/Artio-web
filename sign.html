@@ -504,12 +504,11 @@ window.submitSignature = async function() {
   const btn = document.getElementById("sign-btn");
   if (btn) { btn.disabled = true; btn.textContent = "Envoi en cours…"; }
 
-  // Vérifier l'intégrité du document
-  const { data: sigRow } = await sb.from("signatures").select("doc_data, doc_hash").eq("token", token).single();
+  // Vérifier l'intégrité du document (via RPC sécurisée, déjà chargée au démarrage)
   let hashVerified = false;
-  if (sigRow?.doc_hash && sigRow?.doc_data) {
-    const recomputedHash = await hashData(sigRow.doc_data);
-    hashVerified = (recomputedHash === sigRow.doc_hash);
+  if (sig?.doc_hash && sig?.doc_data) {
+    const recomputedHash = await hashData(sig.doc_data);
+    hashVerified = (recomputedHash === sig.doc_hash);
     if (!hashVerified) {
       alert("⚠️ Attention : l'intégrité du document ne peut pas être vérifiée. La signature a été annulée par mesure de sécurité.");
       if (btn) { btn.disabled = false; btn.textContent = "Signer et valider"; }
@@ -535,14 +534,14 @@ window.submitSignature = async function() {
   // Envoyer email de confirmation (le serveur persiste lui-même
   // le resend_id dans signatures.resend_confirmation_id via service_role).
   try {
-    const { data: sigRow2 } = await sb.from("signatures").select("doc_data, signed_at").eq("token", token).single();
-    if (sigRow2?.doc_data) {
+    // doc_data déjà disponible dans sig (chargé via RPC au démarrage)
+    if (sig?.doc_data) {
       await sb.functions.invoke("send-otp", {
         body: {
           type: "confirmation",
           email: signerEmail,
           token: token,
-          doc: { ...sigRow2.doc_data, signed_at: sigRow2.signed_at }
+          doc: { ...sig.doc_data, signed_at: new Date().toISOString() }
         }
       });
     }
@@ -605,15 +604,21 @@ function startCountdown(expiresAt) {
     signerIp = ipData?.ip || "";
   } catch(e) { signerIp = ""; }
 
-  // Afficher le hash du document dès le chargement
+  // Charger la signature via RPC sécurisée (remplace les 2 appels directs)
+  // get_signature_by_token() n'expose que les champs nécessaires, jamais les données sensibles
+  let sig = null;
+  let error = null;
   try {
-    const { data: sigRow } = await sb.from("signatures").select("doc_hash").eq("token", token).single();
-    docHash = sigRow?.doc_hash || null;
-    const hashDisplay = document.getElementById("doc-hash-display");
-    if (hashDisplay) hashDisplay.textContent = docHash || "Non disponible";
-  } catch(e) { console.warn("Hash:", e); }
-
-  const { data: sig, error } = await sb.from("signatures").select("*").eq("token", token).single();
+    const { data: rpcData, error: rpcErr } = await sb.rpc("get_signature_by_token", { p_token: token });
+    if (rpcErr) { error = rpcErr; }
+    else if (!rpcData) { error = { message: "introuvable" }; }
+    else {
+      sig = rpcData;
+      docHash = sig.doc_hash || null;
+      const hashDisplay = document.getElementById("doc-hash-display");
+      if (hashDisplay) hashDisplay.textContent = docHash || "Non disponible";
+    }
+  } catch(e) { error = e; }
 
   if (error || !sig) {
     document.getElementById("content").innerHTML = `
