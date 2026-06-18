@@ -273,7 +273,8 @@ const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let token = null, sigData = null, drawing = false, canvas = null, ctx = null, hasDrawn = false, otpCode = null, otpVerified = false, signerEmail = "", docHash = null, signerIp = "";
+// otpVerified est maintenant géré côté serveur (via verify_signature_otp RPC)
+let token = null, sigData = null, drawing = false, canvas = null, ctx = null, hasDrawn = false, otpVerified = false, signerEmail = "", docHash = null, signerIp = "";
 
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function fmt(n) { return Number(n||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €"; }
@@ -430,18 +431,24 @@ function startOtpTimer() {
   }, 500);
 }
 
+// ── OTP SERVEUR-SIDE ─────────────────────────────────────────────
+// Le code est généré par send-otp (Edge Function), stocké en SHA-256
+// en base. La vérification passe par la RPC verify_signature_otp().
+// Aucun code en clair côté client.
+
 window.sendOtp = async function() {
   signerEmail = document.getElementById("signer-email")?.value?.trim();
   if (!signerEmail || !signerEmail.includes("@")) { alert("Veuillez saisir une adresse email valide."); return; }
-  otpCode = String(Math.floor(100000 + Math.random() * 900000));
   otpVerified = false;
 
   const btn = document.getElementById("btn-send-otp");
   if (btn) { btn.disabled = true; btn.textContent = "Envoi…"; }
 
   try {
+    // On envoie email + token au serveur. Le serveur génère le code,
+    // stocke son SHA-256, et envoie l'email. Jamais de code côté client.
     const { error } = await sb.functions.invoke("send-otp", {
-      body: { email: signerEmail, code: otpCode }
+      body: { type: "otp", email: signerEmail, token: token }
     });
     if (error) throw new Error(error.message);
 
@@ -456,17 +463,34 @@ window.sendOtp = async function() {
   }
 };
 
-window.verifyOtp = function() {
+window.verifyOtp = async function() {
   const entered = document.getElementById("otp-input")?.value?.trim();
-  if (entered === otpCode) {
+  if (!entered || !/^\d{6}$/.test(entered)) { alert("Veuillez saisir le code à 6 chiffres."); return; }
+
+  const btn = document.querySelector(".btn-otp[onclick=\"verifyOtp()\"]");
+  if (btn) { btn.disabled = true; btn.textContent = "Vérification…"; }
+
+  try {
+    // La vérification se fait CÔTÉ SERVEUR via RPC SQL.
+    // Le serveur compare SHA-256(code_saisi) avec ce qui est en base.
+    const { data, error } = await sb.rpc("verify_signature_otp", {
+      p_token: token,
+      p_code:  entered,
+    });
+
+    if (error) throw new Error(error.message);
+    if (!data?.success) throw new Error(data?.error || "Code incorrect.");
+
+    // OTP validé côté serveur
     otpVerified = true;
     clearInterval(otpTimer);
     document.getElementById("otp-verified-badge").style.display = "block";
     document.getElementById("otp-section").style.display = "none";
     document.getElementById("otp-timer").textContent = "";
     document.getElementById("btn-send-otp").style.display = "none";
-  } else {
-    alert("Code incorrect. Veuillez réessayer.");
+  } catch(e) {
+    alert(e.message || "Erreur de vérification.");
+    if (btn) { btn.disabled = false; btn.textContent = "Vérifier"; }
   }
 };
 
