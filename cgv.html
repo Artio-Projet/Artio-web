@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>CGV — Artio</title>
+  <link rel="icon" type="image/png" href="artio-icon.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <style>
@@ -102,7 +102,7 @@
       <div class="doc-title">Conditions Générales de Vente</div>
       <div class="doc-meta">
         <span>Service Artio — monartio.fr</span>
-        <span>Version 2.1 — Juin 2026</span>
+        <span>Version 2.2 — Juin 2026</span>
       </div>
     </div>
 
@@ -156,7 +156,7 @@
       <h3>6.1 Modalités</h3>
       <p>Paiement par carte bancaire via <strong>Stripe</strong> (Visa, Mastercard, American Express). L'Éditeur ne stocke aucune donnée bancaire. Stripe est certifié PCI-DSS.</p>
       <h3>6.2 Facturation et renouvellement</h3>
-      <p>L'abonnement est facturé mensuellement à la date anniversaire, avec renouvellement automatique. Une facture est émise par Stripe à chaque échéance.</p>
+      <p>L'abonnement est facturé selon la périodicité choisie (mensuelle ou annuelle) à la date anniversaire de souscription, avec renouvellement automatique. Une facture est émise par Stripe à chaque échéance.</p>
       <h3>6.3 Défaut de paiement</h3>
       <p>En cas d'échec de paiement, le Service peut être suspendu après 7 jours de notification, puis résilié après 30 jours sans régularisation.</p>
 
@@ -165,14 +165,14 @@
       <p>Résiliation à tout moment sans pénalité depuis l'espace personnel ou par email à <a href="mailto:artio.contact.dev@gmail.com" style="color:var(--teal)">artio.contact.dev@gmail.com</a>. Effet à la fin de la période en cours, sans remboursement au prorata.</p>
       <h3>7.2 Résiliation par l'Éditeur</h3>
       <p>En cas de violation des CGU ou CGV, l'Éditeur peut résilier sans remboursement. En cas de cessation définitive du Service, les Abonnés sont informés 60 jours à l'avance et remboursés au prorata.</p>
-      <h3>7.3 Droit de rétractation</h3>
-      <div class="highlight">Le Service étant B2B, le droit de rétractation légal ne s'applique pas. À titre commercial uniquement, l'Éditeur accorde une période de satisfaction de <strong>7 jours</strong> suivant la première souscription : remboursement intégral du premier mois si l'usage a été non significatif, sur demande à <a href="mailto:artio.contact.dev@gmail.com" style="color:var(--amber)">artio.contact.dev@gmail.com</a>.</div>
+      <h3>7.3 Absence de droit de rétractation</h3>
+      <div class="highlight">Le Service étant exclusivement destiné aux professionnels (B2B), le droit de rétractation légal prévu par le Code de la consommation ne s'applique pas. Les Abonnés Fondateurs bénéficient toutefois d'une période d'essai contractuelle de 62 jours, durant laquelle ils peuvent résilier sans frais. Les nouveaux Abonnés peuvent résilier à tout moment avec effet à la fin de la période en cours.</div>
 
       <h2>Article 7bis – Offre Fondateurs</h2>
       <h3>Conditions de l'offre</h3>
       <p>Les premiers abonnés ayant souscrit durant la période de lancement bénéficient d'un tarif figé à vie, d'une période d'essai de 62 jours, et de 2 mois offerts sur l'engagement annuel.</p>
       <h3>Clause de déchéance</h3>
-      <p>En cas de résiliation volontaire par le Fondateur, le tarif préférentiel est définitivement perdu. Toute nouvelle souscription ultérieure s'effectuera au tarif en vigueur au moment de la réinscription. Cette clause s'applique également en cas de rétrogradation volontaire vers le plan gratuit.</p>
+      <p>En cas de résiliation volontaire par le Fondateur, le tarif préférentiel est définitivement perdu. Toute nouvelle souscription ultérieure s'effectuera au tarif standard en vigueur au moment de la réinscription.</p>
 
       <h2>Article 8 – Intelligence artificielle — limites et responsabilités</h2>
       <h3>8.1 Nature de l'IA intégrée</h3>
@@ -201,6 +201,8 @@
           <tr><td>Anthropic (Claude)</td><td>IA générative</td><td>Contenu dicté pour génération</td></tr>
           <tr><td>Google (Gmail API)</td><td>Intégration messagerie (opt.)</td><td>Emails (si activé)</td></tr>
           <tr><td>FactPulse</td><td>Facturation électronique (PDP agréée DGFiP)</td><td>Données de facturation</td></tr>
+          <tr><td>Pappers</td><td>Vérification SIRET / annuaire entreprises</td><td>SIRET saisi (lookup ponctuel)</td></tr>
+          <tr><td>Expo (push notifications)</td><td>Notifications mobiles (app mobile)</td><td>Push token de l'appareil</td></tr>
         </tbody>
       </table>
       <p>Ces prestataires sont soumis à des obligations de confidentialité conformes au RGPD. L'Éditeur se réserve le droit de modifier ses prestataires en cas de changement substantiel affectant les données.</p>
@@ -228,7 +230,7 @@
         <li>Des dommages indirects ou pertes commerciales</li>
         <li>Des interruptions liées à des prestataires tiers</li>
       </ul>
-      <p>En tout état de cause, la responsabilité de l'Éditeur est plafonnée au total des sommes payées au cours des <strong>3 derniers mois</strong> précédant le préjudice.</p>
+      <p>En tout état de cause, la responsabilité de l'Éditeur est plafonnée au montant le plus élevé entre les sommes payées par l'Abonné au cours des <strong>12 derniers mois</strong> précédant le préjudice et <strong>500 €</strong>.</p>
 
       <h2>Article 15 – Propriété intellectuelle</h2>
       <p>Le Service, son interface et son code sont la propriété exclusive de l'Éditeur. La souscription confère un droit d'usage personnel, non exclusif et non cessible. Les documents créés par l'Abonné lui appartiennent entièrement.</p>
@@ -253,7 +255,7 @@
   </main>
 
   <footer>
-    <span>Conditions Générales de Vente — Artio — Version 2.1 — Juin 2026</span>
+    <span>Conditions Générales de Vente — Artio — Version 2.2 — Juin 2026</span>
   </footer>
   <script src="legal-footer.js"></script>
 <script>

@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Politique de Confidentialité — Artio</title>
+  <link rel="icon" type="image/png" href="artio-icon.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <style>
@@ -106,7 +106,7 @@
       <div class="doc-title">Politique de Confidentialité</div>
       <div class="doc-meta">
         <span>Service Artio — monartio.fr</span>
-        <span>Version 2.1 — Juin 2026</span>
+        <span>Version 2.2 — Juin 2026</span>
       </div>
     </div>
 
@@ -137,7 +137,7 @@
         <li>Devis et factures générés via le Service</li>
         <li>Données de signature électronique (IP du signataire, horodatage, email, hash du document)</li>
         <li>Rendez-vous et événements du calendrier</li>
-        <li>IBAN (pour facturation électronique, optionnel)</li>
+        <li>IBAN (pour facturation électronique, optionnel — stocké de manière sécurisée dans la base, accessible uniquement par votre compte authentifié)</li>
       </ul>
       <h3>2.3 Données de facturation</h3>
       <ul>
@@ -160,6 +160,15 @@
         <li>Accès en écriture pour l'envoi d'emails depuis votre compte Gmail</li>
         <li>Accès aux étiquettes Gmail pour les actions d'archivage, mise à la corbeille et marquage comme lu (déclenchées par l'Utilisateur depuis Artio). Aucune suppression définitive ni modification de paramètres du compte Gmail n'est possible.</li>
         <li>Tokens d'accès OAuth 2.0 (stockés de manière sécurisée, révocables à tout moment)</li>
+      </ul>
+
+      <h3>2.7 Données de la liste d'attente (waitlist)</h3>
+      <p>Avant la souscription à un Abonnement, vous pouvez vous inscrire à la liste d'attente. Nous collectons alors uniquement votre adresse email, votre éventuel statut Fondateur et la date d'inscription.</p>
+      <ul>
+        <li>Base légale : consentement</li>
+        <li>Finalité : information sur le lancement, tarifs préférentiels Fondateur</li>
+        <li>Durée : jusqu'au désabonnement, ou suppression automatique après 3 ans d'inactivité si aucune conversion vers un compte</li>
+        <li>Désabonnement : lien présent dans chaque email Resend, ou demande à <a href="mailto:artio.contact.dev@gmail.com" style="color:var(--teal)">artio.contact.dev@gmail.com</a></li>
       </ul>
 
       <h2>3. Pourquoi collectons-nous vos données ?</h2>
@@ -191,6 +200,8 @@
           <tr><td>Anthropic</td><td>IA générative (Claude)</td><td>USA</td><td>SCCs RGPD + DPA + pas d'entraînement</td></tr>
           <tr><td>Google (Gmail API)</td><td>Intégration messagerie (opt.)</td><td>USA / UE</td><td>SCCs + Data Privacy Framework (DPF) 2023, ou tout mécanisme équivalent reconnu par la Commission européenne</td></tr>
           <tr><td>FactPulse</td><td>Facturation électronique (PDP agréée DGFiP)</td><td>France / UE</td><td>Conformité RGPD, données hébergées en France</td></tr>
+          <tr><td>Pappers</td><td>Lookup SIRET / annuaire entreprises</td><td>France</td><td>Conformité RGPD, requête ponctuelle</td></tr>
+          <tr><td>Expo (push notifications)</td><td>Notifications mobiles (app mobile)</td><td>USA</td><td>SCCs RGPD, token d'appareil uniquement</td></tr>
         </tbody>
       </table>
       <h3>4.1 Transferts hors Union européenne</h3>
@@ -262,7 +273,7 @@
   </main>
 
   <footer>
-    <span>Politique de Confidentialité — Artio — Version 2.1 — Juin 2026</span>
+    <span>Politique de Confidentialité — Artio — Version 2.2 — Juin 2026</span>
   </footer>
   <script src="legal-footer.js"></script>
 <script>
