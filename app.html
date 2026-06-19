@@ -546,11 +546,12 @@ function calcTotaux(h,t,p,r){
   return{moHT,piecesHT:pHT,totalHT,tvaRate:tv,tva,ttc:totalHT+tva};
 }
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function getNextNum(type,entreprise){
-  const k="artio_ctr_"+type+"_"+(entreprise?.id||"x");
-  let n=(parseInt(localStorage.getItem(k)||"0"))+1;
-  localStorage.setItem(k,n);
-  return(type==="devis"?"DEV":"FACT")+"-2026-"+String(n).padStart(3,"0");
+async function getNextNum(type){
+  // Numéro séquentiel généré côté serveur (RPC atomique sur compteurs).
+  // Garantit l'unicité entre appareils/navigateurs — fini le localStorage.
+  const{data,error}=await sb.rpc("next_document_number",{p_type:type});
+  if(error||!data)throw new Error("Numéro de document indisponible : "+(error?.message||"réponse vide du serveur"));
+  return data;
 }
 
 // ——— STATE ———
