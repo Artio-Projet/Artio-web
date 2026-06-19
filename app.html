@@ -1847,7 +1847,7 @@ window.downloadSignedProof=async function(docNumber){
     pdf.setFontSize(10).setTextColor(0).setFont(undefined,"bold").text(doc.client?.nom||"",m+4,y+11);
     if(doc.client?.adresse){pdf.setFontSize(8).setFont(undefined,"normal").setTextColor(80).text(doc.client.adresse,m+4,y+15);}
     y+=22;pdf.setFontSize(9).setTextColor(0);
-    if(doc.description){const dl=pdf.splitTextToSize(doc.description,cW);pdf.text(dl,m,y);y+=dl.length*4.5+4;}
+    if(doc.description){const descStripped=doc.description.replace(/^#{1,6}\s*/gm,"").trim();const dl=pdf.splitTextToSize(descStripped,cW);pdf.text(dl,m,y);y+=dl.length*4.5+4;}
     const tbB=[];
     if(doc.nb_heures&&parseFloat(doc.nb_heures)>0)tbB.push(["Main d'\u0153uvre ("+doc.nb_heures+"h \u00d7 "+e.taux_horaire+"\u20ac/h)",doc.nb_heures,parseFloat(e.taux_horaire||0).toFixed(2)+" \u20ac",(doc.moHT||0).toFixed(2)+" \u20ac"]);
     (doc.pieces||[]).filter(p=>p.description).forEach(p=>tbB.push([p.description,p.quantite,parseFloat(p.prix_unitaire||0).toFixed(2)+" \u20ac",(parseFloat(p.quantite||0)*parseFloat(p.prix_unitaire||0)).toFixed(2)+" \u20ac"]));
@@ -1876,12 +1876,12 @@ window.downloadSignedProof=async function(docNumber){
     const created=sig.created_at?new Date(sig.created_at).toLocaleString("fr-FR"):"—";
     const signed=sig.signed_at?new Date(sig.signed_at).toLocaleString("fr-FR"):"—";
     const events=[
-      [created,      "🔗","Lien de signature créé et envoyé au client"],
-      [signed,       "📧","Code OTP envoyé à : "+(sig.signer_email||"—")],
-      [signed,       "✅","Code OTP vérifié — email authentifié"],
-      [signed,       "🔒","Intégrité SHA-256 vérifiée : "+(sig.hash_verified?"Conforme":"Non vérifiée")],
-      [signed,       "✍️","Document signé par : "+(sig.signer_email||doc.client?.nom||"—")],
-      [signed,       "🌐","IP du signataire : "+(sig.signer_ip||"—")],
+      [created,      "[LIEN]","Lien de signature créé et envoyé au client"],
+      [signed,       "[OTP] ","Code OTP envoyé à : "+(sig.signer_email||"—")],
+      [signed,       "[OK]  ","Code OTP vérifié — email authentifié"],
+      [signed,       "[SHA] ","Intégrité SHA-256 vérifiée : "+(sig.hash_verified?"Conforme":"Non vérifiée")],
+      [signed,       "[SIGN]","Document signé par : "+(sig.signer_email||doc.client?.nom||"—")],
+      [signed,       "[IP]  ","IP du signataire : "+(sig.signer_ip||"—")],
     ];
     events.forEach(([dt,icon,label])=>{
       pdf.setTextColor(120).text(dt,aDateX,ay);
