@@ -182,7 +182,7 @@ const sb=window.sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const DOC_STORE={};
 function storeDoc(doc){const key=doc.docNumber;DOC_STORE[key]=doc;return key}
 function getDoc(key){return DOC_STORE[key]}
-function getStatuts(){return{devis_envoye:{label:"Devis envoyé",bg:"rgba(251,146,60,.13)",color:"#fb923c"},devis_accepte:{label:"Devis accepté",bg:"rgba(96,165,250,.13)",color:"#60a5fa"},facture:{label:"Facturé",bg:"rgba(62,207,207,.13)",color:"#3ecfcf"},termine:{label:"Terminé",bg:"rgba(107,116,148,.15)",color:"#6b7494"}};}
+function getStatuts(){return{devis_envoye:{label:"Devis envoyé",bg:"rgba(251,146,60,.13)",color:"#fb923c"},devis_accepte:{label:"Devis accepté",bg:"rgba(96,165,250,.13)",color:"#60a5fa"},signe:{label:"Devis signé",bg:"rgba(83,74,183,.15)",color:"#9d95f5"},facture:{label:"Facturé",bg:"rgba(62,207,207,.13)",color:"#3ecfcf"},termine:{label:"Terminé",bg:"rgba(107,116,148,.15)",color:"#6b7494"}};}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function todayFR(){return new Date().toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}
 function isoToFR(iso){if(!iso)return todayFR();const[y,m,d]=iso.split("-");return d+"/"+m+"/"+y;}
@@ -222,7 +222,7 @@ function checkDevisAConvertir(){
     const liste=[];
     for(const dos of S.dossiers){
       if((dos.documents||[]).some(d=>d.type==="facture"))continue;
-      const devis=(dos.documents||[]).find(d=>d.type==="devis"&&d.accepte);
+      const devis=(dos.documents||[]).find(d=>d.type==="devis"&&(d.accepte||dos.statut==="signe"));
       if(!devis)continue;
       if(devis.date_prestation){const dp=new Date(devis.date_prestation);dp.setHours(0,0,0,0);if(dp<=today)liste.push({dosId:dos.id,docNum:devis.docNumber,nom:dos.nom||dos.client||"",datePresta:devis.date_prestation});}
       else{liste.push({dosId:dos.id,docNum:devis.docNumber,nom:dos.nom||dos.client||"",datePresta:null});}
@@ -618,15 +618,15 @@ function renderDossierCard(dos){
         <div><p style="font-size:13px;font-weight:500;color:var(--text);">${doc.label||doc.docNumber||""}</p><p style="font-size:12px;color:#888;">${doc.docNumber||""} · ${doc.date||""} · ${(doc.ttc||0).toFixed(2)} € TTC</p></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn-small" onclick="downloadPDF('${doc.docNumber}')">⬇ PDF</button>
-          ${doc.type==="devis"&&!doc.accepte?`<button class="btn-small" style="background:rgba(62,207,207,.12);color:var(--teal);border-color:rgba(62,207,207,.3);" onclick="markAccepte('${dos.id}','${doc.docNumber}')">Marquer accepté</button>`:""}
-          ${doc.type==="devis"&&doc.accepte?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="downloadSignedProof('${doc.docNumber}')">📄 Preuve signée</button>`:""}
-          ${doc.type==="devis"&&doc.accepte&&!hasF?`<button class="btn-small btn-teal" onclick="convertToFacture('${dos.id}','${doc.docNumber}')">${S.convertingId===doc.docNumber?"...":"💶 Convertir"}</button>`:""}
+          ${doc.type==="devis"&&!doc.accepte&&dos.statut!=="signe"?`<button class="btn-small" style="background:rgba(62,207,207,.12);color:var(--teal);border-color:rgba(62,207,207,.3);" onclick="markAccepte('${dos.id}','${doc.docNumber}')">Marquer accepté</button>`:""}
+          ${doc.type==="devis"&&(doc.accepte||dos.statut==="signe")?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="downloadSignedProof('${doc.docNumber}')">📄 Preuve signée</button>`:""}
+          ${doc.type==="devis"&&(doc.accepte||dos.statut==="signe")&&!hasF?`<button class="btn-small btn-teal" onclick="convertToFacture('${dos.id}','${doc.docNumber}')">${S.convertingId===doc.docNumber?"...":"💶 Convertir"}</button>`:""}
           ${(()=>{
             const vs=window.VIEWED_SIGS&&window.VIEWED_SIGS[doc.docNumber];
             return vs?`<span class="btn-small" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.25);cursor:default;" title="Consulté ${vs.open_count} fois — 1ère ouverture : ${new Date(vs.link_opened_at).toLocaleString('fr-FR')}">👁 Vu${vs.open_count>1?' ('+vs.open_count+'×)':''}</span>`:'';
           })()}
-          ${doc.type==="devis"&&!doc.accepte?(isPro?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="sendForSignature('${dos.id}','${doc.docNumber}')">✍️ Signature</button>`:`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Signature électronique')">🔒 Signature</button>`):""}
-          ${doc.type==="devis"&&!doc.accepte?(isPro?`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);" onclick="genererRelance('${dos.id}','${doc.docNumber}')">📩 Relance</button>`:`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Relances clients IA')">🔒 Relance</button>`):""}
+          ${doc.type==="devis"&&!doc.accepte&&dos.statut!=="signe"?(isPro?`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);" onclick="sendForSignature('${dos.id}','${doc.docNumber}')">✍️ Signature</button>`:`<button class="btn-small" style="background:rgba(83,74,183,.15);color:#9d95f5;border-color:rgba(83,74,183,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Signature électronique')">🔒 Signature</button>`):""}
+          ${doc.type==="devis"&&!doc.accepte&&dos.statut!=="signe"?(isPro?`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);" onclick="genererRelance('${dos.id}','${doc.docNumber}')">📩 Relance</button>`:`<button class="btn-small" style="background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Relances clients IA')">🔒 Relance</button>`):""}
           ${doc.type==="facture"?`${doc.paye?`<span class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3);cursor:default;">✓ Payée le ${doc.date_paye}</span>`:`<button class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border-color:rgba(74,222,128,.3);" onclick="markPaye('${dos.id}','${doc.docNumber}')">💶 Marquer payée</button>`}${!doc.paye?(S.rappelLoadingId===doc.docNumber?`<button class="btn-small" disabled>⏳ Génération...</button>`:isPro?`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);" onclick="genererRappelPaiement('${dos.id}','${doc.docNumber}')">📨 Rappel</button>`:`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);opacity:.45;" onclick="window.PlanGuard?.showProModal('Rappels de paiement IA')">🔒 Rappel</button>`):""}
           ${!doc.paye&&Array.isArray(doc.relances_paiement)&&doc.relances_paiement.includes(30)?(isPro?`<button class="btn-small" style="background:rgba(220,38,38,.12);color:#dc2626;border-color:rgba(220,38,38,.3);" onclick="showMiseEnDemeureModal('${dos.id}','${doc.docNumber}')">⚖️ Mise en demeure</button>`:""):""}
           ${(() => {
