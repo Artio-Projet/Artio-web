@@ -738,14 +738,14 @@ async function saveDossiers(newDossiers){
 async function upsertDossier(dos){
   try{
     // created_at toujours en ISO (jamais en format FR)
-    // documents toujours sérialisé en JSON string (compatible text ET jsonb)
+    // documents : array jsonb natif (cohérent avec dossiers.html + trigger on_signature_signed)
     const{error}=await sb.from("dossiers").upsert({
       id:dos.id,
       user_id:S.user.id,
       nom:dos.nom||"",
       client:dos.client||"",
       statut:dos.statut||"devis_envoye",
-      documents:JSON.stringify(dos.documents||[]),
+      documents:dos.documents||[],
       created_at:new Date().toISOString(),
       updated_at:new Date().toISOString()
     },{onConflict:"id"});
