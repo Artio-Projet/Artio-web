@@ -858,6 +858,22 @@ function _attSizeFmt(bytes){
   return (bytes/1024/1024).toFixed(1).replace(".",",")+" Mo";
 }
 
+// Map pour passer les paramètres des pièces jointes sans passer par le HTML
+// Évite toute injection XSS via onclick inline avec des strings non-échappées
+const _attParams = new Map();
+let _attParamCounter = 0;
+
+// Délégation d'événement : un seul listener sur le document pour tous les boutons pièces jointes
+// Les paramètres sont lus depuis _attParams (jamais depuis le HTML)
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest("[data-att-id]");
+  if (!btn) return;
+  const pid = parseInt(btn.dataset.attId, 10);
+  const p = _attParams.get(pid);
+  if (!p) return;
+  window.downloadAttachment(p.messageId, p.attachmentId, p.filename, p.mimeType);
+});
+
 window.downloadAttachment=async function(messageId,attachmentId,filename,mimeType){
   showToast("⏳ Téléchargement…");
   try{
@@ -1432,7 +1448,10 @@ function renderEmailRead(){
     const attsHtml=atts.length>0?`<div class="bubble-atts">${atts.map(a=>{
       const ic=_attIcon(a.mimeType);
       const sz=_attSizeFmt(a.size);
-      return `<button class="bubble-att" onclick="downloadAttachment('${msg.id}','${esc(a.attachmentId)}','${esc(a.filename).replace(/'/g,"\\'")}','${esc(a.mimeType)}')" title="Télécharger ${esc(a.filename)}">
+      // Stocker les paramètres dans le Map (jamais dans le HTML) — fix XSS
+      const _pid = ++_attParamCounter;
+      _attParams.set(_pid, { messageId: msg.id, attachmentId: a.attachmentId, filename: a.filename, mimeType: a.mimeType });
+      return `<button class="bubble-att" data-att-id="${_pid}" title="Télécharger ${esc(a.filename)}">
         <span class="bubble-att-icn">${ic}</span>
         <div class="bubble-att-info">
           <span class="bubble-att-nm">${esc(a.filename)}</span>

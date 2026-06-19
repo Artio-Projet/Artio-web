@@ -145,15 +145,19 @@ function _buildPDF(doc){
     pdf.setTextColor(0).setFontSize(9).text("Bon pour accord — Date et signature :",m,y);y+=14;
     pdf.setDrawColor(180).line(m,y,m+80,y);
   }else{
-    pdf.text("Paiement à 30 jours. Pénalités de retard : 3× le taux légal. Indemnité forfaitaire : 40 €.",m,y);
+    // Délai de paiement dynamique (depuis le profil, défaut 30 jours)
+    const delai = doc.entreprise.delai_paiement || "30";
+    pdf.text("Paiement à " + delai + " jours. Pas d'escompte pour paiement anticipé. Pénalités de retard : 3× le taux légal. Indemnité forfaitaire de recouvrement : 40 €.", m, y);
   }
 
   // Filigrane bas de page (optionnel)
   if(window.ARTIO_LOGO_WHITE){
     try{pdf.addImage("data:image/png;base64,"+window.ARTIO_LOGO_WHITE,"PNG",m,280,22,7);}catch(e){}
   }
+  // Pied de page : nom, forme juridique, SIRET (mentions légales L441-9)
+  const fjurid = doc.entreprise.forme_juridique ? " — " + doc.entreprise.forme_juridique : "";
   pdf.setFontSize(7).setTextColor(150)
-    .text(doc.entreprise.nom+" — SIRET : "+doc.entreprise.siret,W/2,287,{align:"center"});
+    .text(doc.entreprise.nom + fjurid + " — SIRET : " + doc.entreprise.siret, W/2, 287, {align:"center"});
 
   return pdf;
 }
