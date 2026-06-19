@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Artio — Gérez votre administratif par la voix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- TrustBox script -->
+  <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
   <style>
     :root, [data-theme="dark"] {
       --bg: #080b14;
@@ -366,20 +367,46 @@
     .btn-plan.out:hover { border-color: var(--amber); background: var(--amber-dim); }
 
     /* ── FOOTER ──────────────────────────────────── */
-    footer {
-      padding: 44px 48px; border-top: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center;
-      color: var(--muted); font-size: 13px; flex-wrap: wrap; gap: 12px;
+    footer { border-top:1px solid var(--border); padding:56px 48px 32px; color:var(--muted); font-size:13px; }
+    .footer-inner { max-width:900px; margin:0 auto; }
+    .footer-top { display:grid; grid-template-columns:1fr 1fr 1fr; gap:40px; margin-bottom:40px; }
+    .f-brand { display:flex; flex-direction:column; gap:14px; }
+    .f-logo { display:inline-flex; align-items:center; gap:8px; font-family:var(--fh); font-weight:800; font-size:18px; color:var(--text); }
+    .f-logo img { width:26px; height:26px; display:block; }
+    .f-tagline { font-size:12.5px; line-height:1.6; color:var(--muted); }
+    .f-ratings { display:flex; flex-direction:column; gap:8px; }
+    .f-rating-item a { display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); transition:color .2s; }
+    .f-rating-item a:hover { color:var(--text); }
+    .f-stars { color:#f5a742; font-size:13px; letter-spacing:1px; }
+    .f-score { font-size:12px; font-weight:600; color:var(--text); }
+    .f-rating-count { font-size:11px; color:var(--muted); }
+    .f-app-badges { display:flex; gap:8px; flex-wrap:wrap; }
+    .f-app-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid var(--border-hi); border-radius:9px; text-decoration:none; color:var(--text); transition:border-color .2s,background .2s; background:var(--surface); }
+    .f-app-badge:hover { border-color:var(--amber); background:var(--amber-dim); }
+    .f-app-badge svg { flex-shrink:0; }
+    .f-app-badge-text { display:flex; flex-direction:column; }
+    .f-app-badge-text span:first-child { font-size:9px; color:var(--muted); line-height:1; }
+    .f-app-badge-text span:last-child { font-size:12px; font-weight:600; line-height:1.4; }
+    .f-factpulse-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; color:var(--muted); background:var(--surface); width:fit-content; }
+    .f-factpulse-badge svg { color:var(--teal); }
+    .f-col h4 { font-family:var(--fh); font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text); margin-bottom:12px; }
+    .f-col ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .f-col ul li a { color:var(--muted); text-decoration:none; transition:color .2s; font-size:13px; }
+    .f-col ul li a:hover { color:var(--text); }
+    .footer-bottom { border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+    .footer-bottom-left { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .footer-legal-links { display:flex; gap:14px; }
+    .footer-legal-links a { color:var(--muted); text-decoration:none; font-size:12px; transition:color .2s; }
+    .footer-legal-links a:hover { color:var(--text); }
+    .footer-copy { font-size:12px; }
+    .f-socials { display:flex; gap:8px; }
+    .f-social { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted); text-decoration:none; transition:border-color .2s,color .2s,background .2s; }
+    .f-social:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-dim); }
+    @media (max-width:700px) {
+      .footer-top { grid-template-columns:1fr; }
+      .footer-bottom { flex-direction:column; text-align:center; }
+      .footer-bottom-left { flex-direction:column; gap:8px; }
     }
-    .f-logo {
-      font-family: var(--fh); font-weight: 800; font-size: 18px;
-      color: var(--text);
-      display: inline-flex; align-items: center; gap: 8px;
-    }
-    .f-logo img { width: 24px; height: 24px; display: block; }
-    .f-links { display: flex; gap: 20px; }
-    .f-links a { color: var(--muted); text-decoration: none; transition: color .2s; }
-    .f-links a:hover { color: var(--text); }
 
     /* ── SCROLL REVEAL ───────────────────────────── */
     .reveal { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s ease; }
@@ -417,6 +444,7 @@
       .testi-grid { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
       footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+    }
     }
     @media (max-width: 900px) {
       #time-savings { padding: 80px 20px; }
@@ -677,10 +705,11 @@
 </section>
 
 <!-- FEATURES -->
+<!-- FEATURES -->
 <section id="features" class="reveal">
-  <div class="section-tag" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</div>
-  <div class="section-title" data-fr="Tout ce dont vous avez besoin.<br>Rien de superflu." data-en="Everything you need.<br>Nothing more.">Tout ce dont vous avez besoin.<br>Rien de superflu.</div>
-  <p class="section-sub" data-fr="Artio centralise toutes vos tâches administratives en un seul endroit, piloté par votre voix." data-en="Artio consolidates all your admin tasks in one place, driven by your voice.">Artio centralise toutes vos tâches administratives en un seul endroit, piloté par votre voix.</p>
+  <div class="section-tag">Fonctionnalités</div>
+  <div class="section-title">Tout ce dont vous avez besoin.<br>Rien de superflu.</div>
+  <p class="section-sub">Artio centralise toutes vos tâches administratives en un seul endroit, piloté par votre voix.</p>
   <div class="features-grid">
 
     <!-- STAR : pleine largeur -->
@@ -694,37 +723,37 @@
               <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
             </svg>
           </div>
-          <div class="ft" data-fr="Devis &amp; factures par la voix" data-en="Voice-powered quotes &amp; invoices">Devis &amp; factures par la voix</div>
-          <p class="fd" style="max-width:420px" data-fr="&lt;strong style='color:var(--text)'&gt;Le cœur d'Artio.&lt;/strong&gt; Dictez ce que vous voulez facturer, en français naturel — pas de formulaire à remplir, pas de copier-coller. En moins de 30 secondes, votre devis ou facture est rédigé, mis en page, numéroté et prêt à partir. Que vous soyez artisan, freelance, coach ou photographe." data-en="&lt;strong style='color:var(--text)'&gt;Artio's core.&lt;/strong&gt; Speak what you want to bill, in natural language — no form, no copy-paste. In under 30 seconds, your quote or invoice is written, formatted, numbered, ready to send.">
-            <strong style="color:var(--text)">Le cœur d'Artio.</strong> Dictez ce que vous voulez facturer, en français naturel — pas de formulaire à remplir, pas de copier-coller. En moins de 30 secondes, votre devis ou facture est rédigé, mis en page, numéroté et prêt à partir. Que vous soyez artisan, freelance, coach ou photographe.
+          <div class="ft">Devis &amp; factures par la voix</div>
+          <p class="fd" style="max-width:420px">
+            <strong style="color:var(--text)">Le cœur d'Artio.</strong> Dictez votre prestation en français naturel — l'IA structure, met en page, numérote et génère le PDF en moins de 30 secondes. Catalogue de prix auto-appris, conversion devis → facture en un clic.
           </p>
           <div class="feat-badge">
             <span>⚡</span>
-            <span data-fr="10× plus rapide qu'une saisie manuelle" data-en="10× faster than manual entry">10× plus rapide qu'une saisie manuelle</span>
+            <span>10× plus rapide qu'une saisie manuelle</span>
           </div>
         </div>
         <div>
-          <div class="star-right-title" data-fr="En pratique" data-en="In practice">En pratique</div>
+          <div class="star-right-title">En pratique</div>
           <div class="scenario-list">
             <div class="scenario-pill">
               <span class="sp-emoji">🚗</span>
               <div class="sp-body">
-                <div class="sp-ctx" data-fr="Sur la route, après un RDV" data-en="On the road, after a meeting">Sur la route, après un RDV</div>
-                <div class="sp-text" data-fr="Avant de démarrer, vous dictez le devis. Il part en trente secondes." data-en="Before starting the car, you dictate the quote. It's sent in thirty seconds.">Avant de démarrer, vous dictez le devis. Il part en trente secondes.</div>
+                <div class="sp-ctx">Sur la route, après un RDV</div>
+                <div class="sp-text">Avant de démarrer, vous dictez le devis. Il part en trente secondes.</div>
               </div>
             </div>
             <div class="scenario-pill">
               <span class="sp-emoji">📞</span>
               <div class="sp-body">
-                <div class="sp-ctx" data-fr="Au téléphone avec un client" data-en="On the phone with a client">Au téléphone avec un client</div>
-                <div class="sp-text" data-fr="Le tarif se fixe ensemble. La facture se crée pendant la conversation." data-en="You agree on the price together. The invoice is created during the call.">Le tarif se fixe ensemble. La facture se crée pendant la conversation.</div>
+                <div class="sp-ctx">Au téléphone avec un client</div>
+                <div class="sp-text">Le tarif se fixe ensemble. La facture se crée pendant la conversation.</div>
               </div>
             </div>
             <div class="scenario-pill">
               <span class="sp-emoji">⚡</span>
               <div class="sp-body">
-                <div class="sp-ctx" data-fr="En pleine journée, entre deux clients" data-en="During the day, between clients">En pleine journée, entre deux clients</div>
-                <div class="sp-text" data-fr="Pas besoin de vous arrêter ni d'ouvrir un ordinateur. Une phrase suffit pour que tout soit réglé." data-en="No need to stop or open a laptop. One sentence is enough to get it done.">Pas besoin de vous arrêter ni d'ouvrir un ordinateur. Une phrase suffit pour que tout soit réglé.</div>
+                <div class="sp-ctx">En pleine journée, entre deux clients</div>
+                <div class="sp-text">Pas besoin de vous arrêter ni d'ouvrir un ordinateur. Une phrase suffit pour que tout soit réglé.</div>
               </div>
             </div>
           </div>
@@ -736,36 +765,39 @@
     <div class="fc">
       <div class="fi t">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
         </svg>
       </div>
-      <div class="ft" data-fr="Calendrier Google synchronisé" data-en="Synced Google Calendar">Calendrier Google synchronisé</div>
-      <p class="fd" data-fr="Vos rendez-vous synchronisés en temps réel avec Google Calendar, dans les deux sens. Vue semaine/mois, rappels automatiques, création de RDV par la voix." data-en="Your appointments sync in real time with Google Calendar, both ways. Week/month view, automatic reminders, create events by voice.">Vos rendez-vous synchronisés en temps réel avec Google Calendar, dans les deux sens. Vue semaine/mois, rappels automatiques, création de RDV par la voix.</p>
-      <div class="feat-chip-sync">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        <span data-fr="Sync bidirectionnelle" data-en="Two-way sync">Sync bidirectionnelle</span>
-      </div>
+      <div class="ft">Signature électronique eIDAS</div>
+      <p class="fd">Votre client signe depuis son téléphone — vérification OTP, empreinte SHA-256, audit trail complet. Preuve signée téléchargeable, conforme au règlement eIDAS n°910/2014. Lien valable 72h.</p>
     </div>
     <div class="fc">
       <div class="fi a">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="13" y2="17"/>
         </svg>
       </div>
-      <div class="ft" data-fr="Mes clients &amp; revenus" data-en="My clients &amp; revenue">Mes clients &amp; revenus</div>
-      <p class="fd" data-fr="Vue d'ensemble de votre portefeuille clients et chiffre d'affaires, accessible partout, à tout moment." data-en="Overview of your client portfolio and revenue, accessible anywhere, anytime.">Vue d'ensemble de votre portefeuille clients et chiffre d'affaires, accessible partout, à tout moment.</p>
+      <div class="ft">Facturation électronique 2026</div>
+      <p class="fd">Artio est <strong style="color:var(--text)">Solution Compatible DGFiP 2026</strong> via FactPulse. Vos factures B2B transitent automatiquement par le réseau PDP — conformité garantie dès maintenant, sans changer de workflow.</p>
     </div>
 
     <!-- Ligne 3 -->
     <div class="fc">
       <div class="fi t">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
       </div>
-      <div class="ft" data-fr="Signature électronique" data-en="Electronic Signature">Signature électronique</div>
-      <p class="fd" data-fr="Envoyez vos documents pour signature en ligne. Votre client signe depuis son téléphone en quelques secondes — simple, sécurisé, instantané." data-en="Send your documents for online signature. Your client signs from their phone in seconds — simple, secure, instant.">Envoyez vos documents pour signature en ligne. Votre client signe depuis son téléphone en quelques secondes — simple, sécurisé, instantané.</p>
+      <div class="ft">Calendrier Google synchronisé</div>
+      <p class="fd">Vos rendez-vous synchronisés en temps réel avec Google Calendar, dans les deux sens. Vue semaine/mois, création de RDV par la voix, notification push à chaque confirmation.</p>
+      <div class="feat-chip-sync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Sync bidirectionnelle</span>
+      </div>
     </div>
     <div class="fc">
       <div class="fi a">
@@ -774,12 +806,32 @@
           <polyline points="22,6 12,13 2,6"/>
         </svg>
       </div>
-      <div class="ft" data-fr="Messagerie Gmail synchronisée" data-en="Synced Gmail inbox">Messagerie Gmail synchronisée</div>
-      <p class="fd" data-fr="Votre boîte Gmail directement dans Artio. Lisez, répondez et envoyez vos emails clients sans changer d'outil — l'IA rédige vos réponses si besoin." data-en="Your Gmail inbox directly in Artio. Read, reply, and send client emails without switching apps — AI drafts your replies if needed.">Votre boîte Gmail directement dans Artio. Lisez, répondez et envoyez vos emails clients sans changer d'outil — l'IA rédige vos réponses si besoin.</p>
+      <div class="ft">Messagerie Gmail synchronisée</div>
+      <p class="fd">Votre boîte Gmail directement dans Artio. Lisez, répondez et envoyez vos emails clients sans changer d'outil — l'IA rédige vos réponses si besoin.</p>
       <div class="feat-chip-sync">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        <span data-fr="Sync bidirectionnelle" data-en="Two-way sync">Sync bidirectionnelle</span>
+        <span>Sync bidirectionnelle</span>
       </div>
+    </div>
+
+    <!-- Ligne 4 -->
+    <div class="fc">
+      <div class="fi t">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6.29 6.29l.91-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <div class="ft">Relances &amp; rappels IA</div>
+      <p class="fd">Artio relance automatiquement les devis non signés (J+2 et J+5 après ouverture du lien) et les factures impayées (J+7, J+15, J+30). Emails générés par IA, personnalisés au contexte du dossier.</p>
+    </div>
+    <div class="fc">
+      <div class="fi a">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </div>
+      <div class="ft">Dashboard &amp; annuaire clients</div>
+      <p class="fd">KPIs financiers en temps réel — CA mensuel, factures en attente, taux de conversion. Annuaire clients avec historique complet et lookup SIRET automatique via Pappers.</p>
     </div>
 
   </div>
@@ -920,12 +972,11 @@
       <div class="p-monthly" id="note-solo" data-fr="facturation mensuelle" data-en="billed monthly">facturation mensuelle</div>
       <div class="p-div"></div>
       <ul class="p-feats">
-        <li><span class="ck">✓</span><span data-fr="Génération devis & factures par la voix" data-en="Voice-generated quotes & invoices">Génération devis & factures par la voix</span></li>
-        <li><span class="ck">✓</span><span data-fr="IA illimitée — aucun quota" data-en="Unlimited AI — no quota">IA illimitée — aucun quota</span></li>
-        <li><span class="ck">✓</span><span data-fr="Facturation électronique (DGFIP 2026)" data-en="E-invoicing (DGFIP 2026)">Facturation électronique (DGFIP 2026)</span></li>
-        <li><span class="ck">✓</span><span data-fr="Agenda & annuaire clients" data-en="Calendar & client directory">Agenda & annuaire clients</span></li>
-        <li><span class="ck">✓</span><span data-fr="Dashboard financier complet" data-en="Full financial dashboard">Dashboard financier complet</span></li>
-        <li><span class="ck">✓</span><span data-fr="Multilingue FR / EN / ES / ZH" data-en="Multilingual FR / EN / ES / ZH">Multilingue FR / EN / ES / ZH</span></li>
+        <li><span class="ck">✓</span><span>Génération devis &amp; factures par la voix</span></li>
+        <li><span class="ck">✓</span><span>IA illimitée — aucun quota</span></li>
+        <li><span class="ck">✓</span><span>Facturation électronique (DGFiP 2026)</span></li>
+        <li><span class="ck">✓</span><span>Annuaire clients + lookup SIRET</span></li>
+        <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
       </ul>
       <button class="btn-plan out" onclick="window.location='/login'" data-fr="Démarrer en Solo" data-en="Start with Solo">Démarrer en Solo</button>
     </div>
@@ -942,15 +993,14 @@
       <div class="p-monthly" id="note-pro" data-fr="facturation mensuelle" data-en="billed monthly">facturation mensuelle</div>
       <div class="p-div"></div>
       <ul class="p-feats">
-        <li><span class="ck">✓</span><span data-fr="Tout Solo, plus :" data-en="Everything in Solo, plus:"><strong data-fr="Tout Solo, plus :" data-en="Everything in Solo, plus:">Tout Solo, plus :</strong></span></li>
-        <li><span class="ck">✓</span><span data-fr="Signature électronique" data-en="E-signature">Signature électronique</span></li>
-        <li><span class="ck">✓</span><span data-fr="Connexion Gmail directe" data-en="Direct Gmail integration">Connexion Gmail directe</span></li>
-        <li><span class="ck">✓</span><span data-fr="Agenda synchronisé avec Google Calendar" data-en="Google Calendar sync">Agenda synchronisé avec Google Calendar</span></li>
-        <li><span class="ck">✓</span><span data-fr="Branding PDF personnalisé (logo & couleurs)" data-en="Custom PDF branding (logo & colors)">Branding PDF personnalisé (logo & couleurs)</span></li>
-        <li><span class="ck">✓</span><span data-fr="Relances et emails générés par IA" data-en="AI-generated follow-ups and emails">Relances et emails générés par IA</span></li>
-        <li><span class="ck">✓</span><span data-fr="Export comptable CSV" data-en="Accountant CSV export">Export comptable CSV</span></li>
-        <li><span class="ck">✓</span><span data-fr="Statistiques de conversion" data-en="Conversion analytics">Statistiques de conversion</span></li>
-        <li><span class="ck">✓</span><span data-fr="Templates de devis sauvegardés" data-en="Saved quote templates">Templates de devis sauvegardés</span></li>
+        <li><span class="ck">✓</span><span><strong>Tout Solo, plus :</strong></span></li>
+        <li><span class="ck">✓</span><span>Signature électronique eIDAS</span></li>
+        <li><span class="ck">✓</span><span>Gmail synchronisé (lecture + envoi)</span></li>
+        <li><span class="ck">✓</span><span>Google Calendar synchronisé</span></li>
+        <li><span class="ck">✓</span><span>Relances signature &amp; paiement IA</span></li>
+        <li><span class="ck">✓</span><span>Rappels paiement + mise en demeure</span></li>
+        <li><span class="ck">✓</span><span>Templates de devis sauvegardés</span></li>
+        <li><span class="ck">✓</span><span>Export comptable CSV</span></li>
       </ul>
       <button class="btn-plan prim" onclick="window.location='/login'" data-fr="Choisir Pro" data-en="Choose Pro">Choisir Pro</button>
     </div>
@@ -970,14 +1020,102 @@
 </section>
 
 <footer>
-  <div class="f-logo"><img src="artio-icon.png" alt=""><span>Artio</span></div>
-  <div data-fr="© 2026 Artio. Tous droits réservés." data-en="© 2026 Artio. All rights reserved.">© 2026 Artio. Tous droits réservés.</div>
-  <div class="f-links">
-    <a href="confidentialite.html" data-fr="Confidentialité" data-en="Privacy">Confidentialité</a>
-    <a href="cgu.html" data-fr="CGU" data-en="Terms">CGU</a>
-    <a href="cgv.html" data-fr="CGV" data-en="T&amp;C">CGV</a>
-    <a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a>
-  </div>
+  <div class="footer-inner">
+    <div class="footer-top">
+
+      <!-- Colonne brand gauche -->
+      <div class="f-brand">
+        <div class="f-logo">
+          <img src="artio-icon.png" alt="Artio" />
+          <span>Artio</span>
+        </div>
+        <p class="f-tagline">Gérez vos devis, factures et clients par la voix. Simple, rapide, conforme.</p>
+
+        <!-- Ratings en colonne -->
+        <div class="f-ratings">
+          <div class="f-rating-item">
+            <a href="https://g.page/r/Cb6ZaXDvesHmEBM/review" target="_blank" rel="noopener">
+              <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              <span class="f-stars">★★★★★</span>
+              <span class="f-score">5,0</span>
+              <span class="f-rating-count">Google Avis</span>
+            </a>
+          </div>
+          <!-- TrustBox widget -->
+          <div class="trustpilot-widget" data-locale="fr-FR" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6a234c05bf4d2e3537251999" data-style-height="52px" data-style-width="100%" data-token="c3839013-6259-495b-8ebe-15d6f3012565">
+            <a href="https://fr.trustpilot.com/review/monartio.fr" target="_blank" rel="noopener">Trustpilot</a>
+          </div>
+        </div>
+
+        <!-- App badges -->
+        <div class="f-app-badges">
+          <a href="https://apps.apple.com" target="_blank" rel="noopener" class="f-app-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <div class="f-app-badge-text">
+              <span>Disponible sur</span>
+              <span>App Store</span>
+            </div>
+          </a>
+          <a href="https://play.google.com" target="_blank" rel="noopener" class="f-app-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76a2.5 2.5 0 0 1-.93-.87V1.11A2.5 2.5 0 0 1 3.18.24l11.9 11.76-11.9 11.76zm14.27-8.43-2.84-2.81 2.84-2.81 3.21 1.83a1.75 1.75 0 0 1 0 2.96l-3.21 1.83zm-3.99-3.95L2.08.35A1.75 1.75 0 0 1 3.73.1l13.59 7.74-3.86 3.54zm0 2.34 3.86 3.54L3.73 23.9a1.75 1.75 0 0 1-1.65-.25l11.38-10.93z"/></svg>
+            <div class="f-app-badge-text">
+              <span>Disponible sur</span>
+              <span>Google Play</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Badge facturation électronique -->
+        <div class="f-factpulse-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Compatible facturation électronique
+        </div>
+      </div>
+
+      <!-- Colonne Ressources -->
+      <div class="f-col">
+        <h4>Ressources</h4>
+        <ul>
+          <li><a href="aide.html">Centre d'aide</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="index.html#pricing">Tarifs</a></li>
+        </ul>
+      </div>
+
+      <!-- Colonne À propos -->
+      <div class="f-col">
+        <h4>À propos</h4>
+        <ul>
+          <li><a href="index.html#waitlist">Rejoindre la waitlist</a></li>
+          <li><a href="contact.html">Nous contacter</a></li>
+          <li><a href="confidentialite.html">Sécurité & vie privée</a></li>
+        </ul>
+      </div>
+
+    </div><!-- /.footer-top -->
+
+    <!-- Barre inférieure -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-left">
+        <span class="footer-copy">© 2026 Artio — SIRET 91450628200021</span>
+        <div class="footer-legal-links">
+          <a href="cgu.html">CGU</a>
+          <a href="cgv.html">CGV</a>
+          <a href="confidentialite.html">Confidentialité</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="f-socials">
+        <a href="https://www.linkedin.com/company/monartio/" target="_blank" rel="noopener" class="f-social" aria-label="LinkedIn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+        <a href="https://www.instagram.com/mon.artio/" target="_blank" rel="noopener" class="f-social" aria-label="Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /.footer-inner -->
 </footer>
 
 <!-- TWEAKS -->
