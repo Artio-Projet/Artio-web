@@ -79,7 +79,17 @@ function _buildPDF(doc){
   y+=3;
   pdf.setFont(undefined,"bold").text("DESCRIPTION DE LA PRESTATION",m,y);y+=5;
   pdf.setFont(undefined,"normal");
-  const dl=pdf.splitTextToSize(doc.description||"",cW);
+  // Supprimer le Markdown généré par l'IA (titres #, gras **, listes -, etc.)
+  function stripMd(s){
+    return (s||"")
+      .replace(/^#{1,6}\s+/gm,"")   // # titres
+      .replace(/\*\*(.*?)\*\*/g,"$1") // **gras**
+      .replace(/\*(.*?)\*/g,"$1")     // *italique*
+      .replace(/^[-*]\s+/gm,"• ")    // listes
+      .replace(/`([^`]+)`/g,"$1")    // `code`
+      .trim();
+  }
+  const dl=pdf.splitTextToSize(stripMd(doc.description),cW);
   pdf.text(dl,m,y);y+=dl.length*4.5+6;
 
   const moRow=doc.nb_heures&&parseFloat(doc.nb_heures)>0
@@ -88,7 +98,7 @@ function _buildPDF(doc){
   const tb=[
     ...(moRow?[moRow]:[]),
     ...(doc.pieces||[]).filter(p=>p.description&&p.quantite&&p.prix_unitaire).map(p=>[
-      p.description,
+      stripMd(p.description),
       p.quantite,
       parseFloat(p.prix_unitaire).toFixed(2)+" \u20ac",
       (parseFloat(p.quantite)*parseFloat(p.prix_unitaire)).toFixed(2)+" \u20ac"
