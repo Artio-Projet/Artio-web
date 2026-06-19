@@ -1896,7 +1896,7 @@ window.downloadSignedProof=async function(docNumber){
     pdf.text("ID transaction Supabase : "+(sig.id||"—"),m,y,{align:"left"});
     y+=4;
     if(sig.resend_confirmation_id){pdf.text("ID email Resend : "+sig.resend_confirmation_id,m,y,{align:"left"});y+=4;}
-    pdf.text("Preuve générée le "+new Date().toLocaleString("fr-FR")+" — Artio · monartio.fr — Conforme règlement eIDAS",m,y);
+    pdf.text("Preuve générée le "+new Date().toLocaleString("fr-FR")+" — Artio · monartio.fr — Signature électronique simple, conforme au règlement eIDAS n°910/2014",m,y);
     try{pdf.addImage("data:image/png;base64,"+LOGO_WHITE,"PNG",m,280,22,7);}catch{}
     pdf.setFontSize(7).setTextColor(150).text((e.nom||"")+" — SIRET : "+(e.siret||""),W/2,287,{align:"center"});
     pdf.save("PREUVE_SIGNATURE_"+docNumber+".pdf");

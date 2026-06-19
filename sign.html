@@ -277,7 +277,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let token = null, sigData = null, drawing = false, canvas = null, ctx = null, hasDrawn = false, otpVerified = false, signerEmail = "", docHash = null, signerIp = "";
 let sig = null; // données de la signature chargées via RPC, accessibles globalement
 
-function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function fmt(n) { return Number(n||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €"; }
 
 function renderDoc(sig) {
