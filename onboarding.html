@@ -336,9 +336,78 @@ let saving = false;
 const D = {
   nom: "", secteur: "", siret: "", taux_horaire: "",
   email: "", tel: "", adresse: "",
+  forme_juridique: "", code_naf: "", libelle_code_naf: "",
+  tva_intracom: "", date_creation_entreprise: "",
   q1: "", q2: "", q3: "",
   contexte_ia: ""
 };
+
+// ── SIRET LOOKUP ─────────────────────────────────────────────────
+let _siretTimer = null;
+let _lastSiretLookup = "";
+
+async function lookupSiretOnboarding(rawValue) {
+  const status = document.getElementById("siret-status-ob");
+  if (!status) return;
+  const clean = String(rawValue || "").replace(/\D/g, "");
+  if (clean.length < 14) {
+    status.textContent = clean.length > 0 ? clean.length + "/14 chiffres" : "";
+    status.style.color = "var(--muted)";
+    return;
+  }
+  if (clean.length > 14) return;
+  if (clean === _lastSiretLookup) return;
+  _lastSiretLookup = clean;
+
+  clearTimeout(_siretTimer);
+  _siretTimer = setTimeout(async () => {
+    status.textContent = "⏳ Recherche SIRENE…";
+    status.style.color = "var(--muted)";
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const r = await fetch(SB_URL + "/functions/v1/siret-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+        body: JSON.stringify({ siret: clean }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        status.textContent = "✗ " + (data.error || "Erreur");
+        status.style.color = "#dc2626";
+        return;
+      }
+
+      // Auto-remplir les champs s'ils sont vides
+      const tryFill = (id, value) => {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) el.value = value || "";
+      };
+      tryFill("f-nom", data.nom_entreprise);
+      tryFill("f-adresse-ob", data.adresse_complete);
+
+      // Stocker dans D pour la sauvegarde finale
+      D.siret              = clean;
+      if (data.nom_entreprise && !D.nom)     D.nom    = data.nom_entreprise;
+      if (data.adresse_complete && !D.adresse) D.adresse = data.adresse_complete;
+      D.forme_juridique          = data.forme_juridique          || D.forme_juridique;
+      D.code_naf                 = data.code_naf                 || D.code_naf;
+      D.libelle_code_naf         = data.libelle_code_naf         || D.libelle_code_naf;
+      D.tva_intracom             = data.tva_intracom             || D.tva_intracom;
+      D.date_creation_entreprise = data.date_creation_entreprise || D.date_creation_entreprise;
+
+      if (data.entreprise_cessee) {
+        status.textContent = "⚠️ Entreprise cessée";
+        status.style.color = "#d97706";
+      } else {
+        status.textContent = data.cached ? "✓ Vérifié (cache)" : "✓ Vérifié SIRENE";
+        status.style.color = "#16a34a";
+      }
+    } catch (e) {
+      status.textContent = "✗ Erreur réseau";
+      status.style.color = "#dc2626";
+    }
+  }, 350);
+}
 
 // Steps: 0=welcome, 1=entreprise, 2=contact, 3=activite, 4=succes
 let step = 0;
@@ -421,8 +490,18 @@ function renderEntreprise() {
     </div>
 
     <div class="field">
-      <label>SIRET (14 chiffres)</label>
-      <input id="f-siret" type="text" inputmode="numeric" maxlength="14" placeholder="91450628200021" value="${esc(D.siret)}" />
+      <label>SIRET (14 chiffres) <span id="siret-status-ob" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;"></span></label>
+      <input id="f-siret" type="text" inputmode="numeric" maxlength="14"
+             placeholder="91450628200021" value="${esc(D.siret)}"
+             oninput="lookupSiretOnboarding(this.value)" autocomplete="off" />
+      <div style="font-size:11px;color:var(--muted);margin-top:5px;">
+        Entrez votre SIRET pour remplir automatiquement nom, adresse et forme juridique.
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Adresse professionnelle <span style="font-weight:400;color:var(--muted)">(auto-remplie si SIRET)</span></label>
+      <input id="f-adresse-ob" type="text" placeholder="5 rue de l'Exemple, 75001 Paris" value="${esc(D.adresse)}" />
     </div>
 
     <div class="field">
@@ -441,6 +520,7 @@ function saveStep1() {
   const secteur = document.getElementById("f-secteur").value;
   const siret   = document.getElementById("f-siret").value.trim().replace(/\s/g, "");
   const taux    = document.getElementById("f-taux").value.trim();
+  const adresse = (document.getElementById("f-adresse-ob")?.value || "").trim();
   const errEl   = document.getElementById("err-1");
 
   if (!nom) { errEl.textContent = "Le nom de l'entreprise est requis."; errEl.style.display = "block"; return; }
@@ -451,6 +531,7 @@ function saveStep1() {
   D.secteur = secteur;
   D.siret = siret;
   D.taux_horaire = taux;
+  if (adresse) D.adresse = adresse; // auto-remplie par le lookup SIRET
   nextStep();
 }
 
@@ -656,6 +737,12 @@ async function saveAndFinish() {
       onboarding_done: true,
       updated_at: new Date().toISOString()
     };
+    // Champs enrichis par le lookup SIRET (seulement si remplis)
+    if (D.forme_juridique)          upsertData.forme_juridique          = D.forme_juridique;
+    if (D.code_naf)                 upsertData.code_naf                 = D.code_naf;
+    if (D.libelle_code_naf)         upsertData.libelle_code_naf         = D.libelle_code_naf;
+    if (D.tva_intracom)             upsertData.tva_intracom             = D.tva_intracom;
+    if (D.date_creation_entreprise) upsertData.date_creation_entreprise = D.date_creation_entreprise;
     const { error } = await sb.from("profils").upsert(upsertData, { onConflict: "user_id" });
     if (error) throw new Error(error.message);
     step = 4;
