@@ -525,6 +525,7 @@ function calcKPIs() {
     caParMois[k] = (caParMois[k]||0) + (d.ttc||0);
   });
   const bars = buildBars(caParMois, now);
+  _sparkData = bars; // pour le tooltip interactif de la sparkline
   const caAnnuel = all.filter(d=>d.type==='facture' && d.paye).reduce((s,d)=>{const ref=d.date_paye||d.date;const dt=parseDateFR(ref);return dt && dt.getFullYear()===now.getFullYear()?s+(d.ttc||0):s;},0);
   return { caTotal, caHT, caAnnuel, tvaColl, tvaParTaux, caMois, caAttente, caAccepte, txConv, nbFactures:factures.length, nbDevis:devis.length, nbAttente:devisAtt.length, nbAccepte:devisAcc.length, bars, factures, devis };
 }
@@ -552,6 +553,65 @@ window.onPeriodChange = function() {
   const now = new Date();
   if (filterType === "mois") { filterFrom = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); filterTo = now.toISOString().slice(0,10); }
   else if (filterType === "annee") { filterFrom = new Date(now.getFullYear(),0,1).toISOString().slice(0,10); filterTo = now.toISOString().slice(0,10); }
+  render();
+};
+
+// Données sparkline pour le tooltip interactif — mises à jour par render()
+let _sparkData = [];
+
+window.sparkMove = function(e) {
+  if (!_sparkData.length) return;
+  const svg = document.getElementById('spark-svg');
+  const tip = document.getElementById('spark-tip');
+  const line = document.getElementById('spark-line');
+  const dot = document.getElementById('spark-dot');
+  if (!svg || !tip || !line || !dot) return;
+
+  const rect = svg.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const idx = Math.min(Math.round(pct * (_sparkData.length - 1)), _sparkData.length - 1);
+  const item = _sparkData[idx];
+  if (!item) return;
+
+  // Position en unités SVG (viewBox 600x96)
+  const svgX = (idx / Math.max(_sparkData.length - 1, 1)) * 600;
+  const maxV = Math.max(..._sparkData.map(d => d.val), 1);
+  const svgY = Math.max(6, 96 - (item.val / maxV) * 96 * 0.85 - 6);
+
+  line.setAttribute('x1', svgX); line.setAttribute('x2', svgX);
+  line.setAttribute('opacity', '0.6');
+  dot.setAttribute('cx', svgX); dot.setAttribute('cy', svgY);
+  dot.setAttribute('opacity', '1');
+
+  // Position du tooltip en px sur l'élément parent
+  const tipX = (svgX / 600) * rect.width;
+  tip.style.left = tipX + 'px';
+  tip.style.opacity = '1';
+  document.getElementById('spark-tip-month').textContent = item.label;
+  document.getElementById('spark-tip-val').textContent = item.val > 0
+    ? Number(item.val).toLocaleString('fr-FR', {minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'
+    : 'Aucun encaissement';
+};
+
+window.sparkLeave = function() {
+  const tip = document.getElementById('spark-tip');
+  const line = document.getElementById('spark-line');
+  const dot = document.getElementById('spark-dot');
+  if (tip) tip.style.opacity = '0';
+  if (line) line.setAttribute('opacity', '0');
+  if (dot) dot.setAttribute('opacity', '0');
+};
+
+window.setKpiFilter = function(type) {
+  filterType = type;
+  const now = new Date();
+  if (type === "mois") { filterFrom = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); filterTo = now.toISOString().slice(0,10); }
+  else if (type === "annee") { filterFrom = new Date(now.getFullYear(),0,1).toISOString().slice(0,10); filterTo = now.toISOString().slice(0,10); }
+  render();
+};
+
+window.setChartFilter = function(type) {
+  chartFilter = type;
   render();
 };
 
@@ -823,9 +883,9 @@ function render() {
       </div>
       <div class="controls">
         <div class="seg">
-          <button class="${filterType==='mois'?'on':''}" onclick="document.getElementById('period-type').value='mois';onPeriodChange()">Mois</button>
-          <button class="${filterType==='annee'?'on':''}" onclick="document.getElementById('period-type').value='annee';onPeriodChange()">Année</button>
-          <button class="${filterType==='custom'?'on':''}" onclick="document.getElementById('period-type').value='custom';onPeriodChange()">Personnalisé</button>
+          <button class="${filterType==='mois'?'on':''}" onclick="setKpiFilter('mois')">Mois</button>
+          <button class="${filterType==='annee'?'on':''}" onclick="setKpiFilter('annee')">Année</button>
+          <button class="${filterType==='custom'?'on':''}" onclick="setKpiFilter('custom')">Personnalisé</button>
         </div>
         <select id="period-type" style="display:none" onchange="onPeriodChange()">
           <option value="mois" ${filterType==="mois"?"selected":""}>Mois</option>
@@ -862,8 +922,9 @@ function render() {
             <span class="hero-meta-val">${kpi.nbFactures}</span>
           </div>
         </div>
-        <div class="sparkline">
-          <svg viewBox="0 0 600 96" width="100%" height="96" preserveAspectRatio="none">
+        <div class="sparkline" id="spark-wrap">
+          <svg id="spark-svg" viewBox="0 0 600 96" width="100%" height="96" preserveAspectRatio="none"
+               onmousemove="sparkMove(event)" onmouseleave="sparkLeave()">
             <defs>
               <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stop-color="var(--amber)" stop-opacity=".35"/>
@@ -873,7 +934,14 @@ function render() {
             ${sparkArea ? `<path d="${sparkArea}" fill="url(#sparkGrad)"/>` : ""}
             ${sparkPath ? `<path d="${sparkPath}" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"/>` : ""}
             ${sparkPath ? `<circle cx="${lastSparkX}" cy="${lastSparkY}" r="4" fill="var(--amber)"/><circle cx="${lastSparkX}" cy="${lastSparkY}" r="8" fill="var(--amber)" opacity=".25"/>` : ""}
+            <!-- curseur interactif -->
+            <line id="spark-line" x1="0" y1="0" x2="0" y2="96" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+            <circle id="spark-dot" cx="0" cy="0" r="4" fill="var(--amber)" opacity="0"/>
           </svg>
+          <div id="spark-tip" style="position:absolute;top:4px;left:0;background:var(--surface);border:1px solid var(--border-hi);border-radius:8px;padding:6px 10px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .1s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);transform:translateX(-50%);">
+            <div id="spark-tip-month" style="font-family:var(--fm,monospace);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;"></div>
+            <div id="spark-tip-val" style="font-family:var(--fh);font-weight:700;color:var(--amber);"></div>
+          </div>
         </div>
       </div>
 
@@ -948,9 +1016,9 @@ function render() {
         <div class="card-head">
           <div class="card-title">CA mensuel <span class="accent">— ${chartFilter==='6mois'?'6 derniers mois':chartFilter==='annee'?'Année en cours':'Personnalisé'}</span></div>
           <div class="seg">
-            <button class="${chartFilter==='6mois'?'on':''}" onclick="chartFilter='6mois';render()">6m</button>
-            <button class="${chartFilter==='annee'?'on':''}" onclick="chartFilter='annee';render()">Année</button>
-            <button class="${chartFilter==='custom'?'on':''}" onclick="chartFilter='custom';render()">Custom</button>
+            <button class="${chartFilter==='6mois'?'on':''}" onclick="setChartFilter('6mois')">6m</button>
+            <button class="${chartFilter==='annee'?'on':''}" onclick="setChartFilter('annee')">Année</button>
+            <button class="${chartFilter==='custom'?'on':''}" onclick="setChartFilter('custom')">Custom</button>
           </div>
         </div>
         ${chartFilter === "custom" ? `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
