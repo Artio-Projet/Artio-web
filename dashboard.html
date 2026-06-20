@@ -761,11 +761,11 @@ function render() {
   if (caPrec > 0) deltaPct = Math.round(((kpi.caAnnuel - caPrec) / caPrec) * 100);
 
   // Custom inputs
-  const customInputs = filterType === "custom" ? `
-    <input type="date" class="date-input" value="${filterFrom}" onchange="filterFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
-    <span class="date-sep">→</span>
-    <input type="date" class="date-input" value="${filterTo}" onchange="filterTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
-  ` : "";
+  // Libellé de période pour les KPIs
+  const periodeLabel = filterType === "mois"
+    ? `${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}`
+    : filterType === "annee" ? `Année ${now.getFullYear()}`
+    : filterFrom && filterTo ? `${filterFrom} → ${filterTo}` : "Période";
 
   // BARS
   const bars = kpi.bars.map((b, i) => {
@@ -887,12 +887,11 @@ function render() {
           <button class="${filterType==='annee'?'on':''}" onclick="setKpiFilter('annee')">Année</button>
           <button class="${filterType==='custom'?'on':''}" onclick="setKpiFilter('custom')">Personnalisé</button>
         </div>
-        <select id="period-type" style="display:none" onchange="onPeriodChange()">
-          <option value="mois" ${filterType==="mois"?"selected":""}>Mois</option>
-          <option value="annee" ${filterType==="annee"?"selected":""}>Année</option>
-          <option value="custom" ${filterType==="custom"?"selected":""}>Personnalisé</option>
-        </select>
-        ${customInputs}
+        ${filterType === 'custom' ? `
+          <input type="date" class="date-input" value="${filterFrom}" onchange="filterFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+          <span class="date-sep">→</span>
+          <input type="date" class="date-input" value="${filterTo}" onchange="filterTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+        ` : ''}
         <button class="btn-ghost" onclick="exportCSV()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
@@ -914,11 +913,11 @@ function render() {
             <span class="hero-meta-val" style="color:var(--teal)">${fmt(kpi.caMois)}</span>
           </div>
           <div class="hero-meta-item">
-            <span class="hero-meta-label">HT (PÉRIODE)</span>
+            <span class="hero-meta-label">HT (${periodeLabel.toUpperCase()})</span>
             <span class="hero-meta-val">${fmt(kpi.caHT)}</span>
           </div>
           <div class="hero-meta-item">
-            <span class="hero-meta-label">FACTURES</span>
+            <span class="hero-meta-label">FACTURES (${periodeLabel.toUpperCase()})</span>
             <span class="hero-meta-val">${kpi.nbFactures}</span>
           </div>
         </div>
@@ -990,13 +989,13 @@ function render() {
       </div>
       <div class="kpi-mini">
         <div class="kpi-mini-head">
-          <span class="kpi-mini-label">Encaissé ce mois</span>
+          <span class="kpi-mini-label">Encaissé (${filterType==='mois'?'mois':filterType==='annee'?'année':'période'})</span>
           <div class="kpi-mini-icon teal">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap=" round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </div>
         </div>
-        <div class="kpi-mini-value teal">${fmt(kpi.caMois)}</div>
-        <div class="kpi-mini-sub"><span>${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}</span></div>
+        <div class="kpi-mini-value teal">${filterType==='mois' ? fmt(kpi.caMois) : fmt(kpi.caTotal)}</div>
+        <div class="kpi-mini-sub"><span>${periodeLabel}</span></div>
       </div>
       <div class="kpi-mini">
         <div class="kpi-mini-head">
