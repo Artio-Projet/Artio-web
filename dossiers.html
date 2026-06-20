@@ -829,28 +829,6 @@ function buildInboxTasks(){
       }
     }
 
-    /* --- Signature en attente : lien créé, non ouvert, encore valide --- */
-    docs.forEach(doc=>{
-      if(doc.type!=="devis")return;
-      if(doc.accepte||dos.statut==="signe")return;
-      if(!doc.signature_token)return;
-      if(doc.signature_link_opened_at)return; // déjà ouvert
-      const expiresAt=doc.signature_expires_at?new Date(doc.signature_expires_at):null;
-      if(expiresAt&&expiresAt<now)return; // expiré
-      const sentDate=doc.signature_sent_at?new Date(doc.signature_sent_at):_parseDateFR(doc.date);
-      const jrs=_daysBetween(sentDate,now);
-      tasks.push({
-        dosId:dos.id, docNum:doc.docNumber, cat:"signature",
-        title:"En attente de signature",
-        client:dos.nom||"Client",
-        dossier:doc.label||doc.docNumber||"",
-        ctx:doc.docNumber,
-        daysAgo:`Envoyé il y a ${jrs}j`,
-        sortDate:sentDate||now,
-        priority:3
-      });
-    });
-
     /* --- Activité récente : devis envoyés (récents, avant mi-parcours) + factures en cours payées récemment --- */
     if(dos.statut==="devis_envoye"){
       const devis=docs.find(d=>d.type==="devis"&&!d.accepte);
@@ -924,7 +902,6 @@ const INBOX_CATS=[
   {key:"a_facturer", label:"À facturer",       color:"#9d95f5", icon:"📋", section:"urgent"},
   {key:"impayee",    label:"Impayées",         color:"#f87171", icon:"⚠️", section:"urgent"},
   {key:"a_relancer", label:"À relancer",       color:"#f59e0b", icon:"🔔", section:"urgent"},
-  {key:"signature",  label:"À signer",         color:"#60a5fa", icon:"✍️", section:"urgent"},
   {key:"recent",     label:"Activité récente", color:"#6b7494", icon:"🕐", section:"suivi"},
 ];
 
