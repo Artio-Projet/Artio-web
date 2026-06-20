@@ -195,6 +195,33 @@ body::after {
 .bar-label { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
 .bar-val { font-family: var(--fh); font-size: 11px; font-weight: 600; color: var(--text); }
 
+/* tooltip interactif au survol */
+.bar-col { cursor: pointer; }
+.bar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  font-family: var(--fb);
+  font-size: 12px;
+  color: var(--text);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s, transform .15s;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+[data-theme="light"] .bar-tooltip { box-shadow: 0 8px 24px rgba(20,18,12,0.12); }
+.bar-tooltip-month { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+.bar-tooltip-val { font-family: var(--fh); font-weight: 700; color: var(--amber); }
+.bar-col:hover .bar-tooltip { opacity: 1; transform: translateX(-50%) translateY(-2px); }
+.bar-col:hover .bar-fill { filter: brightness(1.15); }
+
 /* ── ACTIVITY LIST ── */
 .activity { display:flex; flex-direction:column; gap: 2px; }
 .activity-item { display:flex; align-items:center; gap: 12px; padding: 10px 4px; border-bottom: 1px dashed var(--border); }
@@ -410,13 +437,20 @@ function getAllDocs() {
   return docs;
 }
 
+function _docRefDate(d) {
+  // Date de référence pour les filtres : pour une facture payée → date d'encaissement.
+  // Sinon → date d'émission. Cohérent avec la logique URSSAF (encaissement).
+  if (d.type === "facture" && d.paye && d.date_paye) return parseDateFR(d.date_paye);
+  return parseDateFR(d.date);
+}
+
 function filterDocs(docs) {
   const now = new Date();
-  if (filterType === "mois") return docs.filter(d => { const dt = parseDateFR(d.date); return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear(); });
-  if (filterType === "annee") return docs.filter(d => { const dt = parseDateFR(d.date); return dt.getFullYear() === now.getFullYear(); });
+  if (filterType === "mois") return docs.filter(d => { const dt = _docRefDate(d); return dt && dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear(); });
+  if (filterType === "annee") return docs.filter(d => { const dt = _docRefDate(d); return dt && dt.getFullYear() === now.getFullYear(); });
   if (filterType === "custom" && filterFrom && filterTo) {
     const from = new Date(filterFrom), to = new Date(filterTo);
-    return docs.filter(d => { const dt = parseDateFR(d.date); return dt >= from && dt <= to; });
+    return docs.filter(d => { const dt = _docRefDate(d); return dt && dt >= from && dt <= to; });
   }
   return docs;
 }
@@ -443,7 +477,7 @@ function calcKPIs() {
   const now = new Date();
   const all = getAllDocs();
   const filtered = filterDocs(all);
-  const factures = filtered.filter(d => d.type === "facture");
+  const factures = filtered.filter(d => d.type === "facture" && d.paye);
   const devis    = filtered.filter(d => d.type === "devis");
   const caTotal  = factures.reduce((s,d) => s+(d.ttc||0), 0);
   const caHT     = factures.reduce((s,d) => s+(d.totalHT||0), 0);
@@ -459,7 +493,20 @@ function calcKPIs() {
       tvaParTaux[taux].nb  += 1;
     }
   });
-  const caMois   = filterType === "mois" ? caTotal : filterDocs(all.filter(d => d.type==="facture" && (() => { const dt = parseDateFR(d.date); return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear(); })())).reduce((s,d) => s+(d.ttc||0), 0);
+  // CA encaissé du mois en cours : basé sur date_paye (logique URSSAF / encaissement)
+  // Seules les factures avec paye:true sont comptées, sur leur date de paiement
+  const caMois = (() => {
+    let total = 0;
+    all.forEach(d => {
+      if (d.type !== "facture" || !d.paye) return;
+      const ref = d.date_paye || d.date;
+      const dt = parseDateFR(ref);
+      if (dt && dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear()) {
+        total += d.ttc || 0;
+      }
+    });
+    return total;
+  })();
   const devisAtt = devis.filter(d => !d.accepte);
   const devisAcc = devis.filter(d => d.accepte);
   const caAttente  = devisAtt.reduce((s,d) => s+(d.ttc||0), 0);
@@ -468,11 +515,17 @@ function calcKPIs() {
   const allDevisAnnee = all.filter(d => d.type==='devis' && (()=>{const dt=parseDateFR(d.date);return dt.getFullYear()===now.getFullYear();})());
   const allDevisAccAnnee = allDevisAnnee.filter(d => d.accepte);
   const txConv = allDevisAnnee.length > 0 ? Math.round(allDevisAccAnnee.length / allDevisAnnee.length * 100) : 0;
-  // Graphique : calcul selon chartFilter
+  // Graphique : CA encaissé par mois (basé sur date_paye, logique URSSAF)
   const caParMois = {};
-  all.filter(d => d.type==="facture").forEach(d => { const dt=parseDateFR(d.date); const k=dt.getFullYear()+"-"+dt.getMonth(); caParMois[k]=(caParMois[k]||0)+(d.ttc||0); });
+  all.filter(d => d.type==="facture" && d.paye).forEach(d => {
+    const ref = d.date_paye || d.date;
+    const dt = parseDateFR(ref);
+    if (!dt) return;
+    const k = dt.getFullYear()+"-"+dt.getMonth();
+    caParMois[k] = (caParMois[k]||0) + (d.ttc||0);
+  });
   const bars = buildBars(caParMois, now);
-  const caAnnuel = all.filter(d=>d.type==='facture').reduce((s,d)=>{const dt=parseDateFR(d.date);return dt.getFullYear()===now.getFullYear()?s+(d.ttc||0):s;},0);
+  const caAnnuel = all.filter(d=>d.type==='facture' && d.paye).reduce((s,d)=>{const ref=d.date_paye||d.date;const dt=parseDateFR(ref);return dt && dt.getFullYear()===now.getFullYear()?s+(d.ttc||0):s;},0);
   return { caTotal, caHT, caAnnuel, tvaColl, tvaParTaux, caMois, caAttente, caAccepte, txConv, nbFactures:factures.length, nbDevis:devis.length, nbAttente:devisAtt.length, nbAccepte:devisAcc.length, bars, factures, devis };
 }
 
@@ -629,7 +682,7 @@ function caAnneePrecedente() {
   const lastYear = new Date().getFullYear() - 1;
   let total = 0;
   dossiers.forEach(dos => (dos.documents||[]).forEach(d => {
-    if (d.type === "facture") {
+    if (d.type === "facture" && d.paye) {
       const dt = parseDateFR(d.date_paye || d.date);
       if (dt && dt.getFullYear() === lastYear) total += d.ttc || 0;
     }
@@ -661,7 +714,12 @@ function render() {
     const valTxt = b.val > 0
       ? (b.val >= 1000 ? (Math.round(b.val/100)/10) + "k" : Math.round(b.val))
       : "";
+    const tooltipVal = b.val > 0 ? fmt(b.val) : "Aucun encaissement";
     return `<div class="bar-col">
+      <div class="bar-tooltip">
+        <div class="bar-tooltip-month">${esc(b.label)}</div>
+        <div class="bar-tooltip-val">${tooltipVal}</div>
+      </div>
       <div class="bar-val">${valTxt ? valTxt + "€" : ""}</div>
       <div class="bar-track">
         <div class="bar-fill ${b.val===0?"empty":""} ${isCurrent && b.val>0?"current":""}" style="height:${Math.max(pct,2)}%"></div>
