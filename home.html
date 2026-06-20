@@ -574,10 +574,17 @@ function updateGreeting() {
       const { data: dossiers } = await sb.from('dossiers').select('documents').eq('user_id', uid);
 
       function parseDateFR(s) {
-        if (!s) return new Date('');
+        if (!s) return null;
+        // Format JJ/MM/AAAA
         const p = s.split('/');
-        if (p.length === 3) return new Date(p[2], p[1]-1, p[0]);
-        return new Date(s);
+        if (p.length === 3) {
+          const d = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+          if (!isNaN(d.getTime())) return d;
+        }
+        // Format ISO AAAA-MM-JJ ou timestamp
+        const d2 = new Date(s);
+        if (!isNaN(d2.getTime())) return d2;
+        return null;
       }
 
       let caMois = 0, caAnnee = 0, nbDevis = 0, nbDevisTotal = 0;
@@ -589,8 +596,14 @@ function updateGreeting() {
         docs.forEach(doc => {
           if (doc.type === 'facture') {
             const dt = parseDateFR(doc.date);
-            if (dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear()) caMois += doc.ttc || 0;
-            if (dt.getFullYear() === now.getFullYear()) caAnnee += doc.ttc || 0;
+            if (dt) {
+              if (dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear()) caMois += doc.ttc || 0;
+              if (dt.getFullYear() === now.getFullYear()) caAnnee += doc.ttc || 0;
+            } else {
+              // Date absente ou invalide → on rattache au mois courant pour ne pas perdre le montant
+              caMois += doc.ttc || 0;
+              caAnnee += doc.ttc || 0;
+            }
           }
           if (doc.type === 'devis') {
             nbDevisTotal++;
