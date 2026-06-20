@@ -123,6 +123,74 @@ button{font-family:var(--fb);cursor:pointer}
   .pg-btn:disabled{opacity:.35;cursor:not-allowed}
   .pg-btn.arrow{font-size:18px;color:var(--text)}
   .pg-dots{color:var(--muted);padding:0 4px;font-size:13px}
+  /* ════ INBOX VIEW (Direction A) ════ */
+  .inbox-wrap{display:flex;height:calc(100vh - 60px);background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+  .inbox-cats{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+  .inbox-cats-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);}
+  .inbox-cats-title{font-family:var(--fh,'Space Grotesk');font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;color:var(--text);}
+  .inbox-cats-sub{font-size:11px;color:var(--muted);}
+  .inbox-cats-list{flex:1;padding:10px 8px;overflow-y:auto;}
+  .inbox-cats-sec{padding:14px 11px 4px;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
+  .inbox-cat-item{display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:9px;font-size:13px;cursor:pointer;color:var(--muted);font-weight:400;margin-bottom:2px;transition:background .12s,color .12s;}
+  .inbox-cat-item:hover{background:var(--surface-2);color:var(--text);}
+  .inbox-cat-item.active{background:var(--surface-2);color:var(--amber);font-weight:600;}
+  .inbox-cat-ic{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+  .inbox-cat-lb{flex:1;color:inherit;}
+  .inbox-cat-cnt{font-size:11px;padding:1px 7px;border-radius:20px;background:var(--surface-3,rgba(255,255,255,.06));color:var(--muted);font-weight:700;}
+  .inbox-cats-foot{padding:12px;border-top:1px solid var(--border);}
+  .inbox-new-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border-radius:9px;background:var(--amber);color:#080b14;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--fh,'Space Grotesk');text-decoration:none;box-shadow:0 2px 12px rgba(245,167,66,.25);}
+  .inbox-new-btn:hover{filter:brightness(1.05);}
+
+  .inbox-list{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;}
+  .inbox-list-head{height:52px;padding:0 18px;display:flex;align-items:center;gap:14px;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .inbox-list-title{display:flex;align-items:center;gap:10px;font-family:var(--fh,'Space Grotesk');font-size:15px;font-weight:700;color:var(--text);}
+  .inbox-list-count{font-size:12px;color:var(--muted);font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;}
+  .inbox-list-search{flex:1;max-width:280px;}
+  .inbox-list-search input{width:100%;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+  .inbox-list-search input:focus{border-color:var(--amber);}
+  .inbox-list-body{flex:1;overflow-y:auto;}
+  .inbox-row{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+  .inbox-row:hover{background:var(--surface-2);}
+  .inbox-row.active{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--amber);}
+  .inbox-row-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--fh,'Space Grotesk');flex-shrink:0;}
+  .inbox-row-main{flex:1;min-width:0;}
+  .inbox-row-line1{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px;}
+  .inbox-row-client{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .inbox-row-time{font-size:10px;color:var(--muted);flex-shrink:0;font-family:var(--fh,'Space Grotesk');}
+  .inbox-row-line2{margin-bottom:2px;}
+  .inbox-row-title{font-size:12px;font-weight:600;}
+  .inbox-row-line3{}
+  .inbox-row-ctx{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;}
+  .inbox-row-cat{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+
+  .inbox-preview{width:420px;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+  .inbox-preview-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .inbox-preview-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:var(--fh,'Space Grotesk');flex-shrink:0;}
+  .inbox-preview-id{flex:1;min-width:0;}
+  .inbox-preview-name{font-size:14px;font-weight:700;color:var(--text);font-family:var(--fh,'Space Grotesk');overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .inbox-preview-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .inbox-preview-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .inbox-preview-close:hover{background:var(--surface-2);color:var(--text);}
+  .inbox-preview-body{flex:1;overflow-y:auto;padding:14px;}
+
+  .inbox-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px 24px;text-align:center;}
+  .inbox-empty-icon{font-size:42px;margin-bottom:14px;opacity:.6;}
+  .inbox-empty-text{font-size:13px;color:var(--muted);max-width:280px;line-height:1.6;}
+  .inbox-empty-list{padding:60px 24px;}
+
+  /* Responsive : sur mobile, on empile en mode 1 colonne avec overlay preview */
+  @media (max-width: 920px){
+    .inbox-wrap{flex-direction:column;height:auto;min-height:calc(100vh - 60px);}
+    .inbox-cats{width:100%;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border);}
+    .inbox-cats-head{display:none;}
+    .inbox-cats-list{display:flex;flex-direction:row;gap:6px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;}
+    .inbox-cats-sec{display:none;}
+    .inbox-cat-item{flex-shrink:0;margin-bottom:0;white-space:nowrap;padding:6px 12px;}
+    .inbox-cats-foot{display:none;}
+    .inbox-list{border-right:none;}
+    .inbox-preview{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;z-index:9000;border-top:1px solid var(--border);background:var(--bg);display:none;}
+    .inbox-preview.has-selection{display:flex;}
+  }
   </style>
 </head>
 <body>
@@ -655,7 +723,360 @@ function renderDossierCard(dos){
   return`<div class="dossier-card" data-dos-id="${dos.id}"${needsRelance?' style="border-left:3px solid #FFB74D;"':''}><div class="dossier-header" onclick="toggleDossier('${dos.id}')"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;"><span class="badge" style="background:${st.bg};color:${st.color};">${st.label}</span>${needsRelance?'<span style="font-size:10px;background:#FFF3E0;color:#E65100;padding:2px 6px;border-radius:4px;">📩 À relancer</span>':'' }<span style="font-size:13px;font-weight:500;">${esc(dos.nom)}</span></div><p style="font-size:12px;color:#888;">${(dos.documents||[]).length} document${(dos.documents||[]).length>1?"s":""} · ${dos.createdAt||""}</p></div><div style="display:flex;align-items:center;gap:8px;margin-left:12px;">${dos.statut!=="termine"?`<button class="btn-small btn-teal" onclick="event.stopPropagation();markTermine('${dos.id}')">✓ Clôturer</button>`:""} ${S.renamingDossierId===dos.id?`<input value="${esc(S.renamingDossierVal)}" onclick="event.stopPropagation()" oninput="S.renamingDossierVal=this.value" onkeydown="if(event.key==='Enter')renameDossier('${dos.id}')" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #378ADD;width:150px;"/><button class="btn-small btn-blue" onclick="event.stopPropagation();renameDossier('${dos.id}')">OK</button><button class="btn-small" onclick="event.stopPropagation();set({renamingDossierId:null})">✕</button>`:`<button class="btn-small" onclick="event.stopPropagation();startRename('${dos.id}')">✏</button>`}<button class="btn-small" onclick="event.stopPropagation();if(window.confirm('Supprimer ce dossier définitivement ?'))confirmDeleteDossier('${dos.id}')" style="color:#A32D2D;border-color:#F09595;">🗑</button></div></div>${isOpen?`<div style="padding:12px;border-top:0.5px solid var(--border);">${docsHTML}</div>`:""}</div>`;
 }
 
-function renderHistorique(){
+/* ════════════════════════════════════════════════════════════════
+   INBOX VIEW (Direction A) — boîte de réception par catégories
+   Filtres dynamiques basés sur la logique métier réelle :
+   - delai_paiement (doc → profil → 30 par défaut)
+   - validite_jours (doc → profil.validite_devis → 3)
+   ════════════════════════════════════════════════════════════════ */
+
+function _parseDateFR(d){
+  if(!d)return null;
+  const p=String(d).split("/");
+  if(p.length<3)return null;
+  return new Date(p[2],p[1]-1,p[0]);
+}
+function _parseDateISOorFR(d){
+  if(!d)return null;
+  if(String(d).includes("-")){const dt=new Date(d);return isNaN(dt)?null:dt;}
+  return _parseDateFR(d);
+}
+function _daysBetween(from,to){
+  if(!from)return 0;
+  return Math.floor(((to||new Date()).getTime()-from.getTime())/86400000);
+}
+
+/* Construit les "tâches" à partir des dossiers réels.
+   Une tâche = un dossier + une catégorie + un document de contexte. */
+function buildInboxTasks(){
+  const tasks=[];
+  const now=new Date();
+  const delaiPaiementProfil=parseInt(S.entreprise.delai_paiement||"30")||30;
+  const validiteProfil=parseInt(S.entreprise.validite_devis||3)||3;
+
+  S.dossiers.forEach(dos=>{
+    const docs=dos.documents||[];
+    const lastDocDate=docs.reduce((max,d)=>{
+      const dt=_parseDateFR(d.date);
+      return (dt&&(!max||dt>max))?dt:max;
+    },null);
+
+    /* --- À facturer : devis accepté ou signé sans facture --- */
+    if(dos.statut==="devis_accepte"||dos.statut==="signe"){
+      const devis=docs.find(d=>d.type==="devis"&&(d.accepte||dos.statut==="signe"));
+      const hasFacture=docs.some(d=>d.type==="facture");
+      if(devis&&!hasFacture){
+        tasks.push({
+          dosId:dos.id, docNum:devis.docNumber, cat:"a_facturer",
+          title:"Créer la facture",
+          client:dos.nom||"Client",
+          dossier:devis.label||devis.docNumber||"",
+          ctx:`${devis.docNumber} · ${(devis.ttc||0).toFixed(2)} €`,
+          daysAgo: dos.statut==="signe"?"Signé":"Accepté",
+          sortDate:lastDocDate||_parseDateISOorFR(dos.updated_at)||now,
+          priority:1
+        });
+      }
+    }
+
+    /* --- Impayée : facture non payée et délai dépassé --- */
+    docs.forEach(doc=>{
+      if(doc.type!=="facture"||doc.paye)return;
+      const dateFact=_parseDateFR(doc.date);
+      if(!dateFact)return;
+      const delai=parseInt(doc.delai_paiement||S.entreprise.delai_paiement||"30")||delaiPaiementProfil;
+      const jrs=_daysBetween(dateFact,now);
+      const retard=jrs-delai;
+      if(retard>0){
+        tasks.push({
+          dosId:dos.id, docNum:doc.docNumber, cat:"impayee",
+          title:retard>=30?"Facture en retard grave":"Facture en retard",
+          client:dos.nom||"Client",
+          dossier:doc.label||doc.docNumber||"",
+          ctx:`${doc.docNumber} · ${(doc.ttc||0).toFixed(2)} €`,
+          daysAgo:`Retard ${retard}j`,
+          sortDate:dateFact,
+          priority:retard>=30?1:2
+        });
+      }
+    });
+
+    /* --- À relancer : devis envoyé, mi-parcours de validité atteint, pas expiré --- */
+    if(dos.statut==="devis_envoye"){
+      const devis=docs.find(d=>d.type==="devis"&&!d.accepte);
+      if(devis){
+        const dateDevis=_parseDateFR(devis.date);
+        if(dateDevis){
+          const validite=parseInt(devis.validite_jours||S.entreprise.validite_devis||3)||validiteProfil;
+          const jrs=_daysBetween(dateDevis,now);
+          const miParcours=Math.ceil(validite/2);
+          if(jrs>=miParcours&&jrs<validite){
+            tasks.push({
+              dosId:dos.id, docNum:devis.docNumber, cat:"a_relancer",
+              title:"Devis sans réponse",
+              client:dos.nom||"Client",
+              dossier:devis.label||devis.docNumber||"",
+              ctx:`${devis.docNumber} · ${(devis.ttc||0).toFixed(2)} €`,
+              daysAgo:`Envoyé il y a ${jrs}j · expire dans ${validite-jrs}j`,
+              sortDate:dateDevis,
+              priority:2
+            });
+          }
+        }
+      }
+    }
+
+    /* --- Signature en attente : lien créé, non ouvert, encore valide --- */
+    docs.forEach(doc=>{
+      if(doc.type!=="devis")return;
+      if(doc.accepte||dos.statut==="signe")return;
+      if(!doc.signature_token)return;
+      if(doc.signature_link_opened_at)return; // déjà ouvert
+      const expiresAt=doc.signature_expires_at?new Date(doc.signature_expires_at):null;
+      if(expiresAt&&expiresAt<now)return; // expiré
+      const sentDate=doc.signature_sent_at?new Date(doc.signature_sent_at):_parseDateFR(doc.date);
+      const jrs=_daysBetween(sentDate,now);
+      tasks.push({
+        dosId:dos.id, docNum:doc.docNumber, cat:"signature",
+        title:"En attente de signature",
+        client:dos.nom||"Client",
+        dossier:doc.label||doc.docNumber||"",
+        ctx:doc.docNumber,
+        daysAgo:`Envoyé il y a ${jrs}j`,
+        sortDate:sentDate||now,
+        priority:3
+      });
+    });
+
+    /* --- Activité récente : devis envoyés (récents, avant mi-parcours) + factures en cours payées récemment --- */
+    if(dos.statut==="devis_envoye"){
+      const devis=docs.find(d=>d.type==="devis"&&!d.accepte);
+      if(devis){
+        const dateDevis=_parseDateFR(devis.date);
+        if(dateDevis){
+          const validite=parseInt(devis.validite_jours||S.entreprise.validite_devis||3)||validiteProfil;
+          const jrs=_daysBetween(dateDevis,now);
+          const miParcours=Math.ceil(validite/2);
+          if(jrs<miParcours){
+            tasks.push({
+              dosId:dos.id, docNum:devis.docNumber, cat:"recent",
+              title:"Devis envoyé",
+              client:dos.nom||"Client",
+              dossier:devis.label||devis.docNumber||"",
+              ctx:`${devis.docNumber} · ${(devis.ttc||0).toFixed(2)} €`,
+              daysAgo:`Envoyé il y a ${jrs}j`,
+              sortDate:dateDevis,
+              priority:4
+            });
+          }
+        }
+      }
+    }
+    if(dos.statut==="facture"){
+      docs.filter(d=>d.type==="facture").forEach(doc=>{
+        const dateFact=_parseDateFR(doc.date);
+        if(!dateFact)return;
+        const delai=parseInt(doc.delai_paiement||S.entreprise.delai_paiement||"30")||delaiPaiementProfil;
+        const jrs=_daysBetween(dateFact,now);
+        if(jrs<=delai){
+          tasks.push({
+            dosId:dos.id, docNum:doc.docNumber, cat:"recent",
+            title:doc.paye?"Facture payée":"Facture en cours",
+            client:dos.nom||"Client",
+            dossier:doc.label||doc.docNumber||"",
+            ctx:`${doc.docNumber} · ${(doc.ttc||0).toFixed(2)} €`,
+            daysAgo:doc.paye?`Payée le ${doc.date_paye||doc.date}`:`Échéance dans ${delai-jrs}j`,
+            sortDate:dateFact,
+            priority:4
+          });
+        }
+      });
+    }
+    if(dos.statut==="termine"){
+      const dt=_parseDateISOorFR(dos.updated_at)||lastDocDate;
+      if(dt&&_daysBetween(dt,now)<=30){
+        tasks.push({
+          dosId:dos.id, docNum:(docs[0]||{}).docNumber||"", cat:"recent",
+          title:"Dossier terminé",
+          client:dos.nom||"Client",
+          dossier:(docs[0]||{}).label||"",
+          ctx:`${docs.length} document${docs.length>1?"s":""}`,
+          daysAgo:`Clôturé`,
+          sortDate:dt,
+          priority:5
+        });
+      }
+    }
+  });
+
+  /* Tri : priorité puis date la plus récente */
+  tasks.sort((a,b)=>{
+    if(a.priority!==b.priority)return a.priority-b.priority;
+    return (b.sortDate||0)-(a.sortDate||0);
+  });
+  return tasks;
+}
+
+const INBOX_CATS=[
+  {key:"a_facturer", label:"À facturer",       color:"#9d95f5", icon:"📋", section:"urgent"},
+  {key:"impayee",    label:"Impayées",         color:"#f87171", icon:"⚠️", section:"urgent"},
+  {key:"a_relancer", label:"À relancer",       color:"#f59e0b", icon:"🔔", section:"urgent"},
+  {key:"signature",  label:"À signer",         color:"#60a5fa", icon:"✍️", section:"urgent"},
+  {key:"recent",     label:"Activité récente", color:"#6b7494", icon:"🕐", section:"suivi"},
+];
+
+let inboxState={cat:"all", selDosId:null, search:""};
+
+function _initials(s){return String(s||"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";}
+function _avColor(s){
+  let h=0;const str=String(s||"");for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;
+  const palette=["#f5a742","#3ecfcf","#9d95f5","#f87171","#60a5fa","#f59e0b","#34d399"];
+  return palette[h%palette.length];
+}
+
+function renderInboxRow(task,active){
+  const cat=INBOX_CATS.find(c=>c.key===task.cat)||INBOX_CATS[INBOX_CATS.length-1];
+  return `<div class="inbox-row${active?' active':''}" data-dos-id="${task.dosId}" onclick="selectInboxDos('${task.dosId}','${task.docNum}')">
+    <div class="inbox-row-av" style="background:${_avColor(task.client)};">${_initials(task.client)}</div>
+    <div class="inbox-row-main">
+      <div class="inbox-row-line1">
+        <span class="inbox-row-client">${esc(task.client)}</span>
+        <span class="inbox-row-time">${esc(task.daysAgo||"")}</span>
+      </div>
+      <div class="inbox-row-line2">
+        <span class="inbox-row-title" style="color:${cat.color};">${esc(task.title)}</span>
+      </div>
+      <div class="inbox-row-line3">
+        <span class="inbox-row-ctx">${esc(task.dossier||"")} — ${esc(task.ctx||"")}</span>
+      </div>
+    </div>
+    <div class="inbox-row-cat" style="background:${cat.color}1f;color:${cat.color};">${cat.icon}</div>
+  </div>`;
+}
+
+function renderInboxPreview(){
+  const dos=S.dossiers.find(d=>d.id===inboxState.selDosId);
+  if(!dos){
+    return `<div class="inbox-empty">
+      <div class="inbox-empty-icon">📂</div>
+      <div class="inbox-empty-text">Sélectionnez un dossier dans la liste pour voir le détail et les actions disponibles.</div>
+    </div>`;
+  }
+  /* On réutilise la carte dossier existante en mode ouvert */
+  if(S.openDossier!==dos.id){S.openDossier=dos.id;}
+  return `<div class="inbox-preview-head">
+    <div class="inbox-preview-av" style="background:${_avColor(dos.nom)};">${_initials(dos.nom)}</div>
+    <div class="inbox-preview-id">
+      <div class="inbox-preview-name">${esc(dos.nom)}</div>
+      <div class="inbox-preview-sub">${(dos.documents||[]).length} document${(dos.documents||[]).length>1?"s":""} · créé ${dos.createdAt||""}</div>
+    </div>
+    <button class="inbox-preview-close" onclick="closeInboxPreview()" aria-label="Fermer">×</button>
+  </div>
+  <div class="inbox-preview-body">${renderDossierCard(dos)}</div>`;
+}
+
+window.selectInboxDos=function(dosId,docNum){
+  inboxState.selDosId=dosId;
+  if(docNum)S.previewDocNum=null;
+  renderPage();
+};
+window.closeInboxPreview=function(){
+  inboxState.selDosId=null;
+  S.openDossier=null;
+  renderPage();
+};
+window.setInboxCat=function(k){
+  inboxState.cat=k;
+  inboxState.selDosId=null;
+  renderPage();
+};
+window.setInboxSearch=function(v){
+  inboxState.search=v||"";
+  renderPage();
+};
+
+function renderInbox(){
+  const tasks=buildInboxTasks();
+  const counts=Object.fromEntries(INBOX_CATS.map(c=>[c.key,tasks.filter(t=>t.cat===c.key).length]));
+  counts.all=tasks.length;
+  const urgentTotal=INBOX_CATS.filter(c=>c.section==="urgent").reduce((s,c)=>s+(counts[c.key]||0),0);
+
+  /* Filtrage */
+  const q=(inboxState.search||"").trim().toLowerCase();
+  let filtered=inboxState.cat==="all"?tasks:tasks.filter(t=>t.cat===inboxState.cat);
+  if(q){
+    filtered=filtered.filter(t=>
+      (t.client||"").toLowerCase().includes(q)||
+      (t.dossier||"").toLowerCase().includes(q)||
+      (t.docNum||"").toLowerCase().includes(q)
+    );
+  }
+
+  const sidebar=`<aside class="inbox-cats">
+    <div class="inbox-cats-head">
+      <div class="inbox-cats-title">Dossiers</div>
+      <div class="inbox-cats-sub">${urgentTotal>0?`<span style="color:var(--amber);font-weight:600;">${urgentTotal} action${urgentTotal>1?"s":""}</span> à traiter`:"Tout est à jour ✓"}</div>
+    </div>
+    <div class="inbox-cats-list">
+      <div class="inbox-cat-item${inboxState.cat==="all"?" active":""}" onclick="setInboxCat('all')">
+        <span class="inbox-cat-ic">📥</span>
+        <span class="inbox-cat-lb">Tout</span>
+        <span class="inbox-cat-cnt">${counts.all}</span>
+      </div>
+      <div class="inbox-cats-sec">URGENT</div>
+      ${INBOX_CATS.filter(c=>c.section==="urgent").map(c=>`
+        <div class="inbox-cat-item${inboxState.cat===c.key?" active":""}" style="${inboxState.cat===c.key?`background:${c.color}15;color:${c.color};`:""}" onclick="setInboxCat('${c.key}')">
+          <span class="inbox-cat-ic">${c.icon}</span>
+          <span class="inbox-cat-lb">${c.label}</span>
+          ${counts[c.key]>0?`<span class="inbox-cat-cnt" style="background:${c.color}22;color:${c.color};">${counts[c.key]}</span>`:`<span class="inbox-cat-cnt">0</span>`}
+        </div>
+      `).join("")}
+      <div class="inbox-cats-sec">SUIVI</div>
+      ${INBOX_CATS.filter(c=>c.section==="suivi").map(c=>`
+        <div class="inbox-cat-item${inboxState.cat===c.key?" active":""}" onclick="setInboxCat('${c.key}')">
+          <span class="inbox-cat-ic">${c.icon}</span>
+          <span class="inbox-cat-lb">${c.label}</span>
+          <span class="inbox-cat-cnt">${counts[c.key]||0}</span>
+        </div>
+      `).join("")}
+    </div>
+    <div class="inbox-cats-foot">
+      <a href="app.html" class="inbox-new-btn">+ Nouveau dossier</a>
+    </div>
+  </aside>`;
+
+  const headerLabel=inboxState.cat==="all"?"Tout":(INBOX_CATS.find(c=>c.key===inboxState.cat)?.label||"");
+
+  const list=`<section class="inbox-list">
+    <div class="inbox-list-head">
+      <div class="inbox-list-title">
+        <span>${headerLabel}</span>
+        <span class="inbox-list-count">${filtered.length} élément${filtered.length>1?"s":""}</span>
+      </div>
+      <div class="inbox-list-search">
+        <input type="text" placeholder="🔍 Rechercher client, dossier…" value="${esc(inboxState.search)}" oninput="setInboxSearch(this.value)"/>
+      </div>
+    </div>
+    <div class="inbox-list-body">
+      ${filtered.length===0
+        ? `<div class="inbox-empty inbox-empty-list">
+            <div class="inbox-empty-icon">✨</div>
+            <div class="inbox-empty-text">${inboxState.cat==="all"?"Aucun dossier pour l'instant. Créez votre premier devis !":"Rien dans cette catégorie pour le moment."}</div>
+          </div>`
+        : filtered.map(t=>renderInboxRow(t,inboxState.selDosId===t.dosId)).join("")
+      }
+    </div>
+  </section>`;
+
+  const preview=`<section class="inbox-preview${inboxState.selDosId?' has-selection':''}">
+    ${renderInboxPreview()}
+  </section>`;
+
+  return `<div class="inbox-wrap">${sidebar}${list}${preview}</div>`;
+}
+
+/* Ancienne vue conservée pour rétrocompat éventuelle (non utilisée) */
+function renderHistoriqueLegacy(){
   const now=new Date();
   const devisEnAttente=S.dossiers.filter(d=>d.statut==="devis_envoye").length;
   const dacBanner=S.devisAConvertir.length>0?`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">${S.devisAConvertir.map(({dosId,docNum,nom,datePresta})=>{const dateLabel=datePresta?new Date(datePresta).toLocaleDateString("fr-FR",{day:"numeric",month:"long"}):"date non renseignée";const pastLabel=datePresta&&new Date(datePresta)<now?" — prestation terminée":"";return`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;"><span style="font-size:18px;">📋</span><div style="flex:1;min-width:0;"><p style="font-size:13px;font-weight:600;color:#f59e0b;margin-bottom:2px;">Devis signé à facturer</p><p style="font-size:12px;color:var(--muted);">${esc(nom)} · ${docNum} · ${dateLabel}${pastLabel}</p></div><button class="btn-small btn-teal" onclick="convertToFacture('${dosId}','${docNum}')" style="white-space:nowrap;">${S.convertingId===docNum?"⏳...":"💶 Créer la facture"}</button></div>`;}).join("")}</div>`:"";
@@ -742,7 +1163,7 @@ function renderModals(){
 
 function renderPage(){
   const root=document.getElementById("app-root");if(!root)return;
-  root.innerHTML=`<div style="font-family:var(--fh);font-size:22px;font-weight:700;margin-bottom:20px;margin-top:8px;">📁 Dossiers</div>`+renderHistorique();
+  root.innerHTML=renderInbox();
     renderModals();
 }
 
