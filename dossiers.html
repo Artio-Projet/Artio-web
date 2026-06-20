@@ -124,7 +124,10 @@ button{font-family:var(--fb);cursor:pointer}
   .pg-btn.arrow{font-size:18px;color:var(--text)}
   .pg-dots{color:var(--muted);padding:0 4px;font-size:13px}
   /* ════ INBOX VIEW (Direction A) ════ */
-  .inbox-wrap{display:flex;height:calc(100vh - 60px);background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+  /* Cette vue prend toute la largeur disponible, on neutralise les contraintes du .app parent */
+  main.app.is-inbox{max-width:none;padding:14px 16px 14px;}
+  main.app:has(.inbox-wrap){max-width:none;padding:14px 16px 14px;}
+  .inbox-wrap{display:flex;height:calc(100vh - 88px);background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--border);width:100%;}
   .inbox-cats{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
   .inbox-cats-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);}
   .inbox-cats-title{font-family:var(--fh,'Space Grotesk');font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;color:var(--text);}
@@ -1163,6 +1166,7 @@ function renderModals(){
 
 function renderPage(){
   const root=document.getElementById("app-root");if(!root)return;
+  root.classList.add("is-inbox");
   root.innerHTML=renderInbox();
     renderModals();
 }
