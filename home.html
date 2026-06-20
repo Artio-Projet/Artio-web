@@ -618,6 +618,14 @@ function updateGreeting() {
       document.getElementById('stat-ca').textContent = fmt(caMois);
       document.getElementById('stat-devis').textContent = fmt(caAnnee);
       document.getElementById('stat-clients').textContent = nbDevisTotal > 0 ? txConv + '%' : '–';
+      // DEBUG TEMPORAIRE — à retirer après diagnostic
+      console.log('[Artio Debug] caMois=', caMois, 'caAnnee=', caAnnee);
+      (dossiers||[]).forEach(d=>{
+        const docs=Array.isArray(d.documents)?d.documents:[];
+        docs.filter(doc=>doc.type==='facture').forEach(doc=>{
+          console.log('[Artio Debug] facture', doc.docNumber, '| date=', doc.date, '| ttc=', doc.ttc, '| typeof ttc=', typeof doc.ttc, '| parsée=', parseDateFR(doc.date));
+        });
+      });
     } catch(err) {
       console.error('Stats home error:', err);
       document.getElementById('stat-ca').textContent = '–';
