@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="artio-icon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artio — Roadmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root,[data-theme="dark"]{
+      --bg:#080b14;--surface:#0e1220;--surface-2:#141829;--surface-3:#1a2035;
+      --border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.13);
+      --text:#e2e5f1;--muted:#6b7494;
+      --amber:#f5a742;--amber-dim:rgba(245,167,66,0.13);--amber-glow:rgba(245,167,66,0.3);
+      --teal:#3ecfcf;--teal-dim:rgba(62,207,207,0.12);
+      --purple:#9d95f5;--purple-dim:rgba(157,149,245,0.12);
+      --red:#f87171;--green:#4ade80;
+      --fh:'Space Grotesk',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;
+    }
+    [data-theme="light"]{
+      --bg:#faf8f3;--surface:#ffffff;--surface-2:#f3efe6;--surface-3:#ece7dc;
+      --border:rgba(20,18,12,0.08);--border-hi:rgba(20,18,12,0.16);
+      --text:#1a1a1f;--muted:#6a6b78;
+      --amber:#d97706;--amber-dim:rgba(217,119,6,0.10);--amber-glow:rgba(217,119,6,0.22);
+      --teal:#0d9488;--teal-dim:rgba(13,148,136,0.10);
+      --purple:#7c6ff7;--purple-dim:rgba(124,111,247,0.10);
+      --green:#16a34a;--red:#dc2626;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;}
+
+    /* ── NAV / HAMBURGER (identique aux autres pages) ── */
+    .sidebar-trigger{position:fixed;top:14px;left:16px;z-index:1100;background:var(--surface);border:1px solid var(--border);border-radius:9px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1050;}
+    .sidebar-overlay.open{display:block;}
+    .sidebar{position:fixed;top:0;left:-280px;width:260px;height:100vh;background:var(--surface);border-right:1px solid var(--border);z-index:1200;display:flex;flex-direction:column;transition:left .25s ease;}
+    .sidebar.open{left:0;}
+    .sidebar-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .sidebar-logo-img{width:28px;height:28px;border-radius:7px;}
+    .sidebar-brand{font-family:var(--fh);font-size:18px;font-weight:700;color:var(--text);flex:1;}
+    .sidebar-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;}
+    .sidebar-close:hover{background:var(--surface-2);}
+    .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+    .sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;cursor:pointer;background:none;border:none;width:100%;text-align:left;font-family:var(--fb);transition:background .15s,color .15s;}
+    .sidebar-link:hover,.sidebar-link.active{background:var(--surface-2);color:var(--text);}
+    .sidebar-foot{padding:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+    .sidebar-sep{height:1px;background:var(--border);}
+    .sidebar-logout{color:var(--red)!important;}
+    .sidebar-theme-btn{background:none;border:1px solid var(--border);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+    .sidebar-theme-btn:hover{background:var(--surface-2);}
+    [data-theme="dark"] .icon-sun{display:none;}
+    [data-theme="light"] .icon-moon{display:none;}
+
+    /* ── ARTIO TOPBAR ── */
+    .artio-nav{position:sticky;top:0;z-index:900;display:flex;align-items:center;padding:0 20px;height:60px;background:var(--bg);border-bottom:1px solid var(--border);gap:12px;}
+    .nav-logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--fh);font-size:20px;font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.02em;}
+    .nav-logo img{width:28px;height:28px;border-radius:7px;}
+    .theme-toggle{background:none;border:1px solid var(--border);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);margin-left:auto;}
+    .theme-toggle:hover{background:var(--surface-2);}
+
+    /* ── LAYOUT ── */
+    .page-wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px;}
+
+    /* ── HERO ── */
+    .hero{text-align:center;margin-bottom:48px;}
+    .hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--purple-dim);border:1px solid rgba(157,149,245,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--purple);letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;}
+    .hero h1{font-family:var(--fh);font-size:clamp(28px,5vw,42px);font-weight:700;letter-spacing:-.02em;margin-bottom:14px;line-height:1.15;}
+    .hero p{font-size:15px;color:var(--muted);max-width:500px;margin:0 auto;line-height:1.65;}
+
+    /* ── PHASES ── */
+    .phases{display:flex;flex-direction:column;gap:32px;}
+
+    .phase-block{border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+    .phase-head{display:flex;align-items:center;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);}
+    .phase-num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:15px;font-weight:700;flex-shrink:0;}
+    .phase-head-info{flex:1;}
+    .phase-head-name{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
+    .phase-head-desc{font-size:12px;color:var(--muted);}
+    .phase-status{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+
+    /* Couleurs par phase */
+    .p1 .phase-num{background:rgba(74,222,128,.15);color:#4ade80;}
+    .p1 .phase-status{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+    .p2 .phase-num{background:var(--amber-dim);color:var(--amber);}
+    .p2 .phase-status{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,.25);}
+    .p3 .phase-num{background:var(--purple-dim);color:var(--purple);}
+    .p3 .phase-status{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(157,149,245,.25);}
+    .p4 .phase-num{background:var(--teal-dim);color:var(--teal);}
+    .p4 .phase-status{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,.25);}
+
+    .phase-features{padding:8px 0;}
+    .feat-section{padding:10px 24px 4px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
+    .feat-item{display:flex;align-items:flex-start;gap:12px;padding:12px 24px;transition:background .1s;}
+    .feat-item:hover{background:var(--surface-2);}
+    .feat-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+    .feat-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .feat-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+    .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.02em;}
+    .tag-live{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.2);}
+    .tag-soon{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,.2);}
+    .tag-rd{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(157,149,245,.2);}
+    .tag-new{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,.2);}
+
+    /* ── FEEDBACK ── */
+    .feedback-block{margin-top:48px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;}
+    .feedback-block h3{font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:8px;}
+    .feedback-block p{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+    .feedback-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--amber);color:#080b14;border-radius:11px;font-size:14px;font-weight:700;font-family:var(--fh);text-decoration:none;transition:opacity .15s;}
+    .feedback-btn:hover{opacity:.88;}
+
+    /* ── BACK ── */
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;text-decoration:none;margin-bottom:28px;transition:color .15s;}
+    .back-link:hover{color:var(--text);}
+
+    @media(max-width:600px){
+      .page-wrap{padding:24px 14px 60px;}
+      .phase-head{flex-wrap:wrap;gap:12px;}
+      .feat-item{padding:12px 16px;}
+      .feat-section{padding:10px 16px 4px;}
+    }
+  </style>
+  <script>(()=>{let t;try{t=localStorage.getItem('artio-theme')||'dark';}catch(e){t='dark';}document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body>
+
+<!-- HAMBURGER -->
+<button class="sidebar-trigger" onclick="toggleSidebar()" aria-label="Menu">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <img src="artio-icon.png" alt="" class="sidebar-logo-img"/>
+    <span class="sidebar-brand">Artio</span>
+    <button class="sidebar-close" onclick="closeSidebar()">×</button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="home.html" class="sidebar-link">🏠 Accueil</a>
+    <a href="app.html" class="sidebar-link">🎙 Créer</a>
+    <a href="dossiers.html" class="sidebar-link">📁 Dossiers</a>
+    <a href="rediger.html" class="sidebar-link">✉️ Rédiger</a>
+    <a href="clients.html" class="sidebar-link">👥 Clients</a>
+    <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
+    <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>
+  </nav>
+  <div class="sidebar-foot">
+    <a href="aide.html" class="sidebar-link">❔ Aide</a>
+    <a href="settings.html" class="sidebar-link">⚙️ Paramètres</a>
+    <div class="sidebar-sep" style="margin:4px 0;"></div>
+    <button class="sidebar-link sidebar-logout" onclick="handleLogout()">↪ Déconnexion</button>
+    <button class="sidebar-theme-btn" onclick="toggleTheme()" title="Thème" style="margin-top:8px;align-self:flex-end;">
+      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<nav class="artio-nav">
+  <a href="home.html" class="nav-logo">
+    <img src="artio-icon.png" alt=""/>Artio
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Thème">
+    <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+</nav>
+
+<div class="page-wrap">
+
+  <a href="aide.html" class="back-link">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour au centre d'aide
+  </a>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🗺️ Roadmap produit</div>
+    <h1>Ce qu'on construit<br>pour vous</h1>
+    <p>Artio évolue en permanence. Voici les grandes étapes de notre développement — ce qui est déjà là, ce qui arrive bientôt, et notre vision long terme.</p>
+  </div>
+
+  <div class="phases">
+
+    <!-- PHASE 1 -->
+    <div class="phase-block p1">
+      <div class="phase-head">
+        <div class="phase-num">1</div>
+        <div class="phase-head-info">
+          <div class="phase-head-name">Lancement — Le cœur du produit</div>
+          <div class="phase-head-desc">Tout ce qui est déjà disponible dans votre compte Artio aujourd'hui.</div>
+        </div>
+        <div class="phase-status">✅ Disponible</div>
+      </div>
+      <div class="phase-features">
+        <div class="feat-section">Création de documents</div>
+        <div class="feat-item">
+          <div class="feat-icon">🎙️</div>
+          <div>
+            <div class="feat-name">Devis & factures par dictée vocale <span class="tag tag-live">Live</span></div>
+            <div class="feat-desc">Générez un devis complet en moins de 30 secondes en parlant à voix haute. L'IA structure automatiquement les prestations, quantités et montants.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📄</div>
+          <div>
+            <div class="feat-name">PDF professionnel personnalisé <span class="tag tag-live">Live</span></div>
+            <div class="feat-desc">Logo, couleur, mentions légales, RCP/décennale, IBAN — votre document aux couleurs de votre entreprise, conforme DGFiP 2026.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🏛️</div>
+          <div>
+            <div class="feat-name">Facturation électronique B2B (DGFiP 2026) <span class="tag tag-live">Live</span></div>
+            <div class="feat-desc">Émission automatique via FactPulse, PDP agréée par la DGFiP. Vos factures B2B sont transmises au format réglementaire sans aucune action supplémentaire.</div>
+          </div>
+        </div>
+        <div class="feat-section">Signature & suivi</div>
+        <div class="feat-item">
+          <div class="feat-icon">✍️</div>
+          <div>
+            <div class="feat-name">Signature électronique eIDAS <span class="tag tag-live">Live</span> <span class="tag tag-new">Pro</span></div>
+            <div class="feat-desc">Lien de signature sécurisé, vérification par OTP email, traçabilité complète. Conforme au règlement européen eIDAS n°910/2014.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📩</div>
+          <div>
+            <div class="feat-name">Relances automatiques clients <span class="tag tag-live">Live</span> <span class="tag tag-new">Pro</span></div>
+            <div class="feat-desc">Rappels de paiement J+7 et J+15 générés par IA, adaptés au ton de votre relation client. Relance de devis sans réponse également disponible.</div>
+          </div>
+        </div>
+        <div class="feat-section">Intégrations & tableau de bord</div>
+        <div class="feat-item">
+          <div class="feat-icon">📬</div>
+          <div>
+            <div class="feat-name">Connexion Gmail & Google Agenda <span class="tag tag-live">Live</span> <span class="tag tag-new">Pro</span></div>
+            <div class="feat-desc">Envoi de devis depuis votre adresse Gmail professionnelle. Synchronisation automatique des prestations avec votre agenda Google.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📊</div>
+          <div>
+            <div class="feat-name">Tableau de bord & suivi des encaissements <span class="tag tag-live">Live</span></div>
+            <div class="feat-desc">CA du mois, factures en attente, taux de conversion devis — une vue d'ensemble de votre activité en temps réel.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">👥</div>
+          <div>
+            <div class="feat-name">Répertoire clients & lookup SIRET <span class="tag tag-live">Live</span></div>
+            <div class="feat-desc">Base clients enrichie automatiquement depuis le SIRET. Historique complet des dossiers par client.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="phase-block p2">
+      <div class="phase-head">
+        <div class="phase-num">2</div>
+        <div class="phase-head-info">
+          <div class="phase-head-name">Rétention & consolidation</div>
+          <div class="phase-head-desc">Nouvelles fonctionnalités pour aller plus loin — dans les mois qui suivent le lancement.</div>
+        </div>
+        <div class="phase-status">🔜 Bientôt</div>
+      </div>
+      <div class="phase-features">
+        <div class="feat-section">Facturation avancée</div>
+        <div class="feat-item">
+          <div class="feat-icon">🔄</div>
+          <div>
+            <div class="feat-name">Factures récurrentes <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Abonnements et forfaits mensuels automatisés — idéal pour les prestations régulières (maintenance, coaching, retainer).</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🏗️</div>
+          <div>
+            <div class="feat-name">Factures de situation (avancement chantier) <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Facturation par étapes sur un même devis — 30%, 50%, 100%. Indispensable pour le BTP et les projets longue durée.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📑</div>
+          <div>
+            <div class="feat-name">Avoirs & notes de crédit <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Correction et annulation de factures émises, avec traçabilité comptable complète.</div>
+          </div>
+        </div>
+        <div class="feat-section">Obligations légales auto-entrepreneurs</div>
+        <div class="feat-item">
+          <div class="feat-icon">📒</div>
+          <div>
+            <div class="feat-name">Livre des recettes automatique <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Généré automatiquement depuis vos factures payées. Obligation légale pour les auto-entrepreneurs — zéro saisie manuelle.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🏛️</div>
+          <div>
+            <div class="feat-name">Déclaration URSSAF assistée <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Calcul automatique du CA à déclarer depuis vos encaissements, avec estimation des cotisations. Redirection vers autoentrepreneur.urssaf.fr prérempli.</div>
+          </div>
+        </div>
+        <div class="feat-section">Expérience & mobilité</div>
+        <div class="feat-item">
+          <div class="feat-icon">✍️</div>
+          <div>
+            <div class="feat-name">Envoi automatique du lien de signature <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Si l'email de votre client est renseigné, le lien de signature eIDAS lui est envoyé automatiquement dès la génération du devis. Prochaine étape : envoi par SMS.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📱</div>
+          <div>
+            <div class="feat-name">Application mobile native (iOS & Android) <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Toutes les fonctionnalités Artio dans votre poche — dictée vocale, dossiers, signature, notifications push pour les devis acceptés.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📁</div>
+          <div>
+            <div class="feat-name">Export comptable FEC <span class="tag tag-rd">En développement</span></div>
+            <div class="feat-desc">Format standard attendu par les experts-comptables — exportez toute votre comptabilité en un clic.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div class="phase-block p3">
+      <div class="phase-head">
+        <div class="phase-num">3</div>
+        <div class="phase-head-info">
+          <div class="phase-head-name">Portail Expert-Comptable</div>
+          <div class="phase-head-desc">Votre comptable accède directement à vos données Artio — plus besoin d'exporter, d'envoyer des fichiers ou de ressaisir quoi que ce soit.</div>
+        </div>
+        <div class="phase-status">🔮 Vision</div>
+      </div>
+      <div class="phase-features">
+        <div class="feat-item">
+          <div class="feat-icon">🤝</div>
+          <div>
+            <div class="feat-name">Accès comptable dédié <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Votre expert-comptable dispose d'un espace sécurisé pour consulter vos factures, exports FEC et justificatifs — sans accéder à vos données clients.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">💬</div>
+          <div>
+            <div class="feat-name">Messagerie comptable intégrée <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Posez vos questions à votre comptable directement depuis Artio, avec les pièces justificatives attachées automatiquement.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📊</div>
+          <div>
+            <div class="feat-name">Rapports comptables automatisés <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Bilan trimestriel, TVA, liasse fiscale — générés automatiquement et validés par votre comptable depuis son espace.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 4 -->
+    <div class="phase-block p4">
+      <div class="phase-head">
+        <div class="phase-num">4</div>
+        <div class="phase-head-info">
+          <div class="phase-head-name">Intégrations bancaires</div>
+          <div class="phase-head-desc">Artio se connecte à votre banque pour réconcilier automatiquement vos encaissements avec vos factures.</div>
+        </div>
+        <div class="phase-status">🔭 Long terme</div>
+      </div>
+      <div class="phase-features">
+        <div class="feat-item">
+          <div class="feat-icon">🏦</div>
+          <div>
+            <div class="feat-name">Connexion bancaire (DSP2) <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Synchronisation avec votre compte professionnel (Qonto, BNP, Crédit Agricole…) via agrégateur DSP2. Détection automatique des paiements reçus.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">⚡</div>
+          <div>
+            <div class="feat-name">Rapprochement automatique facture ↔ virement <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Artio détecte le virement de votre client et marque automatiquement la facture comme payée — zéro saisie manuelle.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📈</div>
+          <div>
+            <div class="feat-name">Trésorerie prévisionnelle <span class="tag tag-rd">Planifié</span></div>
+            <div class="feat-desc">Projections de trésorerie basées sur vos factures en cours et vos encaissements historiques — anticipez les creux d'activité.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phases -->
+
+  <!-- FEEDBACK -->
+  <div class="feedback-block">
+    <div style="font-size:36px;margin-bottom:12px;">💡</div>
+    <h3>Une idée ? Une feature qui vous manque ?</h3>
+    <p>Artio se construit avec ses utilisateurs. Si vous avez une suggestion, une demande ou un retour sur votre expérience, on veut l'entendre.</p>
+    <a href="contact.html" class="feedback-btn">✉️ Envoyer une suggestion</a>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const SUPABASE_URL="https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY="sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+function toggleSidebar(){document.querySelector(".sidebar").classList.toggle("open");document.querySelector(".sidebar-overlay").classList.toggle("open");}
+function closeSidebar(){document.querySelector(".sidebar").classList.remove("open");document.querySelector(".sidebar-overlay").classList.remove("open");}
+function toggleTheme(){const cur=document.documentElement.getAttribute("data-theme")||"dark";const next=cur==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("artio-theme",next);}catch(e){}}
+async function handleLogout(){await sb.auth.signOut();location.href="login.html";}
+</script>
+</body>
+</html>
