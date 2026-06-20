@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" href="artio-icon.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Artio — Tableau de bord</title>
+<link rel="icon" type="image/png" href="artio-icon.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="plan-guard.js"></script>
 <script src="tour.js?v=1"></script>
@@ -30,8 +30,11 @@
   --green-dim: rgba(74,222,128,0.11);
   --purple:    #a78bfa;
   --purple-dim:rgba(167,139,250,0.11);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,0.10);
   --fh: 'Space Grotesk', sans-serif;
   --fb: 'Plus Jakarta Sans', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
   --nav-h: 60px;
   --r: 14px;
 }
@@ -51,7 +54,11 @@
   --teal:      #0d9488;
   --teal-dim:  rgba(13,148,136,0.10);
   --green:     #16a34a;
+  --green-dim: rgba(22,163,74,0.10);
+  --purple:    #7c3aed;
+  --purple-dim:rgba(124,58,237,0.10);
   --red:       #dc2626;
+  --red-dim:   rgba(220,38,38,0.08);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,125 +81,206 @@ body { font-family: var(--fb); background: var(--bg); color: var(--text); min-he
 .btn-logout:hover { border-color: var(--border-hi); color: var(--text); }
 
 /* ── PAGE ── */
-.page { padding: calc(var(--nav-h) + 24px) 20px 48px; max-width: 960px; margin: 0 auto; }
+.page { position: relative; z-index: 1; padding: calc(var(--nav-h) + 28px) 28px 64px; max-width: 1180px; margin: 0 auto; }
 
-/* ── TOOLBAR ── */
-.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
-.page-title { font-family: var(--fh); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.period-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.field-select {
-  padding: 8px 12px; border-radius: 9px; font-size: 13px;
-  background: var(--surface); border: 1px solid var(--border);
-  color: var(--text); cursor: pointer; font-family: var(--fb); outline: none;
-  transition: border-color .2s;
+/* ambient blobs */
+body::before {
+  content:''; position:fixed; top:-200px; right:-150px;
+  width:600px; height:600px; border-radius:50%;
+  background: radial-gradient(circle, var(--amber-glow) 0%, transparent 60%);
+  opacity:.45; pointer-events:none; z-index:0;
 }
-.field-select:focus { border-color: var(--amber); }
-.field-select option { background: var(--surface-2); }
-.date-input {
-  padding: 8px 10px; border-radius: 9px; font-size: 12px;
-  background: var(--surface); border: 1px solid var(--border);
-  color: var(--text); font-family: var(--fb); outline: none;
-  transition: border-color .2s; cursor: pointer;
+body::after {
+  content:''; position:fixed; bottom:-200px; left:-100px;
+  width:500px; height:500px; border-radius:50%;
+  background: radial-gradient(circle, rgba(62,207,207,0.13) 0%, transparent 60%);
+  opacity:.55; pointer-events:none; z-index:0;
 }
+
+/* ── HEADER ── */
+.header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 24px; }
+.header-left { display:flex; flex-direction:column; gap:6px; }
+.eyebrow { font-family: var(--fm,'JetBrains Mono',monospace); font-size: 11px; color: var(--muted); letter-spacing:.12em; text-transform: uppercase; display:flex; align-items:center; gap:8px; }
+.eyebrow::before { content:''; width:6px; height:6px; border-radius:50%; background: var(--amber); box-shadow: 0 0 12px var(--amber-glow); }
+.page-title { font-family: var(--fh); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; }
+.page-sub { font-size: 13px; color: var(--muted); }
+
+.controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.seg { display:inline-flex; background: var(--surface); border:1px solid var(--border); border-radius: 10px; padding: 3px; }
+.seg button { font-family: var(--fb); font-size: 12px; font-weight: 500; padding: 6px 12px; border: none; background: transparent; color: var(--muted); border-radius: 7px; cursor: pointer; transition: all .15s; }
+.seg button.on { background: var(--surface-3); color: var(--text); }
+[data-theme="light"] .seg button.on { background: var(--surface-2); color: var(--text); }
+.btn-ghost { font-family: var(--fb); font-size: 12px; padding: 7px 12px; border-radius: 9px; border:1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; display:inline-flex; align-items:center; gap:6px; }
+.btn-ghost:hover { border-color: var(--border-hi); }
+.btn-primary { font-family: var(--fb); font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 9px; border:1px solid transparent; background: var(--amber); color: #080b14; cursor: pointer; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary:hover { filter: brightness(1.05); }
+.date-input { padding: 7px 10px; border-radius: 9px; font-size: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--fb); outline: none; cursor: pointer; }
 .date-input:focus { border-color: var(--amber); }
 .date-sep { font-size: 13px; color: var(--muted); }
 
-/* ── KPI GRID ── */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-@media(max-width:900px){ .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width:600px){ .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-.kpi-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 18px 20px; position: relative; overflow: hidden;
-  transition: border-color .2s;
-}
-.kpi-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  border-radius: var(--r) var(--r) 0 0;
-}
-.kpi-amber::before { background: var(--amber); }
-.kpi-teal::before  { background: var(--teal); }
-.kpi-green::before { background: var(--green); }
-.kpi-purple::before { background: var(--purple); }
-.kpi-orange::before { background: #f97316; }
-.kpi-orange .kpi-value { color: #f97316; }
-.kpi-icon {
-  width: 34px; height: 34px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
-}
-.kpi-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing:.05em; text-transform: uppercase; margin-bottom: 6px; }
-.kpi-value { font-family: var(--fh); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-.kpi-amber .kpi-value { color: var(--amber); }
-.kpi-teal  .kpi-value { color: var(--teal); }
-.kpi-green .kpi-value { color: var(--green); }
-.kpi-purple .kpi-value { color: var(--purple); }
-.kpi-sub { font-size: 11px; color: var(--muted); }
+/* ── HERO ROW ── */
+.hero-grid { display:grid; grid-template-columns: 1.55fr 1fr; gap: 14px; margin-bottom: 14px; }
+@media(max-width:880px){ .hero-grid { grid-template-columns: 1fr; } }
+.hero-card { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 26px 28px 0; display:flex; flex-direction:column; }
+.hero-card::before { content:''; position:absolute; inset:0; background: radial-gradient(120% 80% at 0% 0%, var(--amber-dim) 0%, transparent 50%), radial-gradient(80% 70% at 100% 100%, var(--teal-dim) 0%, transparent 55%); pointer-events:none; }
+.hero-card > * { position: relative; z-index:1; }
+.hero-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px; }
+.hero-label { font-family: var(--fm,monospace); font-size: 11px; color: var(--muted); letter-spacing:.1em; text-transform: uppercase; }
+.hero-delta { display:inline-flex; align-items:center; gap:5px; font-family: var(--fm,monospace); font-size: 11px; font-weight: 600; background: var(--green-dim); color: var(--green); padding: 4px 9px; border-radius: 100px; }
+.hero-delta.dn { background: var(--red-dim); color: var(--red); }
+.hero-value { font-family: var(--fh); font-size: 52px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; margin-top: 8px; color: var(--text); }
+.hero-value .unit { font-size: 28px; color: var(--muted); margin-left: 6px; font-weight: 500; }
+.hero-meta { display:flex; gap: 22px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); padding-bottom: 18px; flex-wrap: wrap; }
+.hero-meta-item { display:flex; flex-direction:column; gap:3px; }
+.hero-meta-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing:.08em; font-weight: 600; }
+.hero-meta-val { font-family: var(--fh); font-size: 16px; font-weight: 600; }
+.sparkline { margin: 8px -28px 0; height: 84px; position: relative; }
+
+/* ── CONVERSION RING ── */
+.ring-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 24px; display:flex; flex-direction:column; gap: 12px; position: relative; overflow: hidden; }
+.ring-card::before { content:''; position: absolute; top:0; right:0; width: 200px; height: 200px; background: radial-gradient(circle at 70% 30%, var(--purple-dim), transparent 70%); pointer-events:none; }
+.ring-head { display:flex; align-items:center; justify-content:space-between; position:relative; }
+.ring-title { font-family: var(--fh); font-size: 14px; font-weight: 700; }
+.ring-body { display:flex; align-items:center; gap:18px; position:relative; }
+.ring-svg { flex-shrink: 0; }
+.ring-bg { stroke: var(--surface-3); }
+[data-theme="light"] .ring-bg { stroke: var(--surface-2); }
+.ring-fg { stroke: var(--purple); stroke-linecap: round; transition: stroke-dashoffset .8s ease; filter: drop-shadow(0 0 6px var(--purple-dim)); }
+.ring-percent { font-family: var(--fh); font-size: 26px; font-weight: 700; fill: var(--text); }
+.ring-stats { display:flex; flex-direction:column; gap:10px; flex:1; }
+.ring-stat { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.ring-stat-label { font-size: 12px; color: var(--muted); display:flex; align-items:center; gap:7px; }
+.ring-stat-label::before { content:''; width:8px; height:8px; border-radius: 2px; }
+.ring-stat-label.acc::before { background: var(--purple); }
+.ring-stat-label.att::before { background: var(--surface-3); border:1px solid var(--border-hi); }
+.ring-stat-val { font-family: var(--fh); font-weight: 700; font-size: 14px; }
+
+/* ── KPI MICRO ROW ── */
+.kpi-row { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+@media(max-width:760px){ .kpi-row { grid-template-columns: 1fr; } }
+.kpi-mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 22px; display:flex; flex-direction:column; gap:8px; position:relative; overflow: hidden; }
+.kpi-mini-head { display:flex; align-items:center; justify-content:space-between; }
+.kpi-mini-label { font-family: var(--fm,monospace); font-size: 11px; color: var(--muted); letter-spacing:.08em; text-transform: uppercase; }
+.kpi-mini-icon { width:28px; height:28px; border-radius: 8px; display:flex; align-items:center; justify-content:center; }
+.kpi-mini-icon.teal { background: var(--teal-dim); color: var(--teal); }
+.kpi-mini-icon.green { background: var(--green-dim); color: var(--green); }
+.kpi-mini-icon.amber { background: var(--amber-dim); color: var(--amber); }
+.kpi-mini-value { font-family: var(--fh); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.kpi-mini-value.teal { color: var(--teal); }
+.kpi-mini-value.green { color: var(--green); }
+.kpi-mini-value.amber { color: var(--amber); }
+.kpi-mini-sub { font-size: 11px; color: var(--muted); display:flex; align-items:center; gap:6px; }
+
+/* ── MAIN GRID ── */
+.main-grid { display:grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 14px; }
+@media(max-width:980px){ .main-grid { grid-template-columns: 1fr; } }
+
+/* ── CARD ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 24px; }
+.card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 18px; flex-wrap:wrap; gap:10px; }
+.card-title { font-family: var(--fh); font-size: 15px; font-weight: 700; }
+.card-title .accent { color: var(--muted); font-weight: 400; margin-left: 6px; }
 
 /* ── CHART ── */
-.chart-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 22px 24px; margin-bottom: 14px;
-}
-.card-title { font-family: var(--fh); font-size: 14px; font-weight: 700; margin-bottom: 20px; }
-.bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 140px; }
-.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
-.bar-track { flex: 1; width: 100%; background: var(--surface-2); border-radius: 6px 6px 0 0; position: relative; display: flex; align-items: flex-end; overflow: hidden; }
-.bar-fill {
-  width: 100%; border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, var(--amber) 0%, rgba(245,167,66,.5) 100%);
-  transition: height .6s cubic-bezier(.4,0,.2,1);
-  min-height: 3px;
-}
+.bar-chart { display:flex; align-items:flex-end; gap: 14px; height: 200px; padding-top: 22px; position:relative; }
+.bar-chart::before { content:''; position:absolute; left:0; right:0; top: 22px; bottom: 22px; background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px); background-size: 100% 33.33%; opacity: .8; pointer-events: none; }
+.bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; position:relative; }
+.bar-track { flex:1; width:100%; display:flex; align-items:flex-end; position:relative; z-index:1; }
+.bar-fill { width:100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, var(--amber) 0%, rgba(245,167,66,.35) 100%); position:relative; transition: height .6s cubic-bezier(.4,0,.2,1); min-height: 4px; }
+.bar-fill::after { content:''; position:absolute; top:-1px; left:0; right:0; height:2px; background: var(--amber); border-radius: 2px; box-shadow: 0 0 12px var(--amber-glow); }
 .bar-fill.empty { background: var(--surface-3); }
-.bar-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing:.04em; }
-.bar-val { font-size: 9px; color: var(--muted); white-space: nowrap; }
+.bar-fill.empty::after { display: none; }
+.bar-fill.current { background: linear-gradient(180deg, var(--teal) 0%, rgba(62,207,207,.35) 100%); }
+.bar-fill.current::after { background: var(--teal); box-shadow: 0 0 12px var(--teal-dim); }
+.bar-label { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.bar-val { font-family: var(--fh); font-size: 11px; font-weight: 600; color: var(--text); }
+
+/* ── ACTIVITY LIST ── */
+.activity { display:flex; flex-direction:column; gap: 2px; }
+.activity-item { display:flex; align-items:center; gap: 12px; padding: 10px 4px; border-bottom: 1px dashed var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+.activity-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
+.activity-dot.green { background: var(--green); }
+.activity-dot.purple { background: var(--purple); }
+.activity-dot.teal { background: var(--teal); }
+.activity-body { flex:1; min-width: 0; }
+.activity-title { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.activity-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.activity-amount { font-family: var(--fh); font-size: 13px; font-weight: 700; }
+.activity-amount.amber { color: var(--amber); }
+.activity-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 12px; }
 
 /* ── TABLE ── */
-.table-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden; margin-bottom: 14px;
-}
-.table-head {
-  display: grid; grid-template-columns: 1fr 90px 100px 100px;
-  padding: 12px 20px; border-bottom: 1px solid var(--border);
-  background: var(--surface-2);
-}
-.table-head span { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing:.05em; text-transform: uppercase; }
-.table-head span:last-child, .table-head span:nth-child(3) { text-align: right; }
-.table-row-item {
-  display: grid; grid-template-columns: 1fr 90px 100px 100px;
-  padding: 11px 20px; border-bottom: 1px solid var(--border);
-  align-items: center; transition: background .15s;
-}
-.table-row-item:last-child { border-bottom: none; }
-.table-row-item:hover { background: var(--surface-2); }
-.table-row-item span { font-size: 13px; }
-.table-row-item span:nth-child(3), .table-row-item span:last-child { text-align: right; }
-.table-row-item .dos-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.table-row-item .doc-date { color: var(--muted); font-size: 12px; }
-.table-row-item .ttc { font-family: var(--fh); font-weight: 700; color: var(--amber); }
-.table-row-item .ht { color: var(--muted); font-size: 12px; }
-.empty-row { padding: 28px; text-align: center; color: var(--muted); font-size: 13px; }
+.table-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.table-card-head { padding: 18px 24px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid var(--border); }
+.search-box { display:flex; align-items:center; gap:8px; background: var(--bg); border:1px solid var(--border); border-radius:9px; padding: 6px 11px; }
+[data-theme="light"] .search-box { background: var(--surface-2); }
+.search-box input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--fb); font-size: 12px; width: 180px; }
+.search-box input::placeholder { color: var(--muted); }
+.table { display:grid; grid-template-columns: 32px 2fr 1.4fr 100px 110px 90px; }
+.t-head { display: contents; }
+.t-head > div { padding: 10px 12px; font-family: var(--fm,monospace); font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.t-head > div:nth-child(5), .t-head > div:nth-child(6) { text-align: right; }
+.t-row { display: contents; }
+.t-row > div { padding: 14px 12px; font-size: 13px; border-bottom: 1px solid var(--border); display:flex; align-items:center; }
+.t-row:last-child > div { border-bottom: none; }
+.t-row:hover > div { background: var(--surface-2); }
+.t-avatar { width: 26px; height: 26px; border-radius: 50%; font-family: var(--fh); font-size: 11px; font-weight: 700; color: #080b14; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.t-name { font-weight: 600; }
+.t-meta { font-size: 11px; color: var(--muted); display:flex; gap:6px; align-items:center; }
+.t-num { font-family: var(--fm,monospace); }
+.t-ttc { font-family: var(--fh); font-weight: 700; color: var(--amber); justify-content: flex-end; }
+.t-ht { color: var(--muted); font-family: var(--fm,monospace); font-size: 12px; justify-content: flex-end; }
+.pill { display:inline-flex; align-items:center; gap: 5px; font-family: var(--fb); font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: .04em; }
+.pill::before { content:''; width:5px; height:5px; border-radius:50%; }
+.pill.paid { background: var(--green-dim); color: var(--green); }
+.pill.paid::before { background: var(--green); }
+.pill.due { background: var(--amber-dim); color: var(--amber); }
+.pill.due::before { background: var(--amber); }
+.pill.draft { background: var(--surface-3); color: var(--muted); }
+.pill.draft::before { background: var(--muted); }
+.table-empty { padding: 36px 24px; text-align: center; color: var(--muted); font-size: 13px; }
 
-/* ── DECL GRID ── */
-.decl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.decl-item {
-  background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px 16px;
+@media(max-width:760px){
+  .table { grid-template-columns: 32px 1.5fr 80px 90px; }
+  .table .col-meta, .table .col-status { display:none; }
 }
-.decl-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing:.05em; text-transform: uppercase; margin-bottom: 6px; }
-.decl-val { font-family: var(--fh); font-size: 18px; font-weight: 700; }
 
-@media(max-width:700px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .nav-links { display: none; }
-  .table-head, .table-row-item { grid-template-columns: 1fr 80px 90px; }
-  .table-head span:nth-child(4), .table-row-item span:nth-child(4) { display: none; }
-  .page { padding: calc(var(--nav-h) + 16px) 12px 40px; }
-}
-@media(max-width:400px) {
-  .kpi-grid { grid-template-columns: 1fr; }
-  .decl-grid { grid-template-columns: 1fr; }
+/* ── TVA CARD ── */
+.tva-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 24px; margin-top: 14px; position: relative; overflow:hidden; }
+.tva-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width: 3px; background: linear-gradient(180deg, var(--teal), transparent); }
+.tva-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex-wrap:wrap; margin-bottom: 18px; }
+.tva-badges { display:flex; gap: 6px; margin-top: 8px; }
+.badge { font-family: var(--fm,monospace); font-size: 10px; padding: 3px 9px; border-radius: 100px; letter-spacing:.04em; }
+.badge.teal { background: var(--teal-dim); color: var(--teal); }
+.badge.muted { background: var(--surface-2); color: var(--muted); border:1px solid var(--border); }
+.tva-period { text-align:right; }
+.tva-period-label { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.tva-period-val { font-family: var(--fh); font-size: 18px; font-weight: 700; margin-top: 4px; }
+.tva-period-dates { font-family: var(--fm,monospace); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.tva-hero { background: linear-gradient(135deg, var(--teal-dim), transparent 80%); border: 1px solid rgba(62,207,207,0.25); border-radius: 12px; padding: 18px 22px; display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px; }
+.tva-hero-num { font-family: var(--fh); font-size: 34px; font-weight: 700; color: var(--teal); letter-spacing: -0.025em; line-height: 1; }
+.tva-hero-label { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.tva-hero-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.tva-breakdown { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media(max-width:660px){ .tva-breakdown { grid-template-columns: 1fr; } }
+.tva-cell { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; border-left: 2px solid var(--border-hi); }
+.tva-cell.amber { border-left-color: var(--amber); }
+.tva-cell.teal { border-left-color: var(--teal); }
+.tva-cell-label { font-family: var(--fm,monospace); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.tva-cell-val { font-family: var(--fh); font-size: 18px; font-weight: 700; }
+.tva-cell.amber .tva-cell-val { color: var(--amber); }
+.tva-cell.teal .tva-cell-val { color: var(--teal); }
+.tva-cell-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.tva-warning { margin-top: 14px; padding: 10px 14px; background: var(--red-dim); border: 1px solid rgba(248,113,113,0.2); border-radius: 8px; font-size: 11px; color: var(--muted); display:flex; gap:8px; align-items:flex-start; }
+.tva-warning span:first-child { color: var(--red); flex-shrink:0; margin-top:1px; }
+
+@media(max-width:760px) {
+  .page { padding: calc(var(--nav-h) + 16px) 14px 40px; }
+  .page-title { font-size: 24px; }
+  .hero-value { font-size: 42px; }
+  .hero-value .unit { font-size: 22px; }
 }
 
     /* ── FOOTER LÉGAL ── */
@@ -474,114 +562,373 @@ function exportCSV() {
   showToast("✅ Export CSV téléchargé");
 }
 
+function getRecentActivity(limit = 5) {
+  // Extrait les événements business des dossiers et trie par date desc
+  const events = [];
+  const now = new Date();
+  dossiers.forEach(dos => {
+    (dos.documents || []).forEach(doc => {
+      const dosNom = dos.nom || dos.client || "—";
+      if (doc.type === "facture") {
+        // 1. Facture payée (priorité haute)
+        if (doc.paye && doc.date_paye) {
+          const dt = parseDateFR(doc.date_paye);
+          if (dt) events.push({ type: "paye", dot: "green", dt, title: `Facture ${doc.docNumber||""} payée`, sub: `${dosNom}`, amount: doc.ttc });
+        }
+        // 2. Facture émise
+        if (doc.date) {
+          const dt = parseDateFR(doc.date);
+          if (dt) events.push({ type: "emise", dot: "amber", dt, title: `Facture ${doc.docNumber||""} émise`, sub: `${dosNom}`, amount: doc.ttc });
+        }
+      } else if (doc.type === "devis" && doc.accepte) {
+        // 3. Devis accepté
+        const dt = parseDateFR(doc.date_acceptation || doc.date);
+        if (dt) events.push({ type: "accepte", dot: "purple", dt, title: `Devis ${doc.docNumber||""} accepté`, sub: `${dosNom}`, amount: doc.ttc });
+      }
+    });
+  });
+  // Trie desc par date puis prend les N premiers
+  events.sort((a, b) => b.dt - a.dt);
+  return events.slice(0, limit).map(e => ({ ...e, ago: timeAgo(e.dt, now) }));
+}
+
+function timeAgo(dt, now) {
+  const diff = Math.max(0, now - dt);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (h < 1) return "à l'instant";
+  if (h < 24) return `il y a ${h} h`;
+  if (d === 1) return "hier";
+  if (d < 7) return `il y a ${d} j`;
+  if (d < 30) return `il y a ${Math.floor(d/7)} sem.`;
+  if (d < 365) return `il y a ${Math.floor(d/30)} mois`;
+  return `il y a ${Math.floor(d/365)} an${Math.floor(d/365)>1?"s":""}`;
+}
+
+function pickInitials(name) {
+  const s = String(name||"—").trim();
+  if (!s) return "—";
+  const words = s.split(/\s+/);
+  if (words.length === 1) return s.slice(0,2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+function pickAvatarGradient(name) {
+  const pals = [
+    "linear-gradient(135deg,#f5a742,#e07a18)",
+    "linear-gradient(135deg,#3ecfcf,#34d399)",
+    "linear-gradient(135deg,#a78bfa,#ec4899)",
+    "linear-gradient(135deg,#fbbf24,#fb923c)",
+    "linear-gradient(135deg,#60a5fa,#a78bfa)",
+  ];
+  let h = 0;
+  for (let i=0;i<(name||"").length;i++) h = ((h<<5)-h) + (name||"").charCodeAt(i);
+  return pals[Math.abs(h) % pals.length];
+}
+
+function caAnneePrecedente() {
+  const lastYear = new Date().getFullYear() - 1;
+  let total = 0;
+  dossiers.forEach(dos => (dos.documents||[]).forEach(d => {
+    if (d.type === "facture") {
+      const dt = parseDateFR(d.date_paye || d.date);
+      if (dt && dt.getFullYear() === lastYear) total += d.ttc || 0;
+    }
+  }));
+  return total;
+}
+
 function render() {
   const kpi = calcKPIs();
   const now = new Date();
   const maxBar = Math.max(...kpi.bars.map(b => b.val), 1);
 
+  // Delta vs année précédente
+  const caPrec = caAnneePrecedente();
+  let deltaPct = null;
+  if (caPrec > 0) deltaPct = Math.round(((kpi.caAnnuel - caPrec) / caPrec) * 100);
+
+  // Custom inputs
   const customInputs = filterType === "custom" ? `
     <input type="date" class="date-input" value="${filterFrom}" onchange="filterFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
     <span class="date-sep">→</span>
     <input type="date" class="date-input" value="${filterTo}" onchange="filterTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
   ` : "";
 
-  const bars = kpi.bars.map(b => {
+  // BARS
+  const bars = kpi.bars.map((b, i) => {
     const pct = Math.round((b.val / maxBar) * 100);
+    const isCurrent = (i === kpi.bars.length - 1);
+    const valTxt = b.val > 0
+      ? (b.val >= 1000 ? (Math.round(b.val/100)/10) + "k" : Math.round(b.val))
+      : "";
     return `<div class="bar-col">
-      <div class="bar-val">${b.val > 0 ? fmt(b.val).replace(" €","") + "€" : ""}</div>
+      <div class="bar-val">${valTxt ? valTxt + "€" : ""}</div>
       <div class="bar-track">
-        <div class="bar-fill ${b.val===0?"empty":""}" style="height:${Math.max(pct,2)}%"></div>
+        <div class="bar-fill ${b.val===0?"empty":""} ${isCurrent && b.val>0?"current":""}" style="height:${Math.max(pct,2)}%"></div>
       </div>
       <div class="bar-label">${b.label}</div>
     </div>`;
   }).join("");
 
-  const facturesRows = kpi.factures.length === 0
-    ? `<div class="empty-row">Aucune facture pour cette période</div>`
-    : kpi.factures.map(d => `<div class="table-row-item">
-        <span class="dos-name">${esc(d._dosNom||"—")}</span>
-        <span class="doc-date">${d.date||"—"}</span>
-        <span class="ttc">${fmt(d.ttc)}</span>
-        <span class="ht">${fmt(d.totalHT)}</span>
+  // ACTIVITY
+  const activity = getRecentActivity(5);
+  const activityHTML = activity.length === 0
+    ? `<div class="activity-empty">Aucune activité récente sur la période</div>`
+    : activity.map(e => `
+      <div class="activity-item">
+        <span class="activity-dot ${e.dot}"></span>
+        <div class="activity-body">
+          <div class="activity-title">${esc(e.title)}</div>
+          <div class="activity-sub">${esc(e.sub)} · ${e.ago}</div>
+        </div>
+        <div class="activity-amount amber">${e.amount ? fmt(e.amount).replace(" €", " €") : "—"}</div>
       </div>`).join("");
 
+  // TABLE — 5 factures les plus récentes (toutes périodes)
+  const allFactures = [];
+  dossiers.forEach(dos => {
+    (dos.documents||[]).forEach(d => {
+      if (d.type === "facture") allFactures.push({ ...d, _dosNom: dos.nom || dos.client || "—" });
+    });
+  });
+  allFactures.sort((a,b) => {
+    const da = parseDateFR(a.date) || new Date(0);
+    const db = parseDateFR(b.date) || new Date(0);
+    return db - da;
+  });
+  const lastFactures = allFactures.slice(0, 5);
+
+  const tableRows = lastFactures.length === 0
+    ? `<div class="table-empty" style="grid-column:1/-1">Aucune facture pour le moment</div>`
+    : lastFactures.map(d => {
+        const grad = pickAvatarGradient(d._dosNom);
+        const initials = pickInitials(d._dosNom);
+        const pill = d.paye
+          ? `<span class="pill paid">Payée</span>`
+          : `<span class="pill due">À encaisser</span>`;
+        const meta = d.label ? `#${esc(d.docNumber||"")} · ${esc(d.label)}` : `#${esc(d.docNumber||"")}`;
+        return `<div class="t-row">
+          <div><div class="t-avatar" style="background:${grad}">${esc(initials)}</div></div>
+          <div><div><div class="t-name">${esc(d._dosNom)}</div><div class="t-meta">${meta}</div></div></div>
+          <div class="col-meta t-meta"><span class="t-num">${esc(d.date||"—")}</span></div>
+          <div class="col-status">${pill}</div>
+          <div class="t-ttc">${fmt(d.ttc)}</div>
+          <div class="t-ht">${fmt(d.totalHT)}</div>
+        </div>`;
+      }).join("");
+
+  // RING — % en SVG : circonférence = 2*pi*48 ≈ 301.6
+  const ringDash = 301.6;
+  const ringOffset = ringDash * (1 - (kpi.txConv/100));
+
+  // HERO DELTA
+  const deltaHTML = deltaPct === null
+    ? ""
+    : `<span class="hero-delta ${deltaPct < 0 ? "dn" : ""}">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="${deltaPct<0?"6 9 12 15 18 9":"18 15 12 9 6 15"}"/></svg>
+        ${deltaPct >= 0 ? "+" : ""}${deltaPct}% vs ${now.getFullYear()-1}
+      </span>`;
+
+  // SPARKLINE — basé sur les 12 dernières barres avec courbe Bézier
+  const sparkPath = (() => {
+    const vals = kpi.bars.map(b => b.val);
+    if (vals.length === 0) return "";
+    const maxV = Math.max(...vals, 1);
+    const w = 600, h = 80;
+    const stepX = w / Math.max(vals.length - 1, 1);
+    const pts = vals.map((v, i) => [i*stepX, h - (v/maxV)*h*0.85 - 6]);
+    if (pts.length === 1) return `M0,${pts[0][1]} L${w},${pts[0][1]}`;
+    let path = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const cx = (pts[i-1][0] + pts[i][0]) / 2;
+      path += ` Q${cx},${pts[i-1][1]} ${cx},${(pts[i-1][1]+pts[i][1])/2}`;
+      path += ` T${pts[i][0]},${pts[i][1]}`;
+    }
+    return path;
+  })();
+  const sparkArea = sparkPath ? `${sparkPath} L600,96 L0,96 Z` : "";
+  const lastSparkX = 600;
+  const lastSparkY = (() => {
+    const vals = kpi.bars.map(b => b.val);
+    if (vals.length === 0) return 50;
+    const maxV = Math.max(...vals, 1);
+    return Math.round(80 - (vals[vals.length-1]/maxV)*80*0.85 - 6);
+  })();
+
   document.getElementById("main").innerHTML = `
-    <div class="toolbar">
-      <div class="page-title">Tableau de bord</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="period-wrap">
-          <select class="field-select" id="period-type" onchange="onPeriodChange()">
-            <option value="mois" ${filterType==="mois"?"selected":""}>Mois en cours</option>
-            <option value="annee" ${filterType==="annee"?"selected":""}>Année en cours</option>
-            <option value="custom" ${filterType==="custom"?"selected":""}>Personnalisé</option>
-          </select>
-          ${customInputs}
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-left">
+        <div class="eyebrow">Tableau de bord · ${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}</div>
+        <h1 class="page-title">Votre activité</h1>
+        <p class="page-sub">Les chiffres sont à jour à l'instant.</p>
+      </div>
+      <div class="controls">
+        <div class="seg">
+          <button class="${filterType==='mois'?'on':''}" onclick="document.getElementById('period-type').value='mois';onPeriodChange()">Mois</button>
+          <button class="${filterType==='annee'?'on':''}" onclick="document.getElementById('period-type').value='annee';onPeriodChange()">Année</button>
+          <button class="${filterType==='custom'?'on':''}" onclick="document.getElementById('period-type').value='custom';onPeriodChange()">Personnalisé</button>
         </div>
-        <button onclick="exportCSV()" style="font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap;">⬇ Export CSV</button>
+        <select id="period-type" style="display:none" onchange="onPeriodChange()">
+          <option value="mois" ${filterType==="mois"?"selected":""}>Mois</option>
+          <option value="annee" ${filterType==="annee"?"selected":""}>Année</option>
+          <option value="custom" ${filterType==="custom"?"selected":""}>Personnalisé</option>
+        </select>
+        ${customInputs}
+        <button class="btn-ghost" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
       </div>
     </div>
 
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-amber">
-        <div class="kpi-icon" style="background:var(--amber-dim)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    <!-- HERO ROW -->
+    <div class="hero-grid">
+      <div class="hero-card">
+        <div class="hero-head">
+          <span class="hero-label">Chiffre d'affaires · ${now.getFullYear()}</span>
+          ${deltaHTML}
         </div>
-        <div class="kpi-label">CA annuel</div>
-        <div class="kpi-value">${fmt(kpi.caAnnuel)}</div>
-        <div class="kpi-sub">${now.getFullYear()}</div>
-      </div>
-      <div class="kpi-card kpi-teal">
-        <div class="kpi-icon" style="background:var(--teal-dim)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="hero-value">${Math.round(kpi.caAnnuel).toLocaleString('fr-FR')}<span class="unit">€</span></div>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">CE MOIS</span>
+            <span class="hero-meta-val" style="color:var(--teal)">${fmt(kpi.caMois)}</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">HT (PÉRIODE)</span>
+            <span class="hero-meta-val">${fmt(kpi.caHT)}</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">FACTURES</span>
+            <span class="hero-meta-val">${kpi.nbFactures}</span>
+          </div>
         </div>
-        <div class="kpi-label">CA ce mois</div>
-        <div class="kpi-value">${fmt(kpi.caMois)}</div>
-        <div class="kpi-sub">${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}</div>
+        <div class="sparkline">
+          <svg viewBox="0 0 600 96" width="100%" height="96" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--amber)" stop-opacity=".35"/>
+                <stop offset="100%" stop-color="var(--amber)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            ${sparkArea ? `<path d="${sparkArea}" fill="url(#sparkGrad)"/>` : ""}
+            ${sparkPath ? `<path d="${sparkPath}" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"/>` : ""}
+            ${sparkPath ? `<circle cx="${lastSparkX}" cy="${lastSparkY}" r="4" fill="var(--amber)"/><circle cx="${lastSparkX}" cy="${lastSparkY}" r="8" fill="var(--amber)" opacity=".25"/>` : ""}
+          </svg>
+        </div>
       </div>
 
-      <div class="kpi-card kpi-green">
-        <div class="kpi-icon" style="background:var(--green-dim)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <div class="ring-card">
+        <div class="ring-head">
+          <div class="ring-title">Taux de conversion</div>
+          <span class="badge muted">${now.getFullYear()}</span>
         </div>
-        <div class="kpi-label">Devis acceptés</div>
-        <div class="kpi-value">${fmt(kpi.caAccepte)}</div>
-        <div class="kpi-sub">${kpi.nbAccepte} devis</div>
-      </div>
-      <div class="kpi-card kpi-purple">
-        <div class="kpi-icon" style="background:var(--purple-dim)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <div class="ring-body">
+          <svg class="ring-svg" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="48" fill="none" stroke-width="12"/>
+            <circle class="ring-fg" cx="60" cy="60" r="48" fill="none" stroke-width="12"
+                    stroke-dasharray="${ringDash}" stroke-dashoffset="${ringOffset}"
+                    transform="rotate(-90 60 60)"/>
+            <text class="ring-percent" x="60" y="65" text-anchor="middle" dominant-baseline="middle">${kpi.txConv}%</text>
+          </svg>
+          <div class="ring-stats">
+            <div class="ring-stat">
+              <span class="ring-stat-label acc">Acceptés</span>
+              <span class="ring-stat-val" style="color:var(--purple)">${kpi.nbAccepte}</span>
+            </div>
+            <div class="ring-stat">
+              <span class="ring-stat-label att">En attente</span>
+              <span class="ring-stat-val">${kpi.nbAttente}</span>
+            </div>
+            <div class="ring-stat" style="border-top:1px solid var(--border); padding-top:10px;">
+              <span class="ring-stat-label" style="padding-left:13px">Montant signé</span>
+              <span class="ring-stat-val" style="color:var(--amber)">${fmt(kpi.caAccepte)}</span>
+            </div>
+          </div>
         </div>
-        <div class="kpi-label">Taux conversion</div>
-        <div class="kpi-value">${kpi.txConv}%</div>
-        <div class="kpi-sub">devis → facture</div>
       </div>
     </div>
 
-    <div class="chart-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
-        <div class="card-title" style="margin-bottom:0">CA mensuel</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          ${chartFilter === "custom" ? `
-            <input type="date" class="date-input" value="${chartFrom}" onchange="chartFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
-            <span class="date-sep">→</span>
-            <input type="date" class="date-input" value="${chartTo}" onchange="chartTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
-          ` : ""}
-          <select style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;" onchange="chartFilter=this.value;render()">
-            <option value="6mois" ${chartFilter==="6mois"?"selected":""}>6 derniers mois</option>
-            <option value="annee" ${chartFilter==="annee"?"selected":""}>Année en cours</option>
-            <option value="custom" ${chartFilter==="custom"?"selected":""}>Personnalisé</option>
-          </select>
+    <!-- KPI MICRO ROW -->
+    <div class="kpi-row">
+      <div class="kpi-mini">
+        <div class="kpi-mini-head">
+          <span class="kpi-mini-label">Devis en attente</span>
+          <div class="kpi-mini-icon amber">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+          </div>
         </div>
+        <div class="kpi-mini-value amber">${fmt(kpi.caAttente)}</div>
+        <div class="kpi-mini-sub"><span>${kpi.nbAttente} devis</span></div>
       </div>
-      <div class="bar-chart">${bars}</div>
+      <div class="kpi-mini">
+        <div class="kpi-mini-head">
+          <span class="kpi-mini-label">Encaissé ce mois</span>
+          <div class="kpi-mini-icon teal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap=" round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          </div>
+        </div>
+        <div class="kpi-mini-value teal">${fmt(kpi.caMois)}</div>
+        <div class="kpi-mini-sub"><span>${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}</span></div>
+      </div>
+      <div class="kpi-mini">
+        <div class="kpi-mini-head">
+          <span class="kpi-mini-label">Panier moyen</span>
+          <div class="kpi-mini-icon green">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+        </div>
+        <div class="kpi-mini-value green">${kpi.nbFactures>0 ? fmt(kpi.caTotal/kpi.nbFactures) : "—"}</div>
+        <div class="kpi-mini-sub"><span>Par facture</span></div>
+      </div>
     </div>
 
+    <!-- MAIN GRID : graphe + activité -->
+    <div class="main-grid">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">CA mensuel <span class="accent">— ${chartFilter==='6mois'?'6 derniers mois':chartFilter==='annee'?'Année en cours':'Personnalisé'}</span></div>
+          <div class="seg">
+            <button class="${chartFilter==='6mois'?'on':''}" onclick="chartFilter='6mois';render()">6m</button>
+            <button class="${chartFilter==='annee'?'on':''}" onclick="chartFilter='annee';render()">Année</button>
+            <button class="${chartFilter==='custom'?'on':''}" onclick="chartFilter='custom';render()">Custom</button>
+          </div>
+        </div>
+        ${chartFilter === "custom" ? `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+          <input type="date" class="date-input" value="${chartFrom}" onchange="chartFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+          <span class="date-sep">→</span>
+          <input type="date" class="date-input" value="${chartTo}" onchange="chartTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+        </div>` : ""}
+        <div class="bar-chart">${bars}</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Activité récente</div>
+          <a href="dossiers.html" style="font-size:11px; color:var(--muted); text-decoration:none; font-family:var(--fm,monospace);">VOIR TOUT →</a>
+        </div>
+        <div class="activity">${activityHTML}</div>
+      </div>
+    </div>
+
+    <!-- TABLE FACTURES -->
     <div class="table-card">
-      <div class="card-title" style="padding:18px 20px 0;margin-bottom:0">Factures</div>
-      <div class="table-head">
-        <span>Dossier</span><span>Date</span><span>TTC</span><span>HT</span>
+      <div class="table-card-head">
+        <div class="card-title">Factures récentes</div>
+        <a href="app.html" class="btn-primary" style="text-decoration:none">+ Nouvelle</a>
       </div>
-      ${facturesRows}
+      <div class="table">
+        <div class="t-head">
+          <div></div>
+          <div>Dossier</div>
+          <div class="col-meta">Émission</div>
+          <div class="col-status">Statut</div>
+          <div>TTC</div>
+          <div>HT</div>
+        </div>
+        ${tableRows}
+      </div>
     </div>
 
     ${(()=>{
@@ -591,65 +938,64 @@ function render() {
       const regimeLabel = tva_regime==="encaissements" ? "Sur les encaissements" : "Sur les débits";
       const regimeInfo  = tva_regime==="encaissements"
         ? "TVA due à la date du paiement reçu (prestations de service)"
-        : "TVA due à la date d\'émission de la facture (ventes de biens)";
-      const ventilTVA = Object.keys(kpi.tvaParTaux).sort().map(taux =>
-        `<div class="decl-item" style="border-left:2px solid var(--teal);padding-left:12px;">
-          <div class="decl-label">② TVA ${taux}% collectée</div>
-          <div class="decl-val" style="color:var(--teal)">${fmt(kpi.tvaParTaux[taux].tva)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Sur ${fmt(kpi.tvaParTaux[taux].ht)} HT · ${kpi.tvaParTaux[taux].nb} facture${kpi.tvaParTaux[taux].nb>1?"s":""}</div>
+        : "TVA due à la date d'émission de la facture (ventes de biens)";
+      const ventilCells = Object.keys(kpi.tvaParTaux).sort().map(taux =>
+        `<div class="tva-cell teal">
+          <div class="tva-cell-label">② TVA ${taux}% collectée</div>
+          <div class="tva-cell-val">${fmt(kpi.tvaParTaux[taux].tva)}</div>
+          <div class="tva-cell-sub">Sur ${fmt(kpi.tvaParTaux[taux].ht)} HT · ${kpi.tvaParTaux[taux].nb} facture${kpi.tvaParTaux[taux].nb>1?"s":""}</div>
         </div>`
-      ).join("") || `<div class="decl-item" style="border-left:2px solid var(--teal);padding-left:12px;">
-          <div class="decl-label">② TVA collectée</div>
-          <div class="decl-val" style="color:var(--teal)">${fmt(kpi.tvaColl)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Aucune TVA facturée sur la période</div>
-        </div>`;
+      ).join("") || `<div class="tva-cell teal">
+        <div class="tva-cell-label">② TVA collectée</div>
+        <div class="tva-cell-val">${fmt(kpi.tvaColl)}</div>
+        <div class="tva-cell-sub">Aucune TVA facturée sur la période</div>
+      </div>`;
       return `
-    <div class="chart-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+    <div class="tva-card">
+      <div class="tva-head">
         <div>
-          <div class="card-title" style="margin-bottom:4px">Déclaration TVA</div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.7">
-            <span style="background:rgba(62,207,207,.1);color:var(--teal);border-radius:4px;padding:1px 7px;font-weight:600;margin-right:6px">${freqLabel}</span>
-            <span style="background:rgba(255,255,255,.05);color:var(--muted);border-radius:4px;padding:1px 7px;margin-right:6px">${regimeLabel}</span>
+          <div class="card-title">Déclaration TVA</div>
+          <div class="tva-badges">
+            <span class="badge teal">${freqLabel}</span>
+            <span class="badge muted">${regimeLabel}</span>
           </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:8px">ℹ️ ${regimeInfo}</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Période TVA en cours</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)">${tvaPeriod.label}</div>
-          <div style="font-size:10px;color:var(--muted)">${new Date(tvaPeriod.from).toLocaleDateString("fr-FR")} → ${new Date(tvaPeriod.to).toLocaleDateString("fr-FR")}</div>
+        <div class="tva-period">
+          <div class="tva-period-label">Période en cours</div>
+          <div class="tva-period-val">${tvaPeriod.label}</div>
+          <div class="tva-period-dates">${new Date(tvaPeriod.from).toLocaleDateString("fr-FR")} → ${new Date(tvaPeriod.to).toLocaleDateString("fr-FR")}</div>
         </div>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-bottom:14px;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px;">
-        ℹ️ ${regimeInfo} · ${kpi.nbFactures} facture${kpi.nbFactures>1?"s":""} sur la période du tableau de bord
-      </div>
-      <div style="background:rgba(62,207,207,0.08);border:1px solid rgba(62,207,207,0.25);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div class="tva-hero">
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">TVA nette à reverser à l\'État</div>
-          <div style="font-size:26px;font-weight:800;font-family:var(--fh);color:var(--teal)">${fmt(kpi.tvaColl)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">= TVA collectée sur vos factures (hors TVA déductible sur achats)</div>
+          <div class="tva-hero-label">TVA nette à reverser</div>
+          <div class="tva-hero-num">${fmt(kpi.tvaColl)}</div>
+          <div class="tva-hero-sub">Avant déduction de la TVA sur achats — consultez votre comptable.</div>
         </div>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" opacity=".5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.4" opacity=".5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       </div>
-      <div class="decl-grid">
-        <div class="decl-item" style="border-left:2px solid var(--amber);padding-left:12px;">
-          <div class="decl-label">① CA HT à déclarer</div>
-          <div class="decl-val" style="color:var(--amber)">${fmt(kpi.caHT)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Chiffre d\'affaires hors taxes</div>
+      <div class="tva-breakdown">
+        <div class="tva-cell amber">
+          <div class="tva-cell-label">① CA HT à déclarer</div>
+          <div class="tva-cell-val">${fmt(kpi.caHT)}</div>
+          <div class="tva-cell-sub">Chiffre d'affaires hors taxes</div>
         </div>
-        <div class="decl-item" style="border-left:2px solid var(--border);padding-left:12px;">
-          <div class="decl-label">CA TTC encaissé</div>
-          <div class="decl-val" style="color:var(--text)">${fmt(kpi.caTotal)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Ce que vos clients ont payé</div>
+        <div class="tva-cell">
+          <div class="tva-cell-label">CA TTC encaissé</div>
+          <div class="tva-cell-val">${fmt(kpi.caTotal)}</div>
+          <div class="tva-cell-sub">Ce que vos clients ont payé</div>
         </div>
-        ${ventilTVA}
+        ${ventilCells}
       </div>
-      <div style="margin-top:14px;padding:10px 14px;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:8px;font-size:11px;color:var(--muted);display:flex;gap:8px;align-items:flex-start;">
-        <span style="color:#f87171;flex-shrink:0;margin-top:1px;">⚠</span>
+      <div class="tva-warning">
+        <span>⚠</span>
         <span>Ce calcul ne tient pas compte de la <strong>TVA déductible sur vos achats</strong>. Si vous avez des charges soumises à TVA, le montant réel à reverser peut être inférieur. Consultez votre comptable.</span>
       </div>
     </div>`;
     })()}`;
 }
+
 
 (function(){var b=document.getElementById("btn-logout");if(b)b.addEventListener("click",async()=>{await sb.auth.signOut();window.location.href="index.html";});})();
 
