@@ -1607,7 +1607,8 @@ function renderFacturationHTML() {
     </div>
   `;
 
-  return card1 + card2 + card3 + card4;
+  // Si déjà activé : pas besoin d'afficher le mandat/vérif SIRET
+  return isActive ? card1 + card2 + card4 : card1 + card2 + card3 + card4;
 }
 
 function paintFacturation() {
