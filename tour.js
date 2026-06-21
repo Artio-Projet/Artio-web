@@ -55,7 +55,7 @@
     {
       page:"home",
       title:"🏠 Ta page d'accueil",
-      desc:"C'est ton point de départ. Tu y vois en un coup d'œil :<br>• Ton <strong>CA du mois</strong> et de l'année<br>• Ton <strong>taux de conversion</strong> devis → facture<br>• Tes raccourcis vers la création et tes dossiers<br><br>Reviens-y dès que tu te connectes.",
+      desc:"C'est ton point de départ. Tu y trouves :<br>• Un <strong>salut personnalisé</strong> avec l'heure et le statut de synchro<br>• Une ligne <strong>« contexte »</strong> qui résume tes actions en cours (devis à relancer, signatures en attente…)<br>• Le <strong>gros bouton orangé</strong> pour créer un devis ou une facture à la voix<br>• Les <strong>tuiles de navigation</strong> vers toutes les sections d'Artio<br><br>Pour tes statistiques (CA, conversion…), rendez-vous dans <strong>Tableau de bord</strong>.",
       target:null, pos:"center"
     },
     {
@@ -85,8 +85,8 @@
     },
     {
       page:"rediger",
-      title:"✉️ Rédiger un email client",
-      desc:"Page dédiée à la rédaction d'emails professionnels.<br><br>Onglet <strong>Composer</strong> : tu colles le message reçu, choisis le ton (Vouvoiement, Chaleureux, Ferme…) et l'IA rédige la réponse.<br><br>Onglet <strong>Messagerie</strong> (Gmail connecté requis) : ta boîte de réception s'affiche directement dans Artio — tu peux lire et répondre sans quitter l'app.",
+      title:"✉️ Rédiger — Gmail intégré",
+      desc:"Page dédiée aux emails clients, avec deux onglets :<br><br>• <strong>Messagerie</strong> (par défaut) — ta boîte Gmail s'affiche directement dans Artio. Tu peux lire et répondre sans quitter l'app.<br>• <strong>Composer</strong> — tu colles le message reçu, choisis le ton (Vouvoiement, Chaleureux, Ferme…) et l'IA rédige la réponse pour toi.<br><br>Nécessite la connexion Gmail dans <strong>Paramètres</strong>.",
       target:null, pos:"center"
     },
     {
