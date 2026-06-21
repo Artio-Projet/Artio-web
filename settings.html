@@ -632,7 +632,7 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
   <div class="topbar-right">
     <div class="user-chip">
       <div class="user-avatar">CD</div>
-      <div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c5f494e48454f1258494c5352487c5153525d4e485553125a4e">[email&#160;protected]</a></div>
+      <div class="user-email" id="topbar-email">—</div>
     </div>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Thème">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -853,6 +853,8 @@ function renderHero() {
   document.getElementById('hero-avatar').textContent = initials;
   document.getElementById('hero-name').textContent = displayName;
   document.getElementById('hero-email').textContent = email;
+  const topbar = document.getElementById('topbar-email');
+  if (topbar) topbar.textContent = email;
 
   // Tags dynamiques
   const tags = [];
@@ -1221,19 +1223,8 @@ function renderCompteHTML() {
       <div class="card-title-row">
         <div class="card-title">Préférences</div>
       </div>
-      <div class="card-sub">Notifications et autres réglages personnels.</div>
-      <div class="field">
-        <label class="check-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input id="pref-notif-push" type="checkbox" ${profil.notifications_push !== false ? 'checked' : ''} onchange="savePref('notifications_push', this.checked)"/>
-          <span>Notifications push (signatures, paiements reçus)</span>
-        </label>
-      </div>
-      <div class="field" style="margin-top:8px;">
-        <label class="check-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input id="pref-notif-email" type="checkbox" ${profil.notifications_email !== false ? 'checked' : ''} onchange="savePref('notifications_email', this.checked)"/>
-          <span>Notifications par email (rappels, alertes facturation)</span>
-        </label>
-      </div>
+      <div class="card-sub">Paramètres supplémentaires à venir dans une prochaine mise à jour.</div>
+      <div style="font-size:13px;color:var(--muted);padding:8px 0;">Aucun réglage disponible pour le moment.</div>
     </div>
 
     <div class="card" style="border-color:rgba(248,113,113,0.2);">
@@ -1705,14 +1696,14 @@ function renderAbonnementHTML() {
   ` : '';
 
   // ── Toggle mensuel/annuel (caché si déjà Pro) ──
-  const toggle = !isPro ? `
+  const toggle = `
     <div style="display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;margin-bottom:18px;">
       <button class="billing-btn ${!isAnnual?'on':''}" onclick="billingPeriod='monthly';paintAbonnement()" style="padding:8px 16px;border-radius:7px;border:0;background:${!isAnnual?'var(--surface)':'transparent'};color:${!isAnnual?'var(--text)':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;">Mensuel</button>
       <button class="billing-btn ${isAnnual?'on':''}" onclick="billingPeriod='annual';paintAbonnement()" style="padding:8px 16px;border-radius:7px;border:0;background:${isAnnual?'var(--surface)':'transparent'};color:${isAnnual?'var(--text)':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
         Annuel <span style="background:rgba(120,200,120,0.18);color:#5fc97a;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">2 mois offerts</span>
       </button>
     </div>
-  ` : '';
+  `;
 
   // ── Cartes Solo & Pro ──
   const soloCard = `
@@ -1901,7 +1892,10 @@ async function reactivateSubscription() {
       body: JSON.stringify({})
     });
     const data = await res.json();
-    if (!res.ok) { toast('Erreur : ' + (data.error || 'inconnu')); checkoutLoading = false; paintAbonnement(); return; }
+    if (!res.ok || !data.success) {
+      toast('Erreur : ' + (data.error || data.message || 'inconnu'));
+      checkoutLoading = false; paintAbonnement(); return;
+    }
     cancellationRequested = false;
     await sb.from('profils').update({ cancellation_requested: false }).eq('user_id', session.user.id);
     toast(`✅ Abonnement ${_planName} réactivé ! Votre accès continue normalement.`);
