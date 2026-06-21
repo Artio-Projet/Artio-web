@@ -2,16 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-  <link rel="icon" type="image/png" href="artio-icon.png"/>
+<link rel="icon" type="image/png" href="artio-icon.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Artio — Paramètres</title>
+<title>Artio — Paramètres (refonte)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="plan-guard.js"></script>
-<script src="tour.js?v=1"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ───────── PALETTE (identique au design system Artio) ───────── */
 :root, [data-theme="dark"] {
   --bg:        #080b14;
   --surface:   #0e1220;
@@ -22,21 +19,25 @@
   --text:      #e2e5f1;
   --muted:     #6b7494;
   --amber:     #f5a742;
+  --amber-2:   #e07a18;
   --amber-dim: rgba(245,167,66,0.12);
-  --amber-glow:rgba(245,167,66,0.26);
+  --amber-glow:rgba(245,167,66,0.28);
   --teal:      #3ecfcf;
   --teal-dim:  rgba(62,207,207,0.11);
   --green:     #4ade80;
-  --green-dim: rgba(74,222,128,0.1);
-  --red:       #f87171;
-  --red-dim:   rgba(248,113,113,0.1);
+  --green-dim: rgba(74,222,128,0.11);
   --purple:    #a78bfa;
+  --purple-dim:rgba(167,139,250,0.11);
+  --blue:      #60a5fa;
+  --blue-dim:  rgba(96,165,250,0.12);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,0.10);
   --fh: 'Space Grotesk', sans-serif;
   --fb: 'Plus Jakarta Sans', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
   --nav-h: 60px;
-  --r: 14px;
+  --r: 16px;
 }
-
 [data-theme="light"] {
   --bg:        #faf8f3;
   --surface:   #ffffff;
@@ -47,159 +48,71 @@
   --text:      #1a1a1f;
   --muted:     #6a6b78;
   --amber:     #d97706;
+  --amber-2:   #b15808;
   --amber-dim: rgba(217,119,6,0.10);
   --amber-glow:rgba(217,119,6,0.22);
   --teal:      #0d9488;
   --teal-dim:  rgba(13,148,136,0.10);
   --green:     #16a34a;
+  --green-dim: rgba(22,163,74,0.10);
+  --purple:    #7c3aed;
+  --purple-dim:rgba(124,58,237,0.10);
+  --blue:      #2563eb;
+  --blue-dim:  rgba(37,99,235,0.10);
   --red:       #dc2626;
+  --red-dim:   rgba(220,38,38,0.08);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--fb); background: var(--bg); color: var(--text); min-height: 100vh; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--fb); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
-/* ── NAV ── */
-.topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--nav-h); padding: 0 20px 0 66px; display: flex; align-items: center; gap: 16px; background: rgba(8,11,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
-.nav-logo { font-family: var(--fh); font-size: 18px; font-weight: 700; color: var(--text); letter-spacing:-0.02em; text-decoration:none; flex-shrink:0; }
-.nav-links { display: flex; gap: 3px; flex: 1; justify-content: center; overflow-x: auto; }
-.nav-link { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap; border: none; background: transparent; cursor: pointer; font-family: var(--fb); transition: color .2s, background .2s; }
-.nav-link:hover { color: var(--text); background: var(--surface); }
-.nav-link.active { color: var(--amber); background: var(--amber-dim); font-weight: 600; }
-.btn-logout { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; background: transparent; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-family: var(--fb); transition: all .2s; }
-.btn-logout:hover { border-color: var(--border-hi); color: var(--text); }
-
-/* ── PAGE ── */
-.page { padding: calc(var(--nav-h) + 24px) 20px 60px; max-width: 720px; margin: 0 auto; }
-.page-title { font-family: var(--fh); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 20px; }
-
-/* ── TAB BAR ── */
-.tab-bar { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-.tab-btn { flex: 1; padding: 9px 8px; border: none; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; color: var(--muted); font-family: var(--fb); transition: all .2s; white-space: nowrap; }
-.tab-btn.active { background: var(--surface-2); color: var(--text); }
-.tab-btn:hover:not(.active) { color: var(--text); }
-
-/* ── CARDS ── */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 22px 24px; margin-bottom: 14px; }
-.card-title { font-family: var(--fh); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-.card-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
-
-/* ── FORM ── */
-.field { margin-bottom: 14px; }
-.field:last-child { margin-bottom: 0; }
-.field-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing:.06em; text-transform: uppercase; margin-bottom: 7px; }
-.field-input { width: 100%; padding: 11px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-family: var(--fb); outline: none; transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; }
-.field-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
-.field-input::placeholder { color: var(--muted); }
-select.field-input { cursor: pointer; }
-select.field-input option { background: var(--surface-2); color: var(--text); }
-.fields-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.check-row { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
-.check-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--amber); flex-shrink: 0; cursor: pointer; }
-.check-row span { font-size: 14px; }
-
-/* ── BUTTONS ── */
-.btn-primary { width: 100%; padding: 13px; border-radius: 12px; background: var(--amber); border: none; color: #080b14; font-size: 14px; font-weight: 700; font-family: var(--fh); cursor: pointer; box-shadow: 0 0 24px var(--amber-glow); transition: transform .15s, opacity .2s; }
-.btn-primary:hover { transform: translateY(-1px); }
-.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.btn-ghost { width: 100%; padding: 12px; border-radius: 12px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 500; font-family: var(--fb); cursor: pointer; transition: all .2s; }
-.btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
-.btn-danger { width: 100%; padding: 12px; border-radius: 12px; background: var(--red-dim); border: 1px solid rgba(248,113,113,.2); color: var(--red); font-size: 13px; font-weight: 500; font-family: var(--fb); cursor: pointer; transition: all .2s; }
-.btn-danger:hover { background: rgba(248,113,113,.18); }
-
-/* ── PLAN CARDS ── */
-.plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; position: relative; }
-.plan-card.current { border-color: var(--amber); background: linear-gradient(145deg, var(--amber-dim) 0%, var(--surface) 70%); }
-.plan-card.pro-card { border-color: rgba(167,139,250,.3); background: linear-gradient(145deg, rgba(167,139,250,.07) 0%, var(--surface) 70%); }
-.plan-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--amber); color: #080b14; font-size: 10px; font-weight: 800; padding: 3px 12px; border-radius: 100px; white-space: nowrap; letter-spacing:.04em; }
-.plan-badge.pro { background: var(--purple); color: #fff; }
-.plan-name { font-family: var(--fh); font-size: 16px; font-weight: 700; }
-.plan-price { font-family: var(--fh); font-size: 26px; font-weight: 800; }
-.plan-price span { font-size: 13px; font-weight: 400; color: var(--muted); }
-.plan-price-note { font-size: 10px; color: var(--green); font-weight: 600; margin-top: 2px; }
-.plan-features { list-style: none; display: flex; flex-direction: column; gap: 7px; flex: 1; }
-.plan-features li { font-size: 12px; display: flex; align-items: flex-start; gap: 7px; color: var(--muted); }
-.plan-features li .ck { color: var(--teal); flex-shrink: 0; }
-.billing-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
-.billing-btn { padding: 7px 18px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--fb); border: 1px solid var(--border); background: transparent; color: var(--muted); transition: all .2s; }
-.billing-btn.on { background: var(--surface-2); color: var(--text); border-color: var(--border-hi); }
-.discount-badge { background: var(--green-dim); color: var(--green); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
-
-/* ── ALERT BOX ── */
-.alert-box { border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 12px; }
-.alert-box.warning { background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.2); }
-.alert-box.warning .alert-title { color: #fb923c; }
-.alert-box.success { background: var(--green-dim); border: 1px solid rgba(74,222,128,.2); }
-.alert-box.success .alert-title { color: var(--green); }
-.alert-icon { font-size: 20px; flex-shrink: 0; }
-.alert-title { font-family: var(--fh); font-size: 13px; font-weight: 700; margin-bottom: 3px; }
-.alert-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
-
-/* ── TABLE ── */
-.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.inv-table th { padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing:.05em; text-transform: uppercase; text-align: left; border-bottom: 1px solid var(--border); }
-.inv-table th:last-child { text-align: center; }
-.inv-table td { padding: 11px 10px; border-bottom: 1px solid var(--border); }
-.inv-table tr:last-child td { border-bottom: none; }
-.inv-table tr:hover td { background: var(--surface-2); }
-.inv-num { font-family: var(--fh); font-weight: 700; color: var(--amber); }
-.inv-amount { font-weight: 700; }
-.btn-dl { padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--amber-dim); border: 1px solid rgba(245,167,66,.25); color: var(--amber); cursor: pointer; font-family: var(--fb); transition: all .2s; }
-.btn-dl:hover { background: rgba(245,167,66,.2); }
-
-/* ── THEME TOGGLE ── */
-.theme-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.theme-opt { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 500; font-family: var(--fb); text-align: center; transition: all .2s; }
-.theme-opt.on { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
-
-/* ── GMAIL ── */
-.gmail-connected { background: var(--green-dim); border: 1px solid rgba(74,222,128,.2); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.gmail-connected span { font-size: 13px; font-weight: 600; color: var(--green); }
-
-/* ── TOAST ── */
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border-hi); color: var(--text); padding: 12px 24px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 9999; box-shadow: 0 8px 32px rgba(0,0,0,.4); transition: opacity .4s; opacity: 0; pointer-events: none; white-space: nowrap; }
-
-.section-sep { font-size: 11px; font-weight: 700; letter-spacing:.07em; text-transform: uppercase; color: var(--muted); margin: 20px 0 12px; }
-
-@media(max-width:640px) {
-  .nav-links { display: none; }
-  .plans-grid { grid-template-columns: 1fr; }
-  .fields-2 { grid-template-columns: 1fr; }
-  .tab-btn { font-size: 11px; padding: 8px 4px; }
-  .page { padding: calc(var(--nav-h) + 16px) 12px 40px; }
+/* ambient blobs (cohérent Home / Dashboard) */
+body::before {
+  content:''; position:fixed; top:-220px; right:-160px;
+  width:620px; height:620px; border-radius:50%;
+  background: radial-gradient(circle, var(--amber-glow) 0%, transparent 60%);
+  opacity:.45; pointer-events:none; z-index:0;
+}
+body::after {
+  content:''; position:fixed; bottom:-220px; left:-140px;
+  width:520px; height:520px; border-radius:50%;
+  background: radial-gradient(circle, rgba(62,207,207,0.13) 0%, transparent 60%);
+  opacity:.55; pointer-events:none; z-index:0;
 }
 
-    /* ── FOOTER LÉGAL ── */
-    .artio-legal-footer {
-      position: relative; z-index: 1;
-      text-align: center; padding: 12px 16px;
-      font-size: 11px; color: var(--muted, #6b7494);
-      border-top: 1px solid var(--border, rgba(255,255,255,0.07));
-    }
-    .artio-legal-footer a {
-      color: var(--muted, #6b7494); text-decoration: none;
-      transition: color 0.2s;
-    }
-    .artio-legal-footer a:hover { color: var(--amber, #f5a742); }
-
-.theme-toggle { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--surface); border:1px solid var(--border); border-radius:9px; cursor:pointer; color:var(--text); transition:all .2s; flex-shrink:0; }
+/* ───────── TOPBAR ───────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--nav-h); padding: 0 24px 0 66px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(8,11,20,0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="light"] .topbar { background: rgba(250,248,243,0.92); border-bottom-color: rgba(20,18,12,0.10); }
+.logo { display:inline-flex; align-items:center; gap:9px; font-family: var(--fh); font-size: 17px; font-weight: 700; letter-spacing:-0.02em; text-decoration:none; color: var(--text); }
+.logo img { width:26px; height:26px; display:block; border-radius:7px; }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.user-chip {
+  display:flex; align-items:center; gap:8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 5px 14px 5px 5px;
+}
+.user-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background: var(--amber-dim); border: 1px solid rgba(245,167,66,.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color: var(--amber); font-family: var(--fh);
+}
+.user-email { font-size:12px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.theme-toggle { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--surface); border:1px solid var(--border); border-radius:9px; cursor:pointer; color:var(--text); transition:all .2s; }
 .theme-toggle:hover { border-color:var(--amber); color:var(--amber); }
 .theme-toggle svg { width:15px; height:15px; }
 .theme-toggle .icon-sun { display:none; }
-.theme-toggle .icon-moon { display:block; }
 [data-theme="light"] .theme-toggle .icon-sun { display:block; }
 [data-theme="light"] .theme-toggle .icon-moon { display:none; }
-.nav-logo { display:inline-flex !important; align-items:center; gap:8px; }
-.nav-logo img { width:28px; height:28px; display:block; flex-shrink:0; }
 
-/* ── Light mode topbar ── */
-[data-theme="light"] .topbar,
-[data-theme="light"] .artio-nav {
-  background: rgba(250,248,243,0.92) !important;
-  border-bottom-color: rgba(20,18,12,0.10) !important;
-}
-
-/* ── SIDEBAR ── */
+/* ───────── SIDEBAR APP ───────── */
 .sidebar-trigger{position:fixed;top:11px;left:14px;z-index:110;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .15s}
 .sidebar-trigger:hover{background:var(--surface-3)}
 .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:120;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -207,7 +120,7 @@ select.field-input option { background: var(--surface-2); color: var(--text); }
 .sidebar{position:fixed;top:0;left:-280px;bottom:0;width:280px;background:var(--surface);border-right:1px solid var(--border);z-index:130;transition:left .25s ease;display:flex;flex-direction:column}
 .sidebar.open{left:0}
 .sidebar-head{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
-.sidebar-logo-img{width:28px;height:28px}
+.sidebar-logo-img{width:28px;height:28px;border-radius:7px}
 .sidebar-brand{font-family:var(--fh);font-weight:700;font-size:17px;flex:1}
 .sidebar-close{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--muted);font-size:18px;display:flex;align-items:center;justify-content:center}
 .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
@@ -217,14 +130,465 @@ select.field-input option { background: var(--surface-2); color: var(--text); }
 .sidebar-sep{height:1px;background:var(--border);margin:8px 12px}
 .sidebar-logout{color:#f87171}
 .sidebar-foot{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
-.sidebar-theme-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center}
-.sidebar-theme-btn .icon-sun{display:none}
-[data-theme="dark"] .sidebar-theme-btn .icon-moon{display:none}
-[data-theme="dark"] .sidebar-theme-btn .icon-sun{display:inline-block}
 @media(max-width:767px){.sidebar.open{width:100%}}
+
+/* ───────── PAGE LAYOUT ───────── */
+.page {
+  position: relative; z-index: 1;
+  padding: calc(var(--nav-h) + 28px) clamp(20px, 4vw, 56px) 64px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* HEADER */
+.header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 26px; }
+.eyebrow { font-family: var(--fm); font-size: 11px; color: var(--muted); letter-spacing:.14em; text-transform: uppercase; display:flex; align-items:center; gap:10px; margin-bottom: 8px; }
+.eyebrow::before { content:''; width:6px; height:6px; border-radius:50%; background: var(--amber); box-shadow: 0 0 12px var(--amber-glow); }
+.page-title { font-family: var(--fh); font-size: clamp(32px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+.page-title .accent { color: var(--amber); }
+.page-sub { font-size: 14px; color: var(--muted); margin-top: 6px; max-width: 460px; }
+.header-meta { display:flex; align-items:center; gap:10px; flex-wrap: wrap; }
+.meta-pill {
+  display:inline-flex; align-items:center; gap:7px;
+  padding: 7px 13px; border-radius: 100px;
+  font-family: var(--fm); font-size: 11px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+}
+.meta-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2.4s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* ───────── ACCOUNT HERO ───────── */
+.hero {
+  position: relative; overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: 22px;
+  padding: 26px 28px;
+  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 22px;
+  align-items: center;
+}
+.hero::before {
+  content:''; position: absolute; inset:0;
+  background:
+    radial-gradient(80% 120% at 0% 0%, var(--amber-dim) 0%, transparent 55%),
+    radial-gradient(60% 100% at 100% 100%, var(--purple-dim) 0%, transparent 60%);
+  pointer-events:none;
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero-avatar {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-2) 100%);
+  color: #080b14;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fh); font-weight: 800; font-size: 26px; letter-spacing: -0.02em;
+  box-shadow: 0 12px 36px var(--amber-glow), 0 0 0 1px rgba(255,255,255,.06) inset;
+}
+
+.hero-info { display:flex; flex-direction:column; gap: 4px; min-width: 0; }
+.hero-name { font-family: var(--fh); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.hero-email { font-size: 13px; color: var(--muted); }
+.hero-tags { display:flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.tag {
+  display:inline-flex; align-items:center; gap: 6px;
+  padding: 5px 11px; border-radius: 100px;
+  font-family: var(--fm); font-size: 10.5px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+}
+.tag svg { width: 11px; height: 11px; }
+.tag.ok { color: var(--green); background: var(--green-dim); border-color: rgba(74,222,128,.2); }
+.tag.pro { color: var(--purple); background: var(--purple-dim); border-color: rgba(167,139,250,.22); }
+.tag.amber { color: var(--amber); background: var(--amber-dim); border-color: rgba(245,167,66,.22); }
+
+.hero-actions { display:flex; align-items:center; gap: 8px; }
+.btn-ghost {
+  display:inline-flex; align-items:center; gap:7px;
+  padding: 9px 14px; border-radius: 10px;
+  font-family: var(--fb); font-size: 12.5px; font-weight: 500;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  cursor: pointer; transition: all .15s; text-decoration: none;
+}
+.btn-ghost:hover { border-color: var(--border-hi); background: var(--surface-2); }
+.btn-ghost svg { width: 13px; height: 13px; }
+
+@media(max-width:680px){
+  .hero { grid-template-columns: auto 1fr; }
+  .hero-actions { grid-column: 1 / -1; }
+}
+
+/* ───────── 2-COL CONTENT ───────── */
+.shell { display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
+@media(max-width:880px){ .shell { grid-template-columns: 1fr; } }
+
+/* SECTION NAV */
+.sec-nav {
+  position: sticky; top: calc(var(--nav-h) + 24px);
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 10px;
+}
+@media(max-width:880px){
+  .sec-nav { position: static; flex-direction: row; overflow-x: auto; padding: 6px; gap: 4px; }
+  .sec-nav-label { display:none; }
+}
+.sec-nav-label {
+  font-family: var(--fm); font-size: 10px; color: var(--muted);
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 8px 12px 4px;
+}
+.sec-link {
+  display:flex; align-items:center; gap: 11px;
+  padding: 10px 12px; border-radius: 10px;
+  background: transparent; border: none;
+  font-family: var(--fb); font-size: 13.5px; color: var(--muted);
+  cursor: pointer; text-align: left; width: 100%;
+  transition: background .12s, color .12s;
+  white-space: nowrap;
+}
+.sec-link:hover { background: var(--surface-2); color: var(--text); }
+.sec-link.active { background: var(--amber-dim); color: var(--amber); font-weight: 600; }
+.sec-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sec-link .badge {
+  margin-left: auto;
+  font-family: var(--fm); font-size: 9.5px; padding: 2px 7px; border-radius: 100px;
+  background: var(--surface-3); color: var(--muted); border: 1px solid var(--border);
+}
+[data-theme="light"] .sec-link .badge { background: var(--surface-2); }
+.sec-link.active .badge { background: var(--amber); color: #080b14; border-color: transparent; }
+
+/* CONTENT WRAP */
+.content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.section[hidden] { display: none; }
+
+/* CARDS */
+.card {
+  position: relative; overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px 24px;
+}
+.card.amber::before {
+  content:''; position:absolute; top:0; right:0; width: 260px; height: 260px;
+  background: radial-gradient(circle at 80% 20%, var(--amber-dim) 0%, transparent 65%);
+  pointer-events:none;
+}
+.card.purple::before {
+  content:''; position:absolute; top:0; right:0; width: 260px; height: 260px;
+  background: radial-gradient(circle at 80% 20%, var(--purple-dim) 0%, transparent 65%);
+  pointer-events:none;
+}
+.card.teal::before {
+  content:''; position:absolute; top:0; right:0; width: 260px; height: 260px;
+  background: radial-gradient(circle at 80% 20%, var(--teal-dim) 0%, transparent 65%);
+  pointer-events:none;
+}
+.card.danger { border-color: rgba(248,113,113,.22); }
+.card.danger::before {
+  content:''; position:absolute; top:0; right:0; width: 220px; height: 220px;
+  background: radial-gradient(circle at 80% 20%, var(--red-dim) 0%, transparent 65%);
+  pointer-events:none;
+}
+.card > * { position: relative; z-index: 1; }
+
+.card-head { display:flex; align-items:center; justify-content:space-between; gap: 14px; margin-bottom: 4px; }
+.card-title-row { display:flex; align-items:center; gap: 10px; }
+.card-title { font-family: var(--fh); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.card-ico { width: 28px; height: 28px; border-radius: 8px; display:flex; align-items:center; justify-content:center; flex-shrink: 0; background: var(--surface-2); color: var(--muted); }
+.card-ico svg { width: 14px; height: 14px; }
+.card.amber .card-ico { background: var(--amber-dim); color: var(--amber); }
+.card.purple .card-ico { background: var(--purple-dim); color: var(--purple); }
+.card.teal .card-ico { background: var(--teal-dim); color: var(--teal); }
+.card.danger .card-ico { background: var(--red-dim); color: var(--red); }
+.pro-tag {
+  font-family: var(--fm); font-size: 10px; padding: 3px 8px; border-radius: 100px;
+  background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.25);
+  letter-spacing: .06em; font-weight: 600;
+}
+.card-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.55; }
+
+/* FORM */
+.fields { display: flex; flex-direction: column; gap: 14px; }
+.fields-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fields-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media(max-width: 620px) { .fields-2, .fields-3 { grid-template-columns: 1fr; } }
+
+.field { display:flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field-label { font-family: var(--fm); font-size: 10.5px; font-weight: 500; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display:flex; align-items:center; gap: 8px; }
+.field-label .req { color: var(--amber); }
+.field-label .hint { color: var(--muted); font-family: var(--fb); text-transform: none; letter-spacing: 0; font-size: 10.5px; font-weight: 400; }
+.field-input {
+  width: 100%; padding: 11px 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: 14px; font-family: var(--fb);
+  outline: none; transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+.field-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+.field-input::placeholder { color: var(--muted); opacity: .7; }
+select.field-input { cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%236b7494' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 36px;
+}
+textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; font-family: var(--fb); }
+.field-help { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.field-status { font-family: var(--fm); font-size: 10.5px; }
+.field-status.ok { color: var(--green); }
+.field-status.warn { color: var(--amber); }
+
+/* Toggle row */
+.toggle-row {
+  display:flex; align-items:center; justify-content:space-between; gap: 16px;
+  padding: 14px 16px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.toggle-row + .toggle-row { margin-top: 8px; }
+.toggle-info { display:flex; flex-direction: column; gap: 2px; min-width: 0; }
+.toggle-info b { font-size: 14px; font-weight: 600; }
+.toggle-info span { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+.switch {
+  position: relative; flex-shrink: 0;
+  width: 38px; height: 22px;
+  background: var(--surface-3); border: 1px solid var(--border-hi);
+  border-radius: 100px; cursor: pointer; transition: background .15s;
+}
+.switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--text); transition: transform .18s ease, background .15s;
+}
+.switch.on { background: var(--amber); border-color: transparent; }
+.switch.on::after { background: #080b14; transform: translateX(16px); }
+
+/* Section divider inside card */
+.divider { height: 1px; background: var(--border); margin: 18px -24px; }
+
+/* Buttons */
+.actions { display:flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+.btn {
+  display:inline-flex; align-items:center; gap: 8px; justify-content: center;
+  padding: 11px 18px; border-radius: 11px;
+  font-family: var(--fb); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: transform .12s, background .15s, border-color .15s, box-shadow .15s;
+  border: 1px solid transparent; text-decoration: none;
+}
+.btn svg { width: 14px; height: 14px; }
+.btn-primary { background: var(--amber); color: #080b14; box-shadow: 0 8px 24px var(--amber-glow); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 28px var(--amber-glow); }
+.btn-secondary { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { border-color: var(--border-hi); background: var(--surface-3); }
+.btn-danger { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,.22); }
+.btn-danger:hover { background: rgba(248,113,113,.16); }
+.btn-pro { background: var(--purple); color: #fff; box-shadow: 0 8px 24px var(--purple-dim); }
+.btn-pro:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+/* Account hero stat grid */
+.hero-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  margin-top: 16px;
+}
+@media(max-width:680px){ .hero-stats { grid-template-columns: 1fr 1fr; } }
+
+/* Connection status card */
+.conn {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+}
+.conn + .conn { margin-top: 10px; }
+.conn-ico { width: 40px; height: 40px; border-radius: 11px; background: var(--surface-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.conn-ico svg { width: 20px; height: 20px; }
+.conn-body { flex: 1; min-width: 0; display:flex; flex-direction: column; gap: 2px; }
+.conn-title { font-family: var(--fh); font-size: 14px; font-weight: 600; display:flex; align-items:center; gap: 8px; }
+.conn-status { display:inline-flex; align-items:center; gap: 5px; font-family: var(--fm); font-size: 10px; padding: 2px 8px; border-radius: 100px; background: var(--green-dim); color: var(--green); }
+.conn-status.off { background: var(--surface-3); color: var(--muted); }
+.conn-status .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.conn-sub { font-size: 12px; color: var(--muted); }
+.conn-actions { display:flex; gap: 8px; }
+
+/* Plans */
+.plan-toggle {
+  display: inline-flex; padding: 4px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; margin-bottom: 18px;
+}
+.plan-toggle button {
+  padding: 8px 18px; border-radius: 100px; border: none;
+  font-family: var(--fb); font-size: 12.5px; font-weight: 600;
+  background: transparent; color: var(--muted); cursor: pointer;
+  transition: all .15s;
+  display:inline-flex; align-items:center; gap: 8px;
+}
+.plan-toggle button.on { background: var(--surface-3); color: var(--text); }
+[data-theme="light"] .plan-toggle button.on { background: var(--surface-2); }
+.plan-toggle .save {
+  font-family: var(--fm); font-size: 9.5px; padding: 2px 7px; border-radius: 100px;
+  background: var(--green-dim); color: var(--green);
+}
+
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media(max-width: 640px) { .plan-grid { grid-template-columns: 1fr; } }
+.plan {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.plan.solo::before {
+  content:''; position: absolute; inset:0;
+  background: radial-gradient(80% 60% at 100% 0%, var(--teal-dim) 0%, transparent 60%);
+  pointer-events: none;
+}
+.plan.pro::before {
+  content:''; position: absolute; inset:0;
+  background: radial-gradient(80% 60% at 100% 0%, var(--purple-dim) 0%, transparent 60%);
+  pointer-events: none;
+}
+.plan.current { border-color: var(--amber); }
+.plan.current::after {
+  content: 'PLAN ACTUEL';
+  position: absolute; top: -1px; right: 16px;
+  font-family: var(--fm); font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
+  padding: 4px 10px; border-radius: 0 0 8px 8px;
+  background: var(--amber); color: #080b14;
+}
+.plan > * { position: relative; z-index: 1; }
+.plan-name { font-family: var(--fh); font-size: 16px; font-weight: 700; display:flex; align-items:center; gap: 8px; }
+.plan-name .bolt { color: var(--purple); }
+.plan-price { font-family: var(--fh); font-size: 32px; font-weight: 800; letter-spacing: -0.025em; }
+.plan-price small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.plan-saving { font-family: var(--fm); font-size: 10.5px; color: var(--green); font-weight: 600; margin-top: -2px; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.plan-features li { font-size: 12.5px; display: flex; align-items: flex-start; gap: 8px; color: var(--muted); line-height: 1.45; }
+.plan-features li::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; font-size: 13px; }
+.plan.pro .plan-features li::before { color: var(--purple); }
+.plan.pro .plan-features li:first-child { color: var(--text); font-weight: 500; }
+.plan.pro .plan-features li:first-child::before { color: var(--purple); }
+.plan-cta { margin-top: 4px; }
+.plan-cta .btn { width: 100%; }
+
+.pay-note {
+  text-align: center; font-family: var(--fm); font-size: 10.5px; color: var(--muted);
+  margin-top: 14px; letter-spacing: .04em;
+}
+
+/* Invoices */
+.inv-list { display: flex; flex-direction: column; }
+.inv {
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.inv:last-child { border-bottom: none; }
+.inv-num { font-family: var(--fm); font-size: 12px; color: var(--amber); font-weight: 600; }
+.inv-meta { display:flex; flex-direction:column; gap: 2px; min-width: 0; }
+.inv-label { font-size: 13.5px; font-weight: 500; }
+.inv-date { font-size: 11.5px; color: var(--muted); font-family: var(--fm); }
+.inv-amount { font-family: var(--fh); font-weight: 700; font-size: 15px; }
+.btn-dl {
+  display:inline-flex; align-items:center; gap: 6px;
+  padding: 7px 11px; border-radius: 8px;
+  font-family: var(--fb); font-size: 11.5px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  cursor: pointer; transition: all .15s;
+}
+.btn-dl:hover { border-color: var(--border-hi); background: var(--surface-3); color: var(--amber); }
+.btn-dl svg { width: 12px; height: 12px; }
+
+@media(max-width:560px){
+  .inv { grid-template-columns: 1fr auto; }
+  .inv-num, .inv-amount { display: none; }
+}
+
+/* Brand color preview */
+.brand-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media(max-width: 620px) { .brand-grid { grid-template-columns: 1fr; } }
+.logo-drop {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; background: var(--surface-2); border: 1px dashed var(--border-hi);
+  border-radius: 12px;
+}
+.logo-preview {
+  width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  font-family: var(--fh); font-weight: 800; color: var(--amber); font-size: 22px;
+  border: 1px solid var(--border);
+}
+.logo-info { flex: 1; min-width: 0; display:flex; flex-direction: column; gap: 2px; }
+.logo-info b { font-size: 13px; }
+.logo-info span { font-size: 11.5px; color: var(--muted); }
+.color-row { display:flex; align-items:center; gap: 10px; }
+.swatch { width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0; }
+.swatch-input { display: none; }
+.swatch-label { font-family: var(--fm); font-size: 12px; color: var(--muted); }
+.swatch-val { font-family: var(--fm); font-size: 13px; color: var(--text); font-weight: 500; }
+
+/* Facturation electronique mandat */
+.mandat {
+  display:flex; align-items:flex-start; gap: 12px;
+  padding: 16px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  cursor: pointer;
+}
+.mandat input { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--amber); cursor: pointer; flex-shrink: 0; }
+.mandat span { font-size: 13px; line-height: 1.55; }
+.mandat span strong { color: var(--text); }
+
+.callout {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px; border-radius: 12px;
+  background: var(--amber-dim); border: 1px solid rgba(245,167,66,.22);
+  margin-bottom: 16px;
+}
+.callout-ico { font-size: 18px; flex-shrink: 0; }
+.callout-body { flex: 1; min-width: 0; }
+.callout-title { font-family: var(--fh); font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 2px; }
+.callout-sub { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.callout.success { background: var(--green-dim); border-color: rgba(74,222,128,.22); }
+.callout.success .callout-title { color: var(--green); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface-2); border: 1px solid var(--border-hi);
+  color: var(--text); padding: 12px 22px; border-radius: 12px;
+  font-size: 13px; font-weight: 500;
+  z-index: 9999; box-shadow: 0 16px 48px rgba(0,0,0,.4);
+  transition: opacity .25s, transform .25s;
+  opacity: 0; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* footer */
+.legal-footer {
+  position: relative; z-index: 1;
+  text-align: center; padding: 14px 16px;
+  font-family: var(--fm); font-size: 10.5px; color: var(--muted);
+  border-top: 1px solid var(--border);
+  letter-spacing: .04em;
+}
+.legal-footer a { color: var(--muted); text-decoration: none; transition: color .15s; }
+.legal-footer a:hover { color: var(--amber); }
+
+@media(max-width: 720px) {
+  .page { padding: calc(var(--nav-h) + 18px) 16px 40px; }
+  .header { margin-bottom: 18px; }
+  .user-email { display: none; }
+  .hero { padding: 22px; }
+  .hero-avatar { width: 60px; height: 60px; border-radius: 16px; font-size: 22px; }
+  .hero-name { font-size: 19px; }
+}
 </style>
 <script>
-  /* ── THEME INIT (head) ── */
+  /* THEME INIT */
   (function(){
     let t='light';
     try{t=localStorage.getItem('artio-theme')||'light';}catch(e){}
@@ -233,6 +597,7 @@ select.field-input option { background: var(--surface-2); color: var(--text); }
 </script>
 </head>
 <body>
+
 <!-- SIDEBAR -->
 <button class="sidebar-trigger" onclick="toggleSidebar()" aria-label="Menu">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -240,127 +605,375 @@ select.field-input option { background: var(--surface-2); color: var(--text); }
 <div class="sidebar-overlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
   <div class="sidebar-head">
-    <img src="artio-icon.png" alt="" class="sidebar-logo-img"/>
+    <img src="artio-icon.png" alt="" class="sidebar-logo-img" onerror="this.style.display='none'"/>
     <span class="sidebar-brand">Artio</span>
-    <button class="sidebar-close" onclick="closeSidebar()">x</button>
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Fermer">×</button>
   </div>
   <nav class="sidebar-nav">
     <a href="home.html" class="sidebar-link">🏠 Accueil</a>
-    <a href="app.html" class="sidebar-link">🎙 Creer</a>
+    <a href="app.html" class="sidebar-link">🎙 Créer</a>
     <a href="dossiers.html" class="sidebar-link">📁 Dossiers</a>
-    <a href="rediger.html" class="sidebar-link">✉️ Rediger</a>
+    <a href="rediger.html" class="sidebar-link">✉️ Rédiger</a>
     <a href="clients.html" class="sidebar-link">👥 Clients</a>
     <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
-    <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>  </nav>
+    <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>
+  </nav>
   <div class="sidebar-foot">
     <a href="aide.html" class="sidebar-link">❔ Aide</a>
     <a href="settings.html" class="sidebar-link active">⚙️ Paramètres</a>
     <div class="sidebar-sep" style="margin:4px 0;"></div>
-    <button class="sidebar-link sidebar-logout" onclick="_sidebarLogout()">↪ Déconnexion</button>
-    <button class="sidebar-theme-btn" onclick="toggleTheme()" title="Thème" style="margin-top:8px;align-self:flex-end;">
-      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
+    <button class="sidebar-link sidebar-logout" onclick="logout()">↪ Déconnexion</button>
   </div>
 </aside>
 
-<header class="topbar" style="justify-content:space-between;">
-  <a class="nav-logo" href="home.html"><img src="artio-icon.png" alt=""><span>Artio</span></a>
-  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème" title="Changer de thème"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></button>
+<!-- TOPBAR -->
+<header class="topbar">
+  <a class="logo" href="home.html"><img src="artio-icon.png" alt="" onerror="this.style.display='none'"/><span>Artio</span></a>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="user-avatar">CD</div>
+      <div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c5f494e48454f1258494c5352487c5153525d4e485553125a4e">[email&#160;protected]</a></div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Thème">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
 </header>
 
-<div id="toast-el" class="toast"></div>
-<main class="page" id="root">
-  <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted)">Chargement…</div>
+<main class="page">
+
+  <!-- HEADER -->
+  <section class="header">
+    <div>
+      <div class="eyebrow">
+        <span>Réglages du compte</span>
+        <span style="opacity:.4">/</span>
+        <span id="crumb">Mon entreprise</span>
+      </div>
+      <h1 class="page-title">Paramètres<span class="accent">.</span></h1>
+      <p class="page-sub">Tout ce qui pilote vos devis, factures et envois. Configurez une fois — Artio s'en souvient pour toujours.</p>
+    </div>
+    <div class="header-meta">
+      <span class="meta-pill"><span class="dot"></span>Synchronisé</span>
+      <span class="meta-pill" style="font-family:var(--fm);">v 2.4.1</span>
+    </div>
+  </section>
+
+  <!-- HERO ACCOUNT -->
+  <section class="hero">
+    <div class="hero-avatar" id="hero-avatar">–</div>
+    <div class="hero-info">
+      <div class="hero-name" id="hero-name">Chargement…</div>
+      <div class="hero-email" id="hero-email">—</div>
+      <div class="hero-tags" id="hero-tags">
+        <!-- tags injectés dynamiquement -->
+      </div>
+    </div>
+    <div class="hero-actions">
+      <a href="#abonnement" class="btn-ghost" onclick="show('abonnement');return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Gérer l'abonnement
+      </a>
+    </div>
+  </section>
+
+  <!-- SHELL -->
+  <div class="shell">
+
+    <!-- SECTION NAV -->
+    <nav class="sec-nav">
+      <div class="sec-nav-label">Sections</div>
+      <button class="sec-link active" data-target="profil" onclick="show('profil')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
+        Mon entreprise
+      </button>
+      <button class="sec-link" data-target="compte" onclick="show('compte')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+        Compte
+      </button>
+      <button class="sec-link" data-target="google" onclick="show('google')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.8 10.2H12v3.8h5.6c-.5 2.7-2.8 4.2-5.6 4.2-3.4 0-6.2-2.8-6.2-6.2S8.6 5.8 12 5.8c1.5 0 2.9.5 3.9 1.4l2.8-2.8C16.9 2.7 14.6 1.8 12 1.8 6.4 1.8 1.8 6.4 1.8 12S6.4 22.2 12 22.2c5.7 0 10-4 10-10.2 0-.6 0-1.2-.2-1.8z"/></svg>
+        Google
+        <span class="badge">OK</span>
+      </button>
+      <button class="sec-link" data-target="facturation" onclick="show('facturation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+        Facturation élec.
+      </button>
+      <button class="sec-link" data-target="abonnement" onclick="show('abonnement')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        Abonnement
+      </button>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ============ MON ENTREPRISE ============ -->
+      <section class="section" id="sec-profil">
+        <div id="profil-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ COMPTE ============ -->
+      <section class="section" id="sec-compte" hidden>
+        <div id="compte-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ GOOGLE ============ -->
+      <section class="section" id="sec-google" hidden>
+        <div id="google-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ FACTURATION ELECTRONIQUE ============ -->
+      <section class="section" id="sec-facturation" hidden>
+        <div id="facturation-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ ABONNEMENT ============ -->
+      <section class="section" id="sec-abonnement" hidden>
+        <div id="abonnement-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
 </main>
 
+<div id="toast" class="toast">Modifications enregistrées</div>
+
+<footer class="legal-footer">
+  <a href="cgv.html">CGV</a> · <a href="cgu.html">CGU</a> · <a href="confidentialite.html">Politique de confidentialité</a>
+</footer>
+
+<!-- Supabase + Plan Guard -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="plan-guard.js"></script>
+
 <script>
+/* ───────────── CONFIG ───────────── */
 const SB_URL  = "https://mwmexkoeqeyueqgdkkni.supabase.co";
 const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
 const FUNCTIONS_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1";
+const GOOGLE_CLIENT_ID = "965910280816-t40167i3uq9n5sap4mc2nv67tj2f44cj.apps.googleusercontent.com";
 const { createClient } = supabase;
 const sb = window.sb = createClient(SB_URL, SB_KEY);
 
 const SECTEURS = ["Artisan du bâtiment","Plomberie","Électricité","Peinture","Menuiserie","Maçonnerie","Jardinage / Paysagisme","Nettoyage","Lavage automobile","Photographie","Coaching","Consulting","Design / Graphisme","Développement web","Rédaction / Traduction","Livraison","Transport","Formation","Santé / Bien-être","Beauté / Esthétique","Restauration","Événementiel","Autre"];
 const CONDITIONS = ["Paiement à réception","Paiement à 30 jours","Paiement à 60 jours","Paiement à 90 jours","Acompte 30% à la commande, solde à la livraison","Acompte 50% à la commande, solde à la livraison","Paiement en 3 fois","Paiement en 2 fois"];
-const LANG_LABELS = { fr:"🇫🇷 Français", en:"🇬🇧 English", es:"🇪🇸 Español", zh:"🇨🇳 中文" };
 
-// ⚠️ Remplace par ton Client ID Google OAuth 2.0
-const GOOGLE_CLIENT_ID = "965910280816-t40167i3uq9n5sap4mc2nv67tj2f44cj.apps.googleusercontent.com";
-
-let user = null, profil = {}, activeTab = "profil", syncing = false;
-// État facturation électronique
+/* ───────────── ÉTAT GLOBAL ───────────── */
+let user = null;
+let profil = {};
+let subscriptionStatus = "free";
+let subscriptionEndDate = null;
+let isAdmin = false;
+let isFounder = false;
+let gmailEmail = null;
+let gmailTokenExpiry = null;
+let googleCalendarConnected = false;
 let facturationElectroniqueActive = false;
 let facturationElectroniqueActivatedAt = null;
 let facturationElectroniqueMandatAccepte = false;
 let factures = [];
-let gmailEmail = null;
-let gmailTokenExpiry = null;
+let billingPeriod = "monthly";
+let cancellationRequested = false;
+let syncing = false;
+let logoBase64 = null;
+let deleteConfirm = false;
+let deleteLoading = false;
 let gmailConnecting = false;
-let subscriptionStatus = "free", subscriptionEndDate = null;
-let isAdmin = false;
-let cancelLoading = false, checkoutLoading = false;
-let deleteConfirm = false, deleteLoading = false;
-let billingPeriod = "monthly", cancellationRequested = false;
 
+/* ───────────── UTILS ───────────── */
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+let _toastT;
 function toast(msg) {
-  const t = document.getElementById("toast-el");
-  t.textContent = msg; t.style.opacity = "1";
-  clearTimeout(t._to); t._to = setTimeout(() => { t.style.opacity = "0"; }, 3500);
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
-/* ── RENDER MAIN ── */
-function render() {
-  const lang = localStorage.getItem("artio_langue") || "fr";
-  const tabs = [["profil","Mon entreprise"],["compte","Compte"],["gmail","Google"],["facturation_electronique","Facturation électronique"],["abonnement","Abonnement"]];
-  document.getElementById("root").innerHTML = `
-    <div class="page-title">Paramètres</div>
-    <div class="tab-bar">
-      ${tabs.map(([id,label]) => `<button class="tab-btn ${activeTab===id?"active":""}" onclick="activeTab='${id}';render()">${label}</button>`).join("")}
-    </div>
-    ${activeTab==="profil" ? renderProfil() : activeTab==="compte" ? renderCompte() : activeTab==="gmail" ? renderGmail() : activeTab==="facturation_electronique" ? renderFacturationElectronique() : renderAbonnement()}`;
+/* ───────────── NAVIGATION SECTIONS ───────────── */
+const LABELS = {
+  profil: 'Mon entreprise',
+  compte: 'Compte',
+  google: 'Google',
+  facturation: 'Facturation électronique',
+  abonnement: 'Abonnement'
+};
+function show(target) {
+  document.querySelectorAll('.sec-link').forEach(b => b.classList.toggle('active', b.dataset.target === target));
+  document.querySelectorAll('.section').forEach(s => s.hidden = s.id !== 'sec-' + target);
+  const crumb = document.getElementById('crumb');
+  if (crumb && LABELS[target]) crumb.textContent = LABELS[target];
+  // Sync URL sans reload
+  try { history.replaceState(null, '', '?tab=' + target); } catch(e) {}
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ── PROFIL TAB ── */
-function renderProfil() {
+/* ───────────── SIDEBAR MOBILE ───────────── */
+function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open');}
+
+/* ───────────── THEME TOGGLE ───────────── */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('artio-theme', next); }catch(e){}
+}
+
+/* ───────────── LOGOUT ───────────── */
+async function logout() {
+  try { await sb.auth.signOut(); } catch(e) {}
+  window.location.href = 'login.html';
+}
+
+/* ───────────── RENDU HERO ───────────── */
+function renderHero() {
+  const email = user?.email || '';
+  const initials = email ? email.slice(0,2).toUpperCase() : '–';
+  const pseudo = (profil.pseudo || '').trim();
+  const displayName = pseudo || email.split('@')[0] || '–';
+
+  document.getElementById('hero-avatar').textContent = initials;
+  document.getElementById('hero-name').textContent = displayName;
+  document.getElementById('hero-email').textContent = email;
+
+  // Tags dynamiques
+  const tags = [];
+  if (subscriptionStatus === 'pro' || subscriptionStatus === 'active') {
+    tags.push(`<span class="tag pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg> Plan Pro</span>`);
+  } else if (subscriptionStatus === 'solo') {
+    tags.push(`<span class="tag pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg> Plan Solo</span>`);
+  } else {
+    tags.push(`<span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg> Plan gratuit</span>`);
+  }
+  if (gmailEmail) {
+    tags.push(`<span class="tag ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Google connecté</span>`);
+  }
+  if (facturationElectroniqueActive) {
+    tags.push(`<span class="tag amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M5 6v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6"/></svg> Facturation électronique active</span>`);
+  }
+  document.getElementById('hero-tags').innerHTML = tags.join('');
+}
+
+/* ───────────── CHARGEMENT DONNÉES ───────────── */
+async function loadAll() {
+  // Auth check
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) {
+    window.location.href = 'login.html';
+    return;
+  }
+  user = session.user;
+
+  // Profil
+  const { data: p } = await sb.from('profils').select('*').eq('user_id', user.id).single();
+  profil = p || {};
+
+  // Onboarding check
+  if (!profil.nom || !profil.onboarding_done) {
+    window.location.href = 'onboarding.html';
+    return;
+  }
+
+  // État abonnement
+  subscriptionStatus = profil.subscription_status || 'free';
+  subscriptionEndDate = profil.subscription_end_date || null;
+  isAdmin = !!profil.is_admin;
+  isFounder = !!profil.is_founder;
+  cancellationRequested = !!profil.cancellation_requested;
+
+  // Google OAuth state (depuis profil)
+  gmailEmail = profil.google_email || profil.gmail_email || null;
+  const expiryRaw = profil.google_token_expiry || profil.gmail_token_expiry;
+  gmailTokenExpiry = expiryRaw ? new Date(expiryRaw).toISOString() : null;
+  googleCalendarConnected = !!(profil.google_calendar_token || profil.gmail_refresh_token);
+
+  // Facturation électronique
+  facturationElectroniqueActive = !!profil.facturation_electronique_active;
+  facturationElectroniqueActivatedAt = profil.facturation_electronique_activated_at || null;
+  facturationElectroniqueMandatAccepte = !!profil.facturation_electronique_mandat_accepte;
+
+  // Logo PDF
+  logoBase64 = profil.logo_base64 || null;
+
+  // Factures Stripe
+  try {
+    const { data: fdata } = await sb.from('factures').select('*').eq('user_id', user.id).order('date_emission', { ascending: false });
+    if (fdata) factures = fdata;
+  } catch(e) { /* table peut ne pas exister */ }
+
+  // Render
+  renderHero();
+  paintProfil();
+  paintCompte();
+  paintGoogle();
+  paintFacturation();
+  paintAbonnement();
+}
+
+
+/* ═══════════════════════════════════════════════════
+   SECTION 1 — MON ENTREPRISE
+   ═══════════════════════════════════════════════════ */
+function renderProfilHTML() {
   const e = profil;
+  const isPro = subscriptionStatus === 'pro' || subscriptionStatus === 'active' || isAdmin;
   return `
     <div class="card">
-      <div class="card-title">Informations générales</div>
+      <div class="card-title-row">
+        <div class="card-title">Informations générales</div>
+      </div>
       <div class="card-sub">Ces informations apparaîtront sur tous vos devis et factures.</div>
-      <div class="field"><label class="field-label">Nom de l'entreprise *</label><input class="pi field-input" data-k="nom" type="text" value="${esc(e.nom||"")}" placeholder="Ex: Dupont Services"/></div>
-      <div class="field"><label class="field-label">Secteur d'activité</label><select class="pi field-input" data-k="secteur"><option value="">-- Choisir --</option>${SECTEURS.map(s=>`<option value="${s}" ${e.secteur===s?"selected":""}>${s}</option>`).join("")}</select></div>
+      <div class="field"><label class="field-label">Nom de l'entreprise *</label><input class="pi field-input" data-k="nom" type="text" value="${esc(e.nom||'')}" placeholder="Ex: Dupont Services"/></div>
+      <div class="field"><label class="field-label">Secteur d'activité</label><select class="pi field-input" data-k="secteur"><option value="">-- Choisir --</option>${SECTEURS.map(s=>`<option value="${s}" ${e.secteur===s?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="fields-2">
         <div class="field">
           <label class="field-label">SIRET * <span id="siret-status" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;"></span></label>
-          <input class="pi field-input" data-k="siret" id="profil-siret-input" type="text" value="${esc(e.siret||"")}" placeholder="123 456 789 00012" oninput="lookupSiretProfil(this.value)" autocomplete="off"/>
+          <input class="pi field-input" data-k="siret" id="profil-siret-input" type="text" value="${esc(e.siret||'')}" placeholder="123 456 789 00012" oninput="lookupSiretProfil(this.value)" autocomplete="off"/>
         </div>
-        <div class="field"><label class="field-label">Taux horaire (€ HT) *</label><input class="pi field-input" data-k="taux_horaire" type="number" value="${esc(e.taux_horaire||"")}" placeholder="50"/></div>
+        <div class="field"><label class="field-label">Taux horaire (€ HT) *</label><input class="pi field-input" data-k="taux_horaire" type="number" value="${esc(e.taux_horaire||'')}" placeholder="50"/></div>
       </div>
       <div class="fields-2">
-        <div class="field"><label class="field-label">Forme juridique</label><input class="pi field-input" data-k="forme_juridique" type="text" value="${esc(e.forme_juridique||"")}" placeholder="SASU, EURL, Micro-entreprise…"/></div>
-        <div class="field"><label class="field-label">Code APE / NAF</label><input class="pi field-input" data-k="code_naf" type="text" value="${esc(e.code_naf||"")}" placeholder="6201Z"/></div>
+        <div class="field"><label class="field-label">Forme juridique</label><input class="pi field-input" data-k="forme_juridique" type="text" value="${esc(e.forme_juridique||'')}" placeholder="SASU, EURL, Micro-entreprise…"/></div>
+        <div class="field"><label class="field-label">Code APE / NAF</label><input class="pi field-input" data-k="code_naf" type="text" value="${esc(e.code_naf||'')}" placeholder="6201Z"/></div>
       </div>
-      <div class="field"><label class="field-label">Libellé activité (NAF)</label><input class="pi field-input" data-k="libelle_code_naf" type="text" value="${esc(e.libelle_code_naf||"")}" placeholder="Programmation informatique"/></div>
+      <div class="field"><label class="field-label">Libellé activité (NAF)</label><input class="pi field-input" data-k="libelle_code_naf" type="text" value="${esc(e.libelle_code_naf||'')}" placeholder="Programmation informatique"/></div>
       <div class="fields-2">
-        <div class="field"><label class="field-label">N° TVA intracommunautaire</label><input class="pi field-input" data-k="tva_intracom" type="text" value="${esc(e.tva_intracom||"")}" placeholder="FR12345678901"/></div>
-        <div class="field"><label class="field-label">Date de création</label><input class="pi field-input" data-k="date_creation_entreprise" type="date" value="${esc(e.date_creation_entreprise||"")}"/></div>
+        <div class="field"><label class="field-label">N° TVA intracommunautaire</label><input class="pi field-input" data-k="tva_intracom" type="text" value="${esc(e.tva_intracom||'')}" placeholder="FR12345678901"/></div>
+        <div class="field"><label class="field-label">Date de création</label><input class="pi field-input" data-k="date_creation_entreprise" type="date" value="${esc(e.date_creation_entreprise||'')}"/></div>
       </div>
       <div class="fields-2">
-        <div class="field"><label class="field-label">Téléphone</label><input class="pi field-input" data-k="tel" type="tel" value="${esc(e.tel||"")}" placeholder="06 12 34 56 78"/></div>
-        <div class="field"><label class="field-label">Email</label><input class="pi field-input" data-k="email" type="email" value="${esc(e.email||"")}" placeholder="contact@email.com"/></div>
+        <div class="field"><label class="field-label">Téléphone</label><input class="pi field-input" data-k="tel" type="tel" value="${esc(e.tel||'')}" placeholder="06 12 34 56 78"/></div>
+        <div class="field"><label class="field-label">Email</label><input class="pi field-input" data-k="email" type="email" value="${esc(e.email||'')}" placeholder="contact@email.com"/></div>
       </div>
-      <div class="field"><label class="field-label">Adresse</label><input class="pi field-input" data-k="adresse" type="text" value="${esc(e.adresse||"")}" placeholder="12 rue de Paris…"/></div>
-      <div class="field"><label class="field-label">IBAN (facturation électronique)</label><input class="pi field-input" data-k="iban" type="text" value="${esc(e.iban||"")}" placeholder="FR76 3000 6000 0112 3456 7890 189"/></div>
+      <div class="field"><label class="field-label">Adresse</label><input class="pi field-input" data-k="adresse" type="text" value="${esc(e.adresse||'')}" placeholder="12 rue de Paris…"/></div>
+      <div class="field"><label class="field-label">IBAN (facturation électronique)</label><input class="pi field-input" data-k="iban" type="text" value="${esc(e.iban||'')}" placeholder="FR76 3000 6000 0112 3456 7890 189"/></div>
     </div>
 
     <div class="card">
-      <div class="card-title">TVA & Conditions</div>
+      <div class="card-title-row">
+        <div class="card-title">TVA &amp; Conditions</div>
+      </div>
       <div class="field">
-        <label class="check-row">
-          <input class="pi" data-k="assujetti_tva" type="checkbox" ${e.assujetti_tva?"checked":""} onchange="profil.assujetti_tva=this.checked;render()"/>
+        <label class="check-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input class="pi" data-k="assujetti_tva" type="checkbox" ${e.assujetti_tva?'checked':''} onchange="profil.assujetti_tva=this.checked;paintProfil()"/>
           <span>Je suis assujetti à la TVA</span>
         </label>
       </div>
@@ -369,35 +982,35 @@ function renderProfil() {
         <div class="field">
           <label class="field-label">Fréquence de déclaration</label>
           <select class="pi field-input" data-k="tva_frequence">
-            <option value="mensuelle" ${e.tva_frequence==="mensuelle"?"selected":""}>Mensuelle</option>
-            <option value="trimestrielle" ${(e.tva_frequence||"trimestrielle")==="trimestrielle"?"selected":""}>Trimestrielle</option>
-            <option value="annuelle" ${e.tva_frequence==="annuelle"?"selected":""}>Annuelle</option>
+            <option value="mensuelle" ${e.tva_frequence==='mensuelle'?'selected':''}>Mensuelle</option>
+            <option value="trimestrielle" ${(e.tva_frequence||'trimestrielle')==='trimestrielle'?'selected':''}>Trimestrielle</option>
+            <option value="annuelle" ${e.tva_frequence==='annuelle'?'selected':''}>Annuelle</option>
           </select>
           <div style="font-size:10px;color:var(--muted);margin-top:5px">La plupart des indépendants sont en trimestrielle</div>
         </div>
         <div class="field">
           <label class="field-label">Régime de TVA</label>
           <select class="pi field-input" data-k="tva_regime">
-            <option value="encaissements" ${(e.tva_regime||"encaissements")==="encaissements"?"selected":""}>Sur les encaissements</option>
-            <option value="debits" ${e.tva_regime==="debits"?"selected":""}>Sur les débits</option>
+            <option value="encaissements" ${(e.tva_regime||'encaissements')==='encaissements'?'selected':''}>Sur les encaissements</option>
+            <option value="debits" ${e.tva_regime==='debits'?'selected':''}>Sur les débits</option>
           </select>
           <div style="font-size:10px;color:var(--muted);margin-top:5px">Prestations de service → encaissements · Ventes de biens → débits</div>
         </div>
-      </div>` : ""}
-      <div class="fields-2" style="margin-top:${e.assujetti_tva?"10":"0"}px;">
-        <div class="field"><label class="field-label">Conditions de paiement</label><select class="pi field-input" data-k="conditions_paiement"><option value="">-- Choisir --</option>${CONDITIONS.map(c=>`<option value="${c}" ${e.conditions_paiement===c?"selected":""}>${c}</option>`).join("")}</select></div>
-        <div class="field"><label class="field-label">Délai de validité (jours)</label><input class="pi field-input" data-k="delai_paiement" type="number" value="${esc(e.delai_paiement||"30")}" placeholder="30"/></div>
+      </div>` : ''}
+      <div class="fields-2" style="margin-top:10px;">
+        <div class="field"><label class="field-label">Conditions de paiement</label><select class="pi field-input" data-k="conditions_paiement"><option value="">-- Choisir --</option>${CONDITIONS.map(c=>`<option value="${c}" ${e.conditions_paiement===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label class="field-label">Délai de validité (jours)</label><input class="pi field-input" data-k="delai_paiement" type="number" value="${esc(e.delai_paiement||'30')}" placeholder="30"/></div>
       </div>
       <div class="fields-2" style="margin-top:10px;">
         <div class="field">
           <label class="field-label">Validité des devis par défaut</label>
           <select class="pi field-input" data-k="validite_devis">
-            <option value="1"  ${(e.validite_devis||3)==1 ?"selected":""}>1 jour</option>
-            <option value="2"  ${(e.validite_devis||3)==2 ?"selected":""}>2 jours</option>
-            <option value="3"  ${(e.validite_devis||3)==3 ?"selected":""}>3 jours (défaut)</option>
-            <option value="7"  ${(e.validite_devis||3)==7 ?"selected":""}>7 jours</option>
-            <option value="15" ${(e.validite_devis||3)==15?"selected":""}>15 jours</option>
-            <option value="30" ${(e.validite_devis||3)==30?"selected":""}>30 jours</option>
+            <option value="1"  ${(e.validite_devis||3)==1 ?'selected':''}>1 jour</option>
+            <option value="2"  ${(e.validite_devis||3)==2 ?'selected':''}>2 jours</option>
+            <option value="3"  ${(e.validite_devis||3)==3 ?'selected':''}>3 jours (défaut)</option>
+            <option value="7"  ${(e.validite_devis||3)==7 ?'selected':''}>7 jours</option>
+            <option value="15" ${(e.validite_devis||3)==15?'selected':''}>15 jours</option>
+            <option value="30" ${(e.validite_devis||3)==30?'selected':''}>30 jours</option>
           </select>
           <div style="font-size:11px;color:var(--muted);margin-top:4px;">Durée pendant laquelle le lien de signature reste actif après que le client l'ouvre. Modifiable par devis.</div>
         </div>
@@ -405,19 +1018,23 @@ function renderProfil() {
     </div>
 
     <div class="card" style="border-color:rgba(167,139,250,.22)">
-      <div class="card-title">🤖 Contexte IA</div>
+      <div class="card-title-row">
+        <div class="card-title">🤖 Contexte IA</div>
+      </div>
       <div class="card-sub">Décris ton activité, tes offres, tes tarifs et ce que tu veux que l'IA sache pour répondre à tes clients. Plus c'est précis, plus les réponses seront adaptées.</div>
       <div class="field">
-        <textarea class="pi field-input" data-k="contexte_ia" rows="8" placeholder="Ex: Je propose un logiciel SaaS de gestion administrative pour indépendants (devis, factures, e-signature, agenda).&#10;&#10;Formation d'initiation : optionnelle, pour les personnes souhaitant être accompagnées. Tarifs non encore définis — indiquer que les tarifs sont en cours de finalisation et proposer d'être recontacté.&#10;&#10;Installation autonome : tout à fait possible, le processus est guidé étape par étape.&#10;&#10;Abonnement : [à compléter]" style="min-height:180px;resize:vertical;line-height:1.6">${esc(e.contexte_ia||"")}</textarea>
+        <textarea class="pi field-input" data-k="contexte_ia" rows="8" placeholder="Ex: Je propose un logiciel SaaS de gestion administrative pour indépendants (devis, factures, e-signature, agenda)." style="min-height:180px;resize:vertical;line-height:1.6">${esc(e.contexte_ia||'')}</textarea>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:2px">Ce texte est injecté dans chaque génération de réponse email. Il n'apparaît jamais dans tes documents.</div>
     </div>
 
-    ${(subscriptionStatus === "pro" || isAdmin) ? `
+    ${isPro ? `
     <div class="card" style="border-color:rgba(167,139,250,0.25);">
-      <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-        <span style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:.05em;">PRO</span>
-        Identité visuelle PDF
+      <div class="card-title-row">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <span style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:.05em;">PRO</span>
+          Identité visuelle PDF
+        </div>
       </div>
       <div class="card-sub">Votre logo et votre couleur apparaissent sur tous vos devis et factures.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;">
@@ -426,54 +1043,208 @@ function renderProfil() {
           <div style="display:flex;align-items:center;gap:10px;">
             ${logoBase64 ? `<img src="${logoBase64}" style="height:36px;max-width:80px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:#fff;padding:4px;" />` : `<div style="width:50px;height:36px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼</div>`}
             <label style="cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2);white-space:nowrap;">
-              ${logoBase64 ? "Changer" : "Importer"}
+              ${logoBase64 ? 'Changer' : 'Importer'}
               <input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="uploadLogo(event)"/>
             </label>
-            ${logoBase64 ? `<button onclick="removeLogo()" style="padding:7px 10px;border-radius:8px;border:1px solid rgba(248,113,113,.2);font-size:12px;color:var(--red);background:var(--red-dim);cursor:pointer;">✕</button>` : ""}
+            ${logoBase64 ? `<button onclick="removeLogo()" style="padding:7px 10px;border-radius:8px;border:1px solid rgba(248,113,113,.2);font-size:12px;color:var(--red);background:rgba(248,113,113,0.08);cursor:pointer;">✕</button>` : ''}
           </div>
         </div>
         <div class="field">
           <label class="field-label">Couleur principale</label>
           <div style="display:flex;align-items:center;gap:10px;">
-            <input type="color" value="${esc(profil.couleur_pdf||"#378ADD")}"
+            <input type="color" value="${esc(profil.couleur_pdf||'#378ADD')}"
               style="width:42px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:var(--surface-2);"
               oninput="profil.couleur_pdf=this.value;document.getElementById('color-preview').style.background=this.value"/>
-            <div id="color-preview" style="flex:1;height:36px;border-radius:8px;background:${esc(profil.couleur_pdf||"#378ADD")};border:1px solid var(--border);transition:background .2s;"></div>
+            <div id="color-preview" style="flex:1;height:36px;border-radius:8px;background:${esc(profil.couleur_pdf||'#378ADD')};border:1px solid var(--border);transition:background .2s;"></div>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:6px;">Utilisée sur l'en-tête du tableau de vos documents.</div>
         </div>
       </div>
-    </div>` : ""}
-    <button class="btn-primary" ${syncing?"disabled":""} onclick="saveProfil()">
-      ${syncing ? "Enregistrement…" : "Enregistrer"}
-    </button>`;
+    </div>` : ''}
+
+    <div class="actions" style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" ${syncing?'disabled':''} onclick="saveProfil()">
+        ${syncing ? 'Enregistrement…' : 'Enregistrer les modifications'}
+      </button>
+    </div>
+  `;
 }
 
-/* ── COMPTE TAB ── */
-function renderCompte() {
+function paintProfil() {
+  const el = document.getElementById('profil-content');
+  if (el) el.innerHTML = renderProfilHTML();
+}
+
+/* ───────── HELPERS PROFIL ───────── */
+let _siretTimer = null;
+let _lastSiretLookup = '';
+async function lookupSiretProfil(rawValue) {
+  const status = document.getElementById('siret-status');
+  if (!status) return;
+  const clean = String(rawValue||'').replace(/\D/g, '');
+  if (clean.length < 14) {
+    status.textContent = clean.length > 0 ? `${clean.length}/14 chiffres` : '';
+    status.style.color = 'var(--muted)';
+    return;
+  }
+  if (clean.length > 14) return;
+  if (clean === _lastSiretLookup) return;
+  _lastSiretLookup = clean;
+
+  clearTimeout(_siretTimer);
+  _siretTimer = setTimeout(async () => {
+    status.textContent = '⏳ Recherche SIRENE…';
+    status.style.color = 'var(--muted)';
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const r = await fetch(SB_URL + '/functions/v1/siret-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ siret: clean }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        status.textContent = '✗ ' + (data.error || 'Erreur');
+        status.style.color = '#dc2626';
+        return;
+      }
+      const fill = (key, value, force = false) => {
+        const el = document.querySelector(`[data-k="${key}"]`);
+        if (!el) return;
+        if (!force && el.value && el.value.trim() !== '') return;
+        el.value = value || '';
+        profil[key] = el.value;
+      };
+      fill('nom', data.nom_entreprise);
+      fill('adresse', data.adresse_complete);
+      fill('forme_juridique', data.forme_juridique, true);
+      fill('code_naf', data.code_naf, true);
+      fill('libelle_code_naf', data.libelle_code_naf, true);
+      fill('tva_intracom', data.tva_intracom, true);
+      fill('date_creation_entreprise', data.date_creation_entreprise, true);
+
+      if (data.entreprise_cessee) {
+        status.textContent = '⚠️ Entreprise cessée';
+        status.style.color = '#d97706';
+      } else {
+        status.textContent = data.cached ? '✓ Vérifié (cache)' : '✓ Vérifié SIRENE';
+        status.style.color = '#16a34a';
+      }
+    } catch (e) {
+      status.textContent = '✗ Erreur réseau';
+      status.style.color = '#dc2626';
+    }
+  }, 350);
+}
+
+async function saveProfil() {
+  document.querySelectorAll('#profil-content .pi').forEach(el => {
+    if (el.type === 'checkbox') profil[el.dataset.k] = el.checked;
+    else profil[el.dataset.k] = el.value;
+  });
+  if (!profil.nom || !profil.siret || !profil.taux_horaire) { toast('⚠ Nom, SIRET et taux horaire obligatoires.'); return; }
+  syncing = true; paintProfil();
+  const { error } = await sb.from('profils').upsert({
+    user_id: user.id,
+    ...profil,
+    assujetti_tva: profil.assujetti_tva || false,
+    tva_frequence: profil.tva_frequence || 'trimestrielle',
+    tva_regime: profil.tva_regime || 'encaissements',
+    contexte_ia: profil.contexte_ia || '',
+    couleur_pdf: profil.couleur_pdf || '#378ADD',
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+  syncing = false;
+  if (error) { toast('Erreur : ' + error.message); paintProfil(); return; }
+  toast('✓ Modifications enregistrées');
+  renderHero();
+  paintProfil();
+}
+
+function uploadLogo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 300 * 1024) { toast('⚠ Logo trop lourd (max 300 Ko).'); return; }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    logoBase64 = e.target.result;
+    profil.logo_base64 = logoBase64;
+    const { error } = await sb.from('profils').update({ logo_base64: logoBase64 }).eq('user_id', user.id);
+    if (error) { toast('Erreur upload logo : ' + error.message); return; }
+    toast('✓ Logo enregistré');
+    paintProfil();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeLogo() {
+  logoBase64 = null;
+  profil.logo_base64 = null;
+  const { error } = await sb.from('profils').update({ logo_base64: null }).eq('user_id', user.id);
+  if (error) { toast('Erreur : ' + error.message); return; }
+  toast('Logo supprimé');
+  paintProfil();
+}
+
+
+/* ═══════════════════════════════════════════════════
+   SECTION 2 — COMPTE
+   ═══════════════════════════════════════════════════ */
+function renderCompteHTML() {
   return `
     <div class="card">
-      <div class="card-title">Pseudo</div>
+      <div class="card-title-row">
+        <div class="card-title">Pseudo</div>
+      </div>
       <div class="card-sub">Affiché sur votre page d'accueil à la place de votre adresse email.</div>
       <div class="field">
         <label class="field-label">Votre pseudo</label>
         <input id="pseudo-input" class="field-input" type="text" value="${esc(profil.pseudo||'')}" placeholder="Ex: Curtys, Marie, MonEntreprise…" maxlength="40"/>
       </div>
-      <button class="btn-primary" style="margin-top:4px;" onclick="savePseudo()">Enregistrer le pseudo</button>
+      <div class="actions" style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-primary" onclick="savePseudo()">Enregistrer le pseudo</button>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Changer le mot de passe</div>
+      <div class="card-title-row">
+        <div class="card-title">Mot de passe</div>
+      </div>
       <div class="card-sub">Un lien de réinitialisation sera envoyé à votre adresse email.</div>
-      <button class="btn-primary" style="margin-top:4px;" onclick="requestPasswordReset()">Envoyer le lien par email</button>
-      <div id="pass-msg" style="font-size:13px;margin-top:10px;"></div>
+      <div class="actions" style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="requestPasswordReset(this)">Envoyer le lien par email</button>
+      </div>
+      <div id="pass-msg" style="font-size:13px;margin-top:10px;text-align:right;"></div>
     </div>
 
-    <div class="card" style="border-color:rgba(248,113,113,0.2);margin-top:28px;">
-      <div class="card-title" style="color:var(--red)">⚠️ Supprimer mon compte</div>
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">Préférences</div>
+      </div>
+      <div class="card-sub">Notifications et autres réglages personnels.</div>
+      <div class="field">
+        <label class="check-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input id="pref-notif-push" type="checkbox" ${profil.notifications_push !== false ? 'checked' : ''} onchange="savePref('notifications_push', this.checked)"/>
+          <span>Notifications push (signatures, paiements reçus)</span>
+        </label>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label class="check-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input id="pref-notif-email" type="checkbox" ${profil.notifications_email !== false ? 'checked' : ''} onchange="savePref('notifications_email', this.checked)"/>
+          <span>Notifications par email (rappels, alertes facturation)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:rgba(248,113,113,0.2);">
+      <div class="card-title-row">
+        <div class="card-title" style="color:var(--red)">⚠️ Supprimer mon compte</div>
+      </div>
       <div class="card-sub" style="margin-bottom:16px;">Cette action est irréversible. Toutes vos données seront supprimées (dossiers, clients, agenda). Vos factures sont conservées conformément à la loi. Votre abonnement Stripe sera annulé automatiquement.</div>
       ${!deleteConfirm ? `
-        <button class="btn-danger" onclick="set({deleteConfirm:true})">Supprimer mon compte</button>
+        <div class="actions" style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-danger" onclick="setDeleteConfirm(true)">Supprimer mon compte</button>
+        </div>
       ` : `
         <div style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);border-radius:10px;padding:16px;margin-bottom:12px;">
           <p style="font-size:13px;color:var(--red);font-weight:700;margin-bottom:10px;">⚠️ Confirmer la suppression définitive ?</p>
@@ -481,9 +1252,9 @@ function renderCompte() {
           <p style="font-size:12px;color:var(--muted);line-height:1.7;">Assurez-vous d'avoir <strong style="color:var(--text)">sauvegardé vos documents importants</strong> avant de continuer.</p>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="btn-secondary" onclick="set({deleteConfirm:false})">Annuler</button>
-          <button class="btn-danger" onclick="deleteAccount()" ${deleteLoading?"disabled":""}>
-            ${deleteLoading?"Suppression...":"Oui, supprimer"}
+          <button class="btn btn-secondary" onclick="setDeleteConfirm(false)">Annuler</button>
+          <button class="btn btn-danger" onclick="deleteAccount()" ${deleteLoading?'disabled':''}>
+            ${deleteLoading?'Suppression…':'Oui, supprimer'}
           </button>
         </div>
       `}
@@ -492,49 +1263,33 @@ function renderCompte() {
   `;
 }
 
-function set(obj) {
-  if ("deleteConfirm" in obj) { deleteConfirm = obj.deleteConfirm; render(); }
+function paintCompte() {
+  const el = document.getElementById('compte-content');
+  if (el) el.innerHTML = renderCompteHTML();
 }
 
-async function deleteAccount() {
-  deleteLoading = true;
-  render();
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = "login.html"; return; }
-    const res = await fetch(FUNCTIONS_URL + "/delete-account", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + session.access_token, "Content-Type": "application/json" }
-    });
-    const data = await res.json();
-    if (data.success) {
-      await sb.auth.signOut();
-      window.location.href = "index.html";
-    } else {
-      const msg = document.getElementById("delete-msg");
-      if (msg) { msg.textContent = "❌ " + (data.error || "Erreur."); msg.style.color = "var(--red)"; }
-      deleteLoading = false; render();
-    }
-  } catch(e) {
-    const msg = document.getElementById("delete-msg");
-    if (msg) { msg.textContent = "❌ " + e.message; msg.style.color = "var(--red)"; }
-    deleteLoading = false; render();
-  }
-}
+function setDeleteConfirm(v) { deleteConfirm = !!v; paintCompte(); }
 
 async function savePseudo() {
   const val = document.getElementById('pseudo-input')?.value?.trim() || '';
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return;
   const { error } = await sb.from('profils').update({ pseudo: val }).eq('user_id', session.user.id);
-  if (!error) { profil.pseudo = val; toast('✅ Pseudo enregistré !'); }
-  else toast('❌ Erreur : ' + error.message);
+  if (!error) { profil.pseudo = val; toast('✓ Pseudo enregistré'); renderHero(); }
+  else toast('Erreur : ' + error.message);
 }
 
+async function savePref(key, value) {
+  profil[key] = value;
+  const upd = {}; upd[key] = value;
+  const { error } = await sb.from('profils').update(upd).eq('user_id', user.id);
+  if (error) { toast('Erreur : ' + error.message); return; }
+  toast('✓ Préférence enregistrée');
+}
 
-async function requestPasswordReset() {
+async function requestPasswordReset(btn) {
   const msg = document.getElementById('pass-msg');
-  const btn = event.target;
+  if (!btn) return;
   btn.disabled = true;
   btn.textContent = 'Envoi en cours…';
   try {
@@ -559,48 +1314,88 @@ async function requestPasswordReset() {
   }
 }
 
-/* ── GMAIL TAB ── */
-function renderGmail() {
-  const tokenExpired = gmailTokenExpiry && new Date() > gmailTokenExpiry;
-  // ── Plan Guard : Gmail = fonctionnalité Pro ──
-  if (window.PlanGuard && !window.PlanGuard.isPro()) {
+async function deleteAccount() {
+  deleteLoading = true;
+  paintCompte();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    const res = await fetch(FUNCTIONS_URL + '/delete-account', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await sb.auth.signOut();
+      window.location.href = 'index.html';
+    } else {
+      const msg = document.getElementById('delete-msg');
+      if (msg) { msg.textContent = '❌ ' + (data.error || 'Erreur.'); msg.style.color = 'var(--red)'; }
+      deleteLoading = false; paintCompte();
+    }
+  } catch(e) {
+    const msg = document.getElementById('delete-msg');
+    if (msg) { msg.textContent = '❌ ' + e.message; msg.style.color = 'var(--red)'; }
+    deleteLoading = false; paintCompte();
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   SECTION 3 — GOOGLE
+   ═══════════════════════════════════════════════════ */
+function renderGoogleHTML() {
+  const isPro = subscriptionStatus === 'pro' || subscriptionStatus === 'active' || isAdmin;
+  const tokenExpired = gmailTokenExpiry && new Date() > new Date(gmailTokenExpiry);
+
+  if (!isPro) {
     return `<div class="card">
-      <div class="card-title">Connexion Gmail</div>
-      <div class="card-sub">Connecte ton compte Gmail pour envoyer tes devis et factures directement depuis ta propre adresse email.</div>
-      <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;">
+      <div class="card-title-row">
+        <div class="card-title">Compte Google</div>
+      </div>
+      <div class="card-sub">Connecte ton compte Google pour envoyer tes devis et factures depuis ta propre adresse email <strong>et</strong> synchroniser ton agenda Google Calendar avec Artio.</div>
+      <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:24px;text-align:center;margin-top:14px;">
         <div style="font-size:32px;margin-bottom:10px;">⚡</div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#a78bfa;margin-bottom:8px;">Fonctionnalité Pro</div>
-        <div style="font-size:13px;color:#6b7494;line-height:1.6;margin-bottom:18px;">La connexion Gmail est disponible avec le plan Pro. Envoyez vos devis et factures directement depuis votre adresse personnelle.</div>
-        <a href="settings.html?tab=abonnement" style="display:inline-block;padding:11px 24px;background:#a78bfa;border-radius:10px;color:#fff;font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;text-decoration:none;">⚡ Passer au Pro — 39 €/mois</a>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">La connexion Google est disponible avec le plan Pro. Envoyez vos devis et factures directement depuis votre adresse personnelle, et synchronisez votre agenda.</div>
+        <a href="?tab=abonnement" onclick="show('abonnement');return false;" style="display:inline-block;padding:11px 24px;background:#a78bfa;border-radius:10px;color:#fff;font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;text-decoration:none;">⚡ Passer au Pro — 39 €/mois</a>
       </div>
     </div>`;
   }
+
   return `<div class="card">
-    <div class="card-title">Connexion Google</div>
+    <div class="card-title-row">
+      <div class="card-title">Compte Google</div>
+    </div>
     <div class="card-sub">Connecte ton compte Google pour envoyer tes devis et factures depuis ta propre adresse email <strong>et</strong> synchroniser ton agenda Google Calendar avec Artio.</div>
     ${gmailEmail && !tokenExpired ? `
-      <div class="gmail-connected">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        <span>Connecté : ${esc(gmailEmail)}</span>
+      <div style="background:rgba(120,200,120,.10);border:1px solid rgba(120,200,120,.35);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin:14px 0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5fc97a" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-size:13px;color:#5fc97a;font-weight:600;">Connecté : ${esc(gmailEmail)}</span>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
         ✉️ Envoi d'emails activé · 📅 Synchronisation Google Calendar activée
       </div>
-      <button class="btn-danger" onclick="doGoogleDisconnect()">Déconnecter Google</button>
+      <div class="actions" style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-danger" onclick="doGoogleDisconnect()">Déconnecter Google</button>
+      </div>
     ` : gmailEmail && tokenExpired ? `
-      <div style="background:rgba(245,167,66,.08);border:1px solid rgba(245,167,66,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="background:rgba(245,167,66,.08);border:1px solid rgba(245,167,66,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin:14px 0;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5a742" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span style="font-size:13px;color:#f5a742;font-weight:600;">Session expirée : ${esc(gmailEmail)}</span>
       </div>
-      <button class="btn-primary" onclick="doGoogleConnect()">🔄 Reconnecter Google</button>
-      <button class="btn-danger" style="margin-top:8px" onclick="doGoogleDisconnect()">Déconnecter</button>
+      <div class="actions" style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-danger" onclick="doGoogleDisconnect()">Déconnecter</button>
+        <button class="btn btn-primary" onclick="doGoogleConnect()">Reconnecter Google</button>
+      </div>
     ` : `
-      <button class="btn-primary" ${gmailConnecting?"disabled":""} onclick="doGoogleConnect()">
-        ${gmailConnecting ? "Connexion en cours…" : "Se connecter à Google"}
-      </button>
+      <div class="actions" style="display:flex;justify-content:flex-end;margin-top:14px;">
+        <button class="btn btn-primary" ${gmailConnecting?'disabled':''} onclick="doGoogleConnect()">
+          ${gmailConnecting ? 'Connexion en cours…' : 'Se connecter à Google'}
+        </button>
+      </div>
     `}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-      <div class="section-sep" style="margin-top:0">Comment ça marche ?</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.7">
         En cliquant sur le bouton, tu seras redirigé vers Google pour autoriser Artio à accéder à ton compte (envoi d'emails et lecture/écriture de ton agenda principal).
         Tes tokens sont stockés de façon sécurisée et ne sont jamais partagés. Tu peux déconnecter à tout moment — la révocation est aussi visible dans ton compte Google.
@@ -609,15 +1404,20 @@ function renderGmail() {
   </div>`;
 }
 
+function paintGoogle() {
+  const el = document.getElementById('google-content');
+  if (el) el.innerHTML = renderGoogleHTML();
+}
+
 function doGoogleConnect() {
   const scope = encodeURIComponent([
-    "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/gmail.modify",
-    "https://www.googleapis.com/auth/calendar.events",
-    "https://www.googleapis.com/auth/calendar.readonly",
-    "https://www.googleapis.com/auth/userinfo.email"
-  ].join(" "));
-  const redirect = encodeURIComponent("https://www.monartio.fr/settings.html");
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.modify',
+    'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/userinfo.email'
+  ].join(' '));
+  const redirect = encodeURIComponent('https://www.monartio.fr/settings.html');
   const url = `https://accounts.google.com/o/oauth2/v2/auth`
     + `?client_id=${GOOGLE_CLIENT_ID}`
     + `&redirect_uri=${redirect}`
@@ -630,19 +1430,19 @@ function doGoogleConnect() {
 }
 
 async function handleGoogleCode(code) {
-  gmailConnecting = true; render();
+  gmailConnecting = true; paintGoogle();
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
       toast("⚠️ Session expirée. Reconnecte-toi à Artio d'abord.");
-      gmailConnecting = false; render(); return;
+      gmailConnecting = false; paintGoogle(); return;
     }
-    const res = await fetch(FUNCTIONS_URL + "/gmail-oauth", {
-      method: "POST",
+    const res = await fetch(FUNCTIONS_URL + '/gmail-oauth', {
+      method: 'POST',
       headers: {
-        "Authorization": "Bearer " + session.access_token,
-        "apikey": SB_KEY,
-        "Content-Type": "application/json"
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SB_KEY,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ code })
     });
@@ -653,22 +1453,20 @@ async function handleGoogleCode(code) {
     const data = await res.json();
     if (data.success) {
       gmailEmail = data.google_email;
-      // Recalculer l'expiry côté client (1h par défaut pour access token)
-      gmailTokenExpiry = new Date(Date.now() + 3600 * 1000);
+      gmailTokenExpiry = new Date(Date.now() + 3600 * 1000).toISOString();
       const features = [];
-      if (data.has_gmail_send) features.push("emails");
-      if (data.has_calendar)   features.push("agenda");
-      toast(`✓ Google connecté : ${gmailEmail}${features.length ? " (" + features.join(" + ") + ")" : ""}`);
-      activeTab = "gmail";
+      if (data.has_gmail_send) features.push('emails');
+      if (data.has_calendar)   features.push('agenda');
+      toast(`✓ Google connecté : ${gmailEmail}${features.length ? ' (' + features.join(' + ') + ')' : ''}`);
     } else {
-      toast("Erreur Google : " + (data.error || "inconnue"));
+      toast('Erreur Google : ' + (data.error || 'inconnue'));
     }
   } catch(e) {
-    toast("Erreur : " + e.message);
+    toast('Erreur : ' + e.message);
   }
   gmailConnecting = false;
-  history.replaceState(null, "", location.pathname);
-  render();
+  renderHero();
+  paintGoogle();
 }
 
 async function doGoogleDisconnect() {
@@ -676,609 +1474,537 @@ async function doGoogleDisconnect() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    const res = await fetch(FUNCTIONS_URL + "/google-disconnect", {
-      method: "POST",
+    const res = await fetch(FUNCTIONS_URL + '/google-disconnect', {
+      method: 'POST',
       headers: {
-        "Authorization": "Bearer " + session.access_token,
-        "Content-Type":  "application/json"
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({})
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      toast("Erreur : " + (data.error || "inconnue"));
+      toast('Erreur : ' + (data.error || 'inconnue'));
       return;
     }
     gmailEmail = null;
     gmailTokenExpiry = null;
-    render();
-    toast("Google déconnecté");
+    renderHero();
+    paintGoogle();
+    toast('Google déconnecté');
   } catch(e) {
-    toast("Erreur : " + e.message);
+    toast('Erreur : ' + e.message);
   }
 }
 
 
-/* ── FACTURATION ÉLECTRONIQUE TAB ── */
-function renderFacturationElectronique() {
-  const hasSiret = !!(profil.siret && profil.siret.replace(/\s/g,"").length >= 9);
+
+
+/* ═══════════════════════════════════════════════════
+   SECTION 4 — FACTURATION ÉLECTRONIQUE (4 cartes)
+   ═══════════════════════════════════════════════════ */
+function renderFacturationHTML() {
+  const hasSiret = !!(profil.siret && profil.siret.replace(/\s/g,'').length >= 9);
   const isActive = facturationElectroniqueActive === true;
   const activatedDate = facturationElectroniqueActivatedAt
-    ? new Date(facturationElectroniqueActivatedAt).toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" })
+    ? new Date(facturationElectroniqueActivatedAt).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
     : null;
 
-  // ── État ACTIVÉ ──────────────────────────────────────────────
-  if (isActive) {
-    return `
-      <div style="background:rgba(120,200,120,.10);border:1px solid rgba(120,200,120,.35);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:14px;margin-bottom:24px;">
-        <div style="font-size:24px">✅</div>
-        <div>
-          <div style="font-size:16px;font-weight:700;color:#5fc97a;letter-spacing:.02em;">FACTURATION ÉLECTRONIQUE ACTIVÉE</div>
-          ${activatedDate ? `<div style="font-size:13px;color:var(--muted);margin-top:4px;">Activée le ${activatedDate}</div>` : ""}
-        </div>
-      </div>
-
-      <div class="card">
+  // ── CARTE 1 : STATUT DE CONFORMITÉ ──
+  const card1 = `
+    <div class="card" style="${isActive ? 'border-color:rgba(120,200,120,0.35);' : ''}">
+      <div class="card-title-row">
         <div class="card-title">Statut de conformité</div>
-        <div class="card-sub">Votre compte est conforme à la réforme de la facturation électronique du 1er septembre 2026.</div>
-
-        <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
-          <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--surface-2);border-radius:10px;">
-            <div style="font-size:18px;">📤</div>
-            <div>
-              <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Émission automatique</div>
-              <div style="font-size:12px;color:var(--muted);line-height:1.55;">Toutes vos factures sont désormais générées au format Factur-X et transmises automatiquement aux plateformes d'État dès leur création.</div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--surface-2);border-radius:10px;">
-            <div style="font-size:18px;">🔄</div>
-            <div>
-              <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Réception centralisée</div>
-              <div style="font-size:12px;color:var(--muted);line-height:1.55;">Les factures de vos fournisseurs vous sont remises via votre PDP partenaire FactPulse.</div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--surface-2);border-radius:10px;">
-            <div style="font-size:18px;">🛡️</div>
-            <div>
-              <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Conformité légale</div>
-              <div style="font-size:12px;color:var(--muted);line-height:1.55;">Toutes vos transmissions respectent le format EN16931 et la réglementation française (PPF / Chorus Pro).</div>
-            </div>
-          </div>
-        </div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Plateforme partenaire</div>
-        <div class="card-sub">Artio s'appuie sur FactPulse, Plateforme de Dématérialisation Partenaire (PDP) immatriculée par la DGFiP pour la transmission de vos factures à l'État.</div>
-      </div>
-
-      <div style="background:rgba(255,160,40,.08);border:1px solid rgba(255,160,40,.25);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.55;">
-        ⚠️ La désactivation n'est pas recommandée — vos factures ne seraient plus transmises automatiquement à l'État et vous pourriez vous retrouver en non-conformité à compter du 1er septembre 2026.
-      </div>
-    `;
-  }
-
-  // ── État NON ACTIVÉ ──────────────────────────────────────────
-  return `
-    <div style="background:rgba(255,160,40,.10);border:1px solid rgba(255,160,40,.35);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:14px;margin-bottom:24px;">
-      <div style="font-size:24px">⚡</div>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.02em;">EN ROUTE POUR LA FACTURATION ÉLECTRONIQUE</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px;">À compter du 1er septembre 2026, la facturation électronique deviendra obligatoire pour les entreprises assujetties à la TVA.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Pourquoi activer maintenant ?</div>
-      <div class="card-sub">Activez Artio comme solution agréée pour recevoir, émettre et transmettre vos factures conformément à la réforme.</div>
-
-      <ul style="list-style:none;padding:0;margin:14px 0 0 0;display:flex;flex-direction:column;gap:10px;">
-        <li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;"><span style="color:#5fc97a;font-weight:700;flex-shrink:0;">✓</span> Émission automatique de vos factures au format Factur-X (PDF/A-3)</li>
-        <li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;"><span style="color:#5fc97a;font-weight:700;flex-shrink:0;">✓</span> Transmission directe à l'État via une plateforme partenaire agréée</li>
-        <li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;"><span style="color:#5fc97a;font-weight:700;flex-shrink:0;">✓</span> Réception centralisée des factures de vos fournisseurs</li>
-        <li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;"><span style="color:#5fc97a;font-weight:700;flex-shrink:0;">✓</span> Conformité légale garantie (format EN16931, PPF/Chorus Pro)</li>
-        <li style="display:flex;gap:10px;align-items:flex-start;font-size:14px;"><span style="color:#5fc97a;font-weight:700;flex-shrink:0;">✓</span> Aucun surcoût — inclus dans votre abonnement</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Informations légales</div>
-      <div class="card-sub">Vérifiez que votre SIRET est bien renseigné dans votre profil avant l'activation.</div>
-
-      ${hasSiret ? `
-        <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(120,200,120,.08);border:1px solid rgba(120,200,120,.25);border-radius:10px;margin-top:8px;">
-          <div style="font-size:18px;">✅</div>
+      ${isActive ? `
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(120,200,120,0.10);border:1px solid rgba(120,200,120,0.30);border-radius:12px;margin-top:6px;">
+          <div style="font-size:22px;">✅</div>
           <div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">SIRET vérifié</div>
-            <div style="font-size:12px;color:var(--muted);font-family:monospace;">${esc(profil.siret)}</div>
+            <div style="font-size:14px;font-weight:700;color:#5fc97a;">Facturation électronique active</div>
+            ${activatedDate ? `<div style="font-size:12px;color:var(--muted);margin-top:3px;">Activée le ${activatedDate}</div>` : ''}
           </div>
         </div>
+        <div class="card-sub" style="margin-top:14px;">Vos factures sont émises au format Factur-X (PDF/A-3) et transmises automatiquement aux plateformes d'État (PPF/Chorus Pro) via votre PDP partenaire.</div>
       ` : `
-        <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:10px;margin-top:8px;">
-          <div style="font-size:18px;">⚠️</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(245,167,66,0.10);border:1px solid rgba(245,167,66,0.30);border-radius:12px;margin-top:6px;">
+          <div style="font-size:22px;">⚡</div>
           <div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">SIRET manquant</div>
-            <div style="font-size:12px;color:var(--muted);">Veuillez renseigner votre SIRET dans l'onglet <strong>Mon entreprise</strong> avant d'activer la facturation électronique.</div>
+            <div style="font-size:14px;font-weight:700;color:var(--amber);">Non activée</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">À compter du <strong>1ᵉʳ septembre 2026</strong>, la facturation électronique devient obligatoire pour les entreprises assujetties à la TVA.</div>
           </div>
         </div>
       `}
     </div>
+  `;
 
+  // ── CARTE 2 : PLATEFORME PARTENAIRE ──
+  const card2 = `
     <div class="card">
-      <div class="card-title">Mandat de transmission</div>
-      <div class="card-sub">L'activation nécessite votre consentement explicite pour permettre à Artio de transmettre vos factures à l'État en votre nom.</div>
+      <div class="card-title-row">
+        <div class="card-title">Plateforme partenaire</div>
+      </div>
+      <div class="card-sub">Artio s'appuie sur <strong>FactPulse</strong>, Plateforme de Dématérialisation Partenaire (PDP) immatriculée par la <strong>DGFiP</strong>, pour la transmission de vos factures à l'État au format légal EN16931.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:#5fc97a;flex-shrink:0;">✓</span><span>Format Factur-X (PDF/A-3) conforme EN16931</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:#5fc97a;flex-shrink:0;">✓</span><span>Transmission directe à l'État (PPF / Chorus Pro)</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:#5fc97a;flex-shrink:0;">✓</span><span>Réception centralisée des factures de vos fournisseurs</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:#5fc97a;flex-shrink:0;">✓</span><span>Aucun surcoût — inclus dans votre abonnement</span></div>
+      </div>
+    </div>
+  `;
 
-      <label style="display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--surface-2);border-radius:10px;margin-top:8px;cursor:pointer;user-select:none;">
-        <input type="checkbox" id="mandat-checkbox" ${facturationElectroniqueMandatAccepte?"checked":""} style="margin-top:2px;flex-shrink:0;width:18px;height:18px;cursor:pointer;accent-color:var(--amber);" onchange="facturationElectroniqueMandatAccepte=this.checked;render()" />
+  // ── CARTE 3 : MANDAT DE TRANSMISSION ──
+  const card3 = `
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">Mandat de transmission</div>
+      </div>
+      <div class="card-sub">L'activation nécessite votre consentement explicite pour permettre à Artio de transmettre vos factures à l'État en votre nom.</div>
+      ${!hasSiret ? `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.22);border-radius:10px;margin-top:10px;">
+          <div style="font-size:18px;">⚠️</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">SIRET manquant</div>
+            <div style="font-size:12px;color:var(--muted);">Renseignez votre SIRET dans <strong>Mon entreprise</strong> avant d'activer.</div>
+          </div>
+        </div>
+      ` : `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(120,200,120,0.08);border:1px solid rgba(120,200,120,0.22);border-radius:10px;margin-top:10px;">
+          <div style="font-size:16px;">✅</div>
+          <div style="font-size:12px;">SIRET vérifié : <span style="font-family:monospace;color:var(--text);">${esc(profil.siret)}</span></div>
+        </div>
+      `}
+      <label style="display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--surface-2);border-radius:10px;margin-top:12px;cursor:pointer;user-select:none;">
+        <input type="checkbox" id="mandat-checkbox" ${facturationElectroniqueMandatAccepte?'checked':''} style="margin-top:2px;flex-shrink:0;width:18px;height:18px;cursor:pointer;accent-color:var(--amber);" onchange="facturationElectroniqueMandatAccepte=this.checked;paintFacturation()"/>
         <span style="font-size:13px;line-height:1.6;color:var(--text);">
-          J'autorise Artio à transmettre mes factures à l'État (Portail Public de Facturation / Chorus Pro) en mon nom, via la Plateforme de Dématérialisation Partenaire <strong>FactPulse</strong>, immatriculée par la DGFiP. Je reconnais que cette transmission est une obligation légale à compter du 1er septembre 2026 et que sa désactivation pourrait me placer en non-conformité.
+          J'autorise Artio à transmettre mes factures à l'État (Portail Public de Facturation / Chorus Pro) en mon nom, via la Plateforme de Dématérialisation Partenaire <strong>FactPulse</strong>, immatriculée par la DGFiP. Je reconnais que cette transmission est une obligation légale à compter du 1ᵉʳ septembre 2026.
         </span>
       </label>
     </div>
+  `;
 
-    <div style="display:flex;justify-content:center;padding:20px 0;">
-      <button
-        class="btn-primary"
-        ${(!hasSiret||!facturationElectroniqueMandatAccepte||syncing)?"disabled":""}
-        onclick="activerFacturationElectronique()"
-        style="padding:14px 36px;font-size:15px;font-weight:700;border-radius:12px;background:${(hasSiret&&facturationElectroniqueMandatAccepte&&!syncing)?"var(--amber)":"var(--surface-2)"};color:${(hasSiret&&facturationElectroniqueMandatAccepte&&!syncing)?"#080b14":"var(--muted)"};border:none;cursor:${(hasSiret&&facturationElectroniqueMandatAccepte&&!syncing)?"pointer":"not-allowed"};">
-        ${syncing?"⏳ Activation en cours...":"⚡ Activer la facturation électronique"}
-      </button>
+  // ── CARTE 4 : ACTIVATION ──
+  const canActivate = hasSiret && facturationElectroniqueMandatAccepte && !syncing;
+  const card4 = `
+    <div class="card" style="${isActive ? 'border-color:rgba(245,167,66,0.22);' : ''}">
+      <div class="card-title-row">
+        <div class="card-title">${isActive ? `Gestion de l’activation` : 'Activation'}</div>
+      </div>
+      ${isActive ? `
+        <div class="card-sub">Vous pouvez à tout moment vérifier votre conformité ou demander des précisions à notre support. La désactivation n'est pas recommandée.</div>
+        <div style="background:rgba(255,160,40,.08);border:1px solid rgba(255,160,40,.25);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.55;margin-top:12px;">
+          ⚠️ Désactiver la facturation électronique vous placerait en non-conformité à compter du 1ᵉʳ septembre 2026.
+        </div>
+      ` : `
+        <div class="card-sub">Cliquez ci-dessous pour activer la facturation électronique. L'activation est immédiate et réversible.</div>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+          <button class="btn btn-primary" ${!canActivate?'disabled':''} onclick="activerFacturationElectronique()">
+            ${syncing ? '⏳ Activation en cours…' : '⚡ Activer la facturation électronique'}
+          </button>
+        </div>
+      `}
     </div>
   `;
+
+  return card1 + card2 + card3 + card4;
+}
+
+function paintFacturation() {
+  const el = document.getElementById('facturation-content');
+  if (el) el.innerHTML = renderFacturationHTML();
 }
 
 async function activerFacturationElectronique() {
   if (!user) return;
-  if (!profil.siret || profil.siret.replace(/\s/g,"").length < 9) {
-    toast("⚠️ SIRET manquant — renseignez-le dans l'onglet Mon entreprise.");
+  if (!profil.siret || profil.siret.replace(/\s/g,'').length < 9) {
+    toast('⚠️ SIRET manquant — renseignez-le dans Mon entreprise.');
     return;
   }
   if (!facturationElectroniqueMandatAccepte) {
-    toast("⚠️ Vous devez accepter le mandat de transmission.");
+    toast('⚠️ Vous devez accepter le mandat de transmission.');
     return;
   }
-  syncing = true;
-  render();
+  syncing = true; paintFacturation();
   const activatedAt = new Date().toISOString();
-  const { error } = await sb.from("profils").update({
+  const { error } = await sb.from('profils').update({
     facturation_electronique_active: true,
     facturation_electronique_activated_at: activatedAt,
     facturation_electronique_mandat_accepte: true
-  }).eq("user_id", user.id);
+  }).eq('user_id', user.id);
   syncing = false;
-  if (error) {
-    toast("❌ Erreur lors de l'activation : " + error.message);
-    render();
-    return;
-  }
+  if (error) { toast('❌ Erreur activation : ' + error.message); paintFacturation(); return; }
   facturationElectroniqueActive = true;
   facturationElectroniqueActivatedAt = activatedAt;
-  toast("✅ Facturation électronique activée — vos prochaines factures seront émises automatiquement.");
-  render();
+  toast('✅ Facturation électronique activée — vos prochaines factures seront transmises automatiquement.');
+  renderHero();
+  paintFacturation();
 }
 
-/* ── ABONNEMENT TAB ── */
-function renderAbonnement() {
-  const isPro       = subscriptionStatus === "pro";
-  const isSolo      = subscriptionStatus === "solo";
-  const isRestricted= subscriptionStatus === "restricted";
-  const isFree      = !isPro && !isSolo && !isRestricted;
-  const isAnnual    = billingPeriod === "annual";
+
+/* ═══════════════════════════════════════════════════
+   SECTION 5 — ABONNEMENT (Stripe complet)
+   ═══════════════════════════════════════════════════ */
+let checkoutLoading = false;
+let cancelLoading = false;
+
+const PAYMENT_LINKS = {
+  solo: {
+    monthly: 'https://buy.stripe.com/fZu00j9whc0Xckb9vN7N601',
+    annual:  'https://buy.stripe.com/3cI3cvdMxfd96ZR0Zh7N605'
+  },
+  pro: {
+    monthly: 'https://buy.stripe.com/14A3cv37Td5197Z37p7N603',
+    annual:  'https://buy.stripe.com/7sYfZhgYJghdbg7gYf7N600'
+  }
+};
+
+function renderAbonnementHTML() {
+  const isPro        = subscriptionStatus === 'pro' || subscriptionStatus === 'active';
+  const isSolo       = subscriptionStatus === 'solo';
+  const isRestricted = subscriptionStatus === 'restricted';
+  const isFree       = !isPro && !isSolo && !isRestricted;
+  const isAnnual     = billingPeriod === 'annual';
+
   const endDateRaw = subscriptionEndDate ? new Date(subscriptionEndDate) : null;
   const endDateFallback = (() => { const d = new Date(); d.setMonth(d.getMonth() + 1, 0); return d; })();
-  const endDate = (endDateRaw || endDateFallback).toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
+  const endDate = (endDateRaw || endDateFallback).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+
   const features_solo = [
-    "Génération devis & factures par la voix",
-    "IA illimitée — aucun quota",
-    "Facturation électronique (DGFIP 2026)",
-    "Agenda & annuaire clients",
-    "Dashboard financier complet",
-    "Multilingue FR / EN / ES / ZH"
+    'Génération devis & factures par la voix',
+    'IA illimitée — aucun quota',
+    'Facturation électronique (DGFIP 2026)',
+    'Agenda & annuaire clients',
+    'Dashboard financier complet'
   ];
   const features_pro = [
-    "Tout Solo, plus :",
-    "Signature électronique",
-    "Connexion Gmail directe",
-    "Agenda synchronisé Google Calendar",
-    "Branding PDF personnalisé (logo & couleurs)",
-    "Relances & rappels de paiement par IA",
-    "Templates de devis sauvegardés"
+    'Tout Solo, plus :',
+    'Signature électronique',
+    'Connexion Gmail directe',
+    'Agenda synchronisé Google Calendar',
+    'Branding PDF personnalisé (logo & couleurs)',
+    'Relances & rappels de paiement par IA'
   ];
 
-  return `
-    ${isRestricted ? `<div class="alert-box warning">
-      <div class="alert-icon">⚠️</div>
-      <div><div class="alert-title">Accès restreint — paiement en attente</div>
-      <div class="alert-sub">${endDate ? `Merci de régulariser avant le ${endDate} pour éviter la suspension.` : "Merci de régulariser votre paiement."}</div></div>
-    </div>` : ""}
-    ${isFree ? `<div class="alert-box" style="background:rgba(62,207,207,.08);border:1px solid rgba(62,207,207,.2);border-radius:12px;padding:14px 16px;margin-bottom:4px;display:flex;gap:12px;align-items:flex-start;">
-      <div style="font-size:18px">👋</div>
-      <div><div style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:3px;">Aucun abonnement actif</div>
-      <div style="font-size:12px;color:var(--muted);">Choisissez un plan pour accéder à toutes les fonctionnalités d'Artio.</div></div>
-    </div>` : ""}
-
-    ${!isPro ? `<div class="billing-toggle">
-      <button class="billing-btn ${!isAnnual?"on":""}" onclick="billingPeriod='monthly';render()">Mensuel</button>
-      <button class="billing-btn ${isAnnual?"on":""}" onclick="billingPeriod='annual';render()">
-        Annuel &nbsp;<span class="discount-badge">2 mois offerts</span>
-      </button>
-    </div>` : ""}
-
-    <div class="plans-grid">
-      <!-- SOLO -->
-      <div class="plan-card ${isSolo?"current":""}">
-        ${isSolo ? `<div class="plan-badge">PLAN ACTUEL</div>` : ""}
-        <div>
-          <div class="plan-name">Solo</div>
-          ${isAnnual ? `
-            <div class="plan-price">190 €<span> / an</span></div>
-            <div class="plan-price-note">✓ 2 mois offerts — 15,83 €/mois</div>
-          ` : `<div class="plan-price">19 €<span> / mois</span></div>`}
-        </div>
-        <ul class="plan-features">${features_solo.map(f=>`<li><span class="ck">✓</span><span>${f}</span></li>`).join("")}</ul>
-        ${isSolo
-          ? (cancellationRequested ? `
-            <div class="alert-box warning" style="margin:0">
-              <div><div class="alert-title">Résiliation en cours</div>
-              <div class="alert-sub">Votre accès Solo reste actif jusqu'au ${endDate}.</div></div>
-            </div>
-            <button class="btn-primary" onclick="reactivateSubscription()" ${checkoutLoading?"disabled":""} style="margin-top:8px;width:100%;">
-              ${checkoutLoading?"En cours…":"↩ Réactiver mon abonnement"}
-            </button>` : `
-            <button class="btn-danger" onclick="requestCancellation()" ${cancelLoading?"disabled":""}>${cancelLoading?"Envoi…":"Demander l'annulation"}</button>
-          `)
-          : isPro
-            ? `<div style="padding:10px;border-radius:9px;background:var(--surface-2);text-align:center;font-size:12px;color:var(--muted)">Disponible après expiration du Pro</div>`
-            : `<button class="btn-ghost" onclick="startCheckout('solo')" ${checkoutLoading?"disabled":""}>${checkoutLoading?"Redirection…":`S'abonner en Solo ${isAnnual?"(annuel)":"(mensuel)"}`}</button>`
-        }
-      </div>
-
-      <!-- PRO -->
-      <div class="plan-card pro-card ${isPro?"current":""}">
-        ${isPro ? `<div class="plan-badge pro">PLAN ACTUEL</div>` : ""}
-        <div>
-          <div class="plan-name">Pro ⚡</div>
-          ${isAnnual ? `
-            <div class="plan-price">390 €<span> / an</span></div>
-            <div class="plan-price-note">✓ 2 mois offerts — 32,50 €/mois</div>
-          ` : `<div class="plan-price">39 €<span> / mois</span></div>`}
-        </div>
-        <ul class="plan-features">${features_pro.map(f=>`<li><span class="ck">✓</span><span>${f}</span></li>`).join("")}</ul>
-        ${isPro ? (cancellationRequested ? `
-          <div class="alert-box warning" style="margin:0">
-            <div><div class="alert-title">Résiliation en cours</div>
-            <div class="alert-sub">Votre accès Pro reste actif jusqu'au ${endDate}.</div></div>
-          </div>
-          <button class="btn-primary" onclick="reactivateSubscription()" ${checkoutLoading?"disabled":""} style="margin-top:8px;width:100%;">
-            ${checkoutLoading?"Redirection…":"⚡ Réactiver mon abonnement"}
-          </button>` : `
-          <button class="btn-danger" onclick="requestCancellation()" ${cancelLoading?"disabled":""}>${cancelLoading?"Envoi…":"Demander l'annulation"}</button>
-        `) : `
-          <button class="btn-primary" onclick="startCheckout('pro')" ${checkoutLoading?"disabled":""}>${checkoutLoading?"Redirection…":`${isSolo?"Passer au Pro":"S'abonner en Pro"} ${isAnnual?"(annuel)":"(mensuel)"}`}</button>
-        `}
+  // ── Bandeaux d'état ──
+  const banner = isRestricted ? `
+    <div style="background:rgba(245,167,66,0.10);border:1px solid rgba(245,167,66,0.30);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;">
+      <div style="font-size:20px;">⚠️</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--amber);">Accès restreint — paiement en attente</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">${endDate ? `Régularisez avant le ${endDate} pour éviter la suspension.` : 'Merci de régulariser votre paiement.'}</div>
       </div>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted)">Paiement sécurisé par Stripe · Sans engagement · Annulation à tout moment</p>
+  ` : isFree ? `
+    <div style="background:rgba(62,207,207,0.08);border:1px solid rgba(62,207,207,0.22);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;">
+      <div style="font-size:20px;">👋</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#3ECFCF;">Aucun abonnement actif</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Choisissez un plan pour accéder à toutes les fonctionnalités d'Artio.</div>
+      </div>
+    </div>
+  ` : '';
 
-    ${factures.length > 0 ? `
-    <div class="section-sep">Mes factures</div>
+  // ── Toggle mensuel/annuel (caché si déjà Pro) ──
+  const toggle = !isPro ? `
+    <div style="display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;margin-bottom:18px;">
+      <button class="billing-btn ${!isAnnual?'on':''}" onclick="billingPeriod='monthly';paintAbonnement()" style="padding:8px 16px;border-radius:7px;border:0;background:${!isAnnual?'var(--surface)':'transparent'};color:${!isAnnual?'var(--text)':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;">Mensuel</button>
+      <button class="billing-btn ${isAnnual?'on':''}" onclick="billingPeriod='annual';paintAbonnement()" style="padding:8px 16px;border-radius:7px;border:0;background:${isAnnual?'var(--surface)':'transparent'};color:${isAnnual?'var(--text)':'var(--muted)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+        Annuel <span style="background:rgba(120,200,120,0.18);color:#5fc97a;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">2 mois offerts</span>
+      </button>
+    </div>
+  ` : '';
+
+  // ── Cartes Solo & Pro ──
+  const soloCard = `
+    <div class="card" style="${isSolo ? 'border-color:rgba(167,139,250,0.35);' : ''}position:relative;">
+      ${isSolo ? `<div style="position:absolute;top:-10px;left:16px;background:#a78bfa;color:#fff;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.05em;">PLAN ACTUEL</div>` : ''}
+      <div class="card-title-row"><div class="card-title">Solo</div></div>
+      ${isAnnual ? `
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">190 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
+        <div style="font-size:12px;color:#5fc97a;margin-bottom:14px;">✓ 2 mois offerts — 15,83 €/mois</div>
+      ` : `
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 14px;">19 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+      `}
+      <ul style="list-style:none;padding:0;margin:0 0 16px 0;display:flex;flex-direction:column;gap:8px;">
+        ${features_solo.map(f=>`<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;"><span style="color:#5fc97a;flex-shrink:0;font-weight:700;">✓</span><span>${f}</span></li>`).join('')}
+      </ul>
+      ${isSolo
+        ? (cancellationRequested ? `
+            <div style="background:rgba(245,167,66,0.08);border:1px solid rgba(245,167,66,0.22);border-radius:10px;padding:12px;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px;">Résiliation en cours</div>
+              <div style="font-size:11px;color:var(--muted);">Votre accès Solo reste actif jusqu'au ${endDate}.</div>
+            </div>
+            <button class="btn btn-primary" onclick="reactivateSubscription()" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'En cours…':'↩ Réactiver mon abonnement'}</button>
+          ` : `
+            <button class="btn btn-danger" onclick="requestCancellation()" ${cancelLoading?'disabled':''} style="width:100%;">${cancelLoading?'Envoi…':`Demander l’annulation`}</button>
+          `)
+        : isPro
+          ? `<div style="padding:10px;border-radius:9px;background:var(--surface-2);text-align:center;font-size:12px;color:var(--muted);">Disponible après expiration du Pro</div>`
+          : `<button class="btn btn-secondary" onclick="startCheckout('solo')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`S'abonner en Solo (${isAnnual?'annuel':'mensuel'})`}</button>`
+      }
+    </div>
+  `;
+
+  const proCard = `
+    <div class="card" style="${isPro ? 'border-color:rgba(167,139,250,0.35);' : 'border-color:rgba(167,139,250,0.22);'}position:relative;">
+      ${isPro ? `<div style="position:absolute;top:-10px;left:16px;background:#a78bfa;color:#fff;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.05em;">PLAN ACTUEL</div>` : ''}
+      <div class="card-title-row"><div class="card-title">Pro ⚡</div></div>
+      ${isAnnual ? `
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">390 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
+        <div style="font-size:12px;color:#5fc97a;margin-bottom:14px;">✓ 2 mois offerts — 32,50 €/mois</div>
+      ` : `
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 14px;">39 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+      `}
+      <ul style="list-style:none;padding:0;margin:0 0 16px 0;display:flex;flex-direction:column;gap:8px;">
+        ${features_pro.map(f=>`<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;"><span style="color:#5fc97a;flex-shrink:0;font-weight:700;">✓</span><span>${f}</span></li>`).join('')}
+      </ul>
+      ${isPro
+        ? (cancellationRequested ? `
+            <div style="background:rgba(245,167,66,0.08);border:1px solid rgba(245,167,66,0.22);border-radius:10px;padding:12px;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px;">Résiliation en cours</div>
+              <div style="font-size:11px;color:var(--muted);">Votre accès Pro reste actif jusqu'au ${endDate}.</div>
+            </div>
+            <button class="btn btn-primary" onclick="reactivateSubscription()" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':'⚡ Réactiver mon abonnement'}</button>
+          ` : `
+            <button class="btn btn-danger" onclick="requestCancellation()" ${cancelLoading?'disabled':''} style="width:100%;">${cancelLoading?'Envoi…':`Demander l’annulation`}</button>
+          `)
+        : `<button class="btn btn-primary" onclick="startCheckout('pro')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`${isSolo?'Passer au Pro':'S’abonner en Pro'} (${isAnnual?'annuel':'mensuel'})`}</button>`
+      }
+    </div>
+  `;
+
+  // ── Plan actuel (carte récap) ──
+  const planActuel = `
     <div class="card">
-      <table class="inv-table">
-        <thead><tr>
-          <th>N°</th><th>Date</th><th>Plan</th><th>Montant</th><th>PDF</th>
-        </tr></thead>
-        <tbody>${factures.map((f,i) => `<tr>
-          <td class="inv-num">${esc(f.numero_facture)}</td>
-          <td style="color:var(--muted)">${new Date(f.date_emission).toLocaleDateString("fr-FR")}</td>
-          <td style="color:var(--muted)">${f.type_abonnement==="solo"?"Solo":"Pro"} — ${f.frequence==="annuel"?"Annuel":"Mensuel"}</td>
-          <td class="inv-amount">${Number(f.montant).toFixed(2).replace(".",",")} €</td>
-          <td style="text-align:center"><button class="btn-dl" onclick="downloadFacture(${i})">⬇ PDF</button></td>
-        </tr>`).join("")}</tbody>
-      </table>
-    </div>` : ""}`;
+      <div class="card-title-row"><div class="card-title">Plan actuel</div></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:4px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:${isPro?'rgba(167,139,250,0.15)':isSolo?'rgba(167,139,250,0.10)':'var(--surface-2)'};display:flex;align-items:center;justify-content:center;font-size:22px;">${isPro?'⚡':isSolo?'◆':'○'}</div>
+        <div style="flex:1;">
+          <div style="font-family:var(--fh,'Space Grotesk');font-size:18px;font-weight:700;">${isPro?'Plan Pro':isSolo?'Plan Solo':isRestricted?'Accès restreint':'Plan gratuit'}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+            ${isFree ? 'Aucun abonnement actif' :
+              cancellationRequested ? `Résiliation en cours — fin d'accès le ${endDate}` :
+              endDateRaw ? `Prochain prélèvement le ${endDate}` : 'Abonnement actif'}
+          </div>
+        </div>
+        ${isFounder ? `<span style="background:rgba(245,167,66,0.12);border:1px solid rgba(245,167,66,0.30);color:var(--amber);padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.05em;">FONDATEUR</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  // ── Tableau factures ──
+  const facturesTable = factures.length > 0 ? `
+    <div class="card">
+      <div class="card-title-row"><div class="card-title">Historique des factures</div></div>
+      <div class="card-sub">Vos factures Stripe sont conservées et téléchargeables à tout moment.</div>
+      <div style="overflow-x:auto;margin-top:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;">N°</th>
+              <th style="text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;">Date</th>
+              <th style="text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;">Plan</th>
+              <th style="text-align:right;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;">Montant</th>
+              <th style="text-align:center;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;">PDF</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${factures.map((f,i)=>`
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 8px;font-family:monospace;font-size:12px;">${esc(f.numero_facture)}</td>
+                <td style="padding:10px 8px;color:var(--muted);">${new Date(f.date_emission).toLocaleDateString('fr-FR')}</td>
+                <td style="padding:10px 8px;color:var(--muted);">${f.type_abonnement==='solo'?'Solo':'Pro'} — ${f.frequence==='annuel'?'Annuel':'Mensuel'}</td>
+                <td style="padding:10px 8px;text-align:right;font-weight:600;">${Number(f.montant).toFixed(2).replace('.',',')} €</td>
+                <td style="padding:10px 8px;text-align:center;"><button onclick="downloadFacture(${i})" style="background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text);">⬇ PDF</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    ${banner}
+    ${planActuel}
+    <div class="card">
+      <div class="card-title-row"><div class="card-title">Comparer les plans</div></div>
+      <div class="card-sub">Choisissez la formule qui correspond à votre activité. Sans engagement, annulation à tout moment.</div>
+      ${toggle}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:10px;">
+        ${soloCard}
+        ${proCard}
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:14px;">Paiement sécurisé par Stripe · Sans engagement · Annulation à tout moment</p>
+    </div>
+    ${facturesTable}
+  `;
 }
 
-async function reactivateSubscription(){
-  const _planName = subscriptionStatus === "solo" ? "Solo" : "Pro";
-  if(!confirm(`Réactiver votre abonnement ${_planName} ? Votre abonnement reprendra normalement sans nouvelle saisie de paiement.`))return;
-  checkoutLoading=true;render();
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session){checkoutLoading=false;render();return;}
-    const res=await fetch('https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1/reactivate-subscription',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({})
-    });
-    const data=await res.json();
-    if(!res.ok){alert("Erreur : "+(data.error||'inconnu'));checkoutLoading=false;render();return;}
-    cancellationRequested=false;
-    toast(`✅ Abonnement ${_planName} réactivé ! Votre accès continue normalement.`);
-  }catch(e){alert("Erreur : "+e.message);}
-  checkoutLoading=false;render();
+function paintAbonnement() {
+  const el = document.getElementById('abonnement-content');
+  if (el) el.innerHTML = renderAbonnementHTML();
 }
 
-async function startCheckout(plan = 'pro') {
-  // Payment Links Stripe — aucune Edge Function nécessaire
-  const PAYMENT_LINKS = {
-    solo: {
-      monthly: 'https://buy.stripe.com/fZu00j9whc0Xckb9vN7N601',
-      annual:  'https://buy.stripe.com/3cI3cvdMxfd96ZR0Zh7N605'
-    },
-    pro: {
-      monthly: 'https://buy.stripe.com/14A3cv37Td5197Z37p7N603',
-      annual:  'https://buy.stripe.com/7sYfZhgYJghdbg7gYf7N600'
-    }
-  };
-
-  checkoutLoading = true; render();
+async function startCheckout(plan) {
+  checkoutLoading = true; paintAbonnement();
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { alert("Session expirée, veuillez vous reconnecter."); checkoutLoading = false; render(); return; }
-
+    if (!session) { toast('Session expirée, veuillez vous reconnecter.'); checkoutLoading = false; paintAbonnement(); return; }
     const billing = billingPeriod === 'annual' ? 'annual' : 'monthly';
     const baseUrl = PAYMENT_LINKS[plan][billing];
-
-    // Passe l'ID utilisateur pour que le webhook puisse l'identifier
     const url = baseUrl + '?client_reference_id=' + session.user.id
               + '&prefilled_email=' + encodeURIComponent(session.user.email || '');
-
     window.location.href = url;
   } catch(e) {
-    alert("Erreur : " + e.message);
+    toast('Erreur : ' + e.message);
+    checkoutLoading = false; paintAbonnement();
   }
-  checkoutLoading = false; render();
 }
 
 async function requestCancellation() {
-  const planName = subscriptionStatus === "solo" ? "Solo" : "Pro";
+  const planName = subscriptionStatus === 'solo' ? 'Solo' : 'Pro';
   const _endRaw = subscriptionEndDate ? new Date(subscriptionEndDate) : (() => { const d = new Date(); d.setMonth(d.getMonth()+1,0); return d; })();
-  const _endStr = _endRaw.toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
+  const _endStr = _endRaw.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
   if (!confirm(`Confirmer la résiliation du plan ${planName} ?\n\nVotre accès reste actif jusqu'au ${_endStr}, puis sera automatiquement désactivé.`)) return;
-  cancelLoading = true; render();
+  cancelLoading = true; paintAbonnement();
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { cancelLoading = false; render(); return; }
-    const res = await fetch(FUNCTIONS_URL + "/request-cancellation", { method:"POST", headers:{"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json"}, body: JSON.stringify({}) });
+    if (!session) { cancelLoading = false; paintAbonnement(); return; }
+    const res = await fetch(FUNCTIONS_URL + '/request-cancellation', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
     const data = await res.json();
     if (data?.success) {
       cancellationRequested = true;
-      await sb.from("profils").update({cancellation_requested:true}).eq("user_id", session.user.id);
-      toast("✓ Résiliation enregistrée. Votre accès reste actif jusqu'à la fin de la période.");
-    } else { alert("Erreur : " + (data?.error||"inconnu")); }
-  } catch(e) { alert("Erreur : " + e.message); }
-  cancelLoading = false; render();
-}
-
-/* ── SAVE PROFIL ── */
-function uploadLogo(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 300 * 1024) { toast("⚠ Logo trop lourd (max 300 Ko)."); return; }
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    logoBase64 = e.target.result;
-    profil.logo_base64 = logoBase64;
-    const { error } = await sb.from("profils").update({ logo_base64: logoBase64 }).eq("user_id", user.id);
-    if (error) { toast("Erreur upload logo : " + error.message); return; }
-    toast("✅ Logo enregistré !");
-    render();
-  };
-  reader.readAsDataURL(file);
-}
-
-async function removeLogo() {
-  logoBase64 = null;
-  profil.logo_base64 = null;
-  const { error } = await sb.from("profils").update({ logo_base64: null }).eq("user_id", user.id);
-  if (error) { toast("Erreur : " + error.message); return; }
-  toast("Logo supprimé");
-  render();
-}
-
-/* ── SIRET LOOKUP (data.gouv.fr) ── */
-let _siretTimer = null;
-let _lastSiretLookup = "";
-
-async function lookupSiretProfil(rawValue) {
-  const status = document.getElementById("siret-status");
-  if (!status) return;
-  const clean = String(rawValue||"").replace(/\D/g, "");
-  if (clean.length < 14) {
-    status.textContent = clean.length > 0 ? `${clean.length}/14 chiffres` : "";
-    status.style.color = "var(--muted)";
-    return;
-  }
-  if (clean.length > 14) return;
-  if (clean === _lastSiretLookup) return;
-  _lastSiretLookup = clean;
-
-  clearTimeout(_siretTimer);
-  _siretTimer = setTimeout(async () => {
-    status.textContent = "⏳ Recherche SIRENE…";
-    status.style.color = "var(--muted)";
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      const r = await fetch(SB_URL + "/functions/v1/siret-lookup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
-        body: JSON.stringify({ siret: clean }),
-      });
-      const data = await r.json();
-      if (!r.ok) {
-        status.textContent = "✗ " + (data.error || "Erreur");
-        status.style.color = "#dc2626";
-        return;
-      }
-      const fill = (key, value, force = false) => {
-        const el = document.querySelector(`[data-k="${key}"]`);
-        if (!el) return;
-        if (!force && el.value && el.value.trim() !== "") return;
-        el.value = value || "";
-        profil[key] = el.value;
-      };
-      fill("nom", data.nom_entreprise);
-      fill("adresse", data.adresse_complete);
-      fill("forme_juridique", data.forme_juridique, true);
-      fill("code_naf", data.code_naf, true);
-      fill("libelle_code_naf", data.libelle_code_naf, true);
-      fill("tva_intracom", data.tva_intracom, true);
-      fill("date_creation_entreprise", data.date_creation_entreprise, true);
-
-      if (data.entreprise_cessee) {
-        status.textContent = "⚠️ Entreprise cessée";
-        status.style.color = "#d97706";
-      } else {
-        status.textContent = data.cached ? "✓ Vérifié (cache)" : "✓ Vérifié SIRENE";
-        status.style.color = "#16a34a";
-      }
-    } catch (e) {
-      status.textContent = "✗ Erreur réseau";
-      status.style.color = "#dc2626";
+      await sb.from('profils').update({ cancellation_requested: true }).eq('user_id', session.user.id);
+      toast('✓ Résiliation enregistrée. Votre accès reste actif jusqu’à la fin de la période.');
+    } else {
+      toast('Erreur : ' + (data?.error || 'inconnu'));
     }
-  }, 350);
+  } catch(e) { toast('Erreur : ' + e.message); }
+  cancelLoading = false; paintAbonnement();
 }
 
-async function saveProfil() {
-  document.querySelectorAll(".pi").forEach(el => {
-    if (el.type === "checkbox") profil[el.dataset.k] = el.checked;
-    else profil[el.dataset.k] = el.value;
-  });
-  if (!profil.nom || !profil.siret || !profil.taux_horaire) { toast("⚠ Nom, SIRET et taux horaire obligatoires."); return; }
-  syncing = true; render();
-  const { error } = await sb.from("profils").upsert({ user_id: user.id, ...profil, assujetti_tva: profil.assujetti_tva||false, tva_frequence: profil.tva_frequence||"trimestrielle", tva_regime: profil.tva_regime||"encaissements", contexte_ia: profil.contexte_ia||"", couleur_pdf: profil.couleur_pdf || "#378ADD", updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-  syncing = false;
-  if (error) { toast("Erreur : " + error.message); render(); return; }
-  toast("✓ Enregistré !");
-  render();
+async function reactivateSubscription() {
+  const _planName = subscriptionStatus === 'solo' ? 'Solo' : 'Pro';
+  if (!confirm(`Réactiver votre abonnement ${_planName} ? Votre abonnement reprendra normalement sans nouvelle saisie de paiement.`)) return;
+  checkoutLoading = true; paintAbonnement();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { checkoutLoading = false; paintAbonnement(); return; }
+    const res = await fetch(FUNCTIONS_URL + '/reactivate-subscription', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (!res.ok) { toast('Erreur : ' + (data.error || 'inconnu')); checkoutLoading = false; paintAbonnement(); return; }
+    cancellationRequested = false;
+    await sb.from('profils').update({ cancellation_requested: false }).eq('user_id', session.user.id);
+    toast(`✅ Abonnement ${_planName} réactivé ! Votre accès continue normalement.`);
+  } catch(e) { toast('Erreur : ' + e.message); }
+  checkoutLoading = false; paintAbonnement();
 }
 
-/* ── DOWNLOAD FACTURE ── */
 function downloadFacture(index) {
   const f = factures[index];
   if (!f) return;
+  if (!window.jspdf) { toast('Erreur : jsPDF non chargé'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const montant = Number(f.montant).toFixed(2).replace(".", ",");
-  const dateEmission = new Date(f.date_emission).toLocaleDateString("fr-FR");
-  const dateDebut = new Date(f.periode_debut).toLocaleDateString("fr-FR");
-  const dateFin = new Date(f.periode_fin).toLocaleDateString("fr-FR");
-  const frequence = f.frequence === "annuel" ? "Annuel" : "Mensuel";
-  doc.setFillColor(8,11,20); doc.rect(0,0,210,42,"F");
-  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont("helvetica","bold"); doc.text("Artio",14,20);
-  doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor(148,163,184); doc.text("monartio.fr",14,30);
-  doc.setTextColor(245,167,66); doc.setFontSize(14); doc.setFont("helvetica","bold"); doc.text("FACTURE",196,20,{align:"right"});
-  doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor(148,163,184); doc.text(f.numero_facture,196,30,{align:"right"});
+  const montant = Number(f.montant).toFixed(2).replace('.', ',');
+  const dateEmission = new Date(f.date_emission).toLocaleDateString('fr-FR');
+  const dateDebut = new Date(f.periode_debut).toLocaleDateString('fr-FR');
+  const dateFin = new Date(f.periode_fin).toLocaleDateString('fr-FR');
+  const frequence = f.frequence === 'annuel' ? 'Annuel' : 'Mensuel';
+  doc.setFillColor(8,11,20); doc.rect(0,0,210,42,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Artio',14,20);
+  doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184); doc.text('monartio.fr',14,30);
+  doc.setTextColor(245,167,66); doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text('FACTURE',196,20,{align:'right'});
+  doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184); doc.text(f.numero_facture,196,30,{align:'right'});
   let y = 58;
-  doc.setFontSize(10); doc.setFont("helvetica","bold"); doc.setTextColor(100,100,100);
-  doc.text("DATE D'ÉMISSION",14,y); doc.text("PÉRIODE",105,y);
-  doc.setFont("helvetica","normal"); doc.setTextColor(30,30,30); doc.setFontSize(11);
+  doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(100,100,100);
+  doc.text("DATE D'ÉMISSION",14,y); doc.text('PÉRIODE',105,y);
+  doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30); doc.setFontSize(11);
   doc.text(dateEmission,14,y+7); doc.text(`${dateDebut} au ${dateFin}`,105,y+7);
   y += 22; doc.setDrawColor(220,220,220); doc.line(14,y,196,y);
-  y += 14; doc.setFillColor(248,250,252); doc.roundedRect(14,y-6,182,36,3,3,"F");
-  doc.setFontSize(10); doc.setFont("helvetica","bold"); doc.setTextColor(100,100,100);
-  doc.text("DESCRIPTION",20,y+2); doc.text("MONTANT",190,y+2,{align:"right"});
-  doc.setFont("helvetica","normal"); doc.setTextColor(30,30,30); doc.setFontSize(11);
-  const planLabel = (f.type_abonnement === "solo") ? "Solo" : "Pro";
+  y += 14; doc.setFillColor(248,250,252); doc.roundedRect(14,y-6,182,36,3,3,'F');
+  doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(100,100,100);
+  doc.text('DESCRIPTION',20,y+2); doc.text('MONTANT',190,y+2,{align:'right'});
+  doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30); doc.setFontSize(11);
+  const planLabel = (f.type_abonnement === 'solo') ? 'Solo' : 'Pro';
   doc.text(`Abonnement Artio ${planLabel} — ${frequence}`,20,y+12);
-  doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.text(`${montant} €`,190,y+12,{align:"right"});
-  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(130,130,130);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.text(`${montant} €`,190,y+12,{align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(130,130,130);
   doc.text(`Période : ${dateDebut} au ${dateFin}`,20,y+20);
   y += 50; doc.setDrawColor(245,167,66); doc.setLineWidth(0.5); doc.line(105,y,196,y);
-  doc.setTextColor(30,30,30); doc.setFontSize(11); doc.setFont("helvetica","bold");
-  doc.text("TOTAL PAYÉ",105,y+10);
-  doc.setFontSize(16); doc.setTextColor(245,167,66); doc.text(`${montant} €`,190,y+10,{align:"right"});
-  doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(130,130,130);
-  doc.text("TVA non applicable, art. 293 B du CGI",105,y+18);
+  doc.setTextColor(30,30,30); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('TOTAL PAYÉ',105,y+10);
+  doc.setFontSize(16); doc.setTextColor(245,167,66); doc.text(`${montant} €`,190,y+10,{align:'right'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(130,130,130);
+  doc.text('TVA non applicable, art. 293 B du CGI',105,y+18);
   if (profil.nom) {
     y += 36;
-    doc.setTextColor(100,100,100); doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.text("FACTURÉ À",14,y);
-    doc.setFont("helvetica","normal"); doc.setTextColor(30,30,30); doc.setFontSize(10);
+    doc.setTextColor(100,100,100); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.text('FACTURÉ À',14,y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30); doc.setFontSize(10);
     let cy = y + 7;
     doc.text(profil.nom, 14, cy); cy += 7;
     if (profil.email) { doc.text(profil.email, 14, cy); cy += 7; }
     if (profil.siret) { doc.text(`SIRET : ${profil.siret}`, 14, cy); cy += 7; }
     if (profil.adresse) { doc.text(profil.adresse, 14, cy); }
   }
-  doc.setFillColor(248,250,252); doc.rect(0,278,210,20,"F");
-  doc.setTextColor(150,150,150); doc.setFontSize(8); doc.setFont("helvetica","normal");
-  doc.text("Artio — monartio.fr · Paiement traité par Stripe",105,287,{align:"center"});
+  doc.setFillColor(248,250,252); doc.rect(0,278,210,20,'F');
+  doc.setTextColor(150,150,150); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Artio — monartio.fr · Paiement traité par Stripe',105,287,{align:'center'});
   doc.save(`${f.numero_facture}.pdf`);
 }
 
-/* ── GMAIL OAUTH CALLBACK ── */
-// Le code est lu directement dans l'init depuis ?code=
 
-/* ── LOGOUT ── */
-(function(){var b=document.getElementById("btn-logout");if(b)b.addEventListener("click",async()=>{await sb.auth.signOut();location.href="index.html";});})();
 
-/* ── INIT ── */
-(async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { location.href = "index.html"; return; }
-  user = session.user;
-  const { data: p } = await sb.from("profils").select("*").eq("user_id", user.id).single();
-  if (p) {
-    profil = { nom:p.nom||"", adresse:p.adresse||"", tel:p.tel||"", email:p.email||"", siret:p.siret||"", taux_horaire:p.taux_horaire||"", assujetti_tva:p.assujetti_tva||false, tva_frequence:p.tva_frequence||"trimestrielle", tva_regime:p.tva_regime||"encaissements", secteur:p.secteur||"", conditions_paiement:p.conditions_paiement||"", delai_paiement:p.delai_paiement||"30", validite_devis:p.validite_devis||3, iban:p.iban||"", contexte_ia:p.contexte_ia||"", couleur_pdf:p.couleur_pdf||"#378ADD", forme_juridique:p.forme_juridique||"", code_naf:p.code_naf||"", libelle_code_naf:p.libelle_code_naf||"", tva_intracom:p.tva_intracom||"", date_creation_entreprise:p.date_creation_entreprise||"" };
-    logoBase64 = p.logo_base64 || null;
-    isAdmin = p.is_admin === true;
-    subscriptionStatus = p.subscription_status || "free";
-    subscriptionEndDate = p.subscription_end_date || null;
-    cancellationRequested = p.cancellation_requested || false;
-    gmailEmail = p.google_email || p.gmail_email || null;
-    // google_token_expiry est un timestamp ISO depuis la nouvelle migration ;
-    // gmail_token_expiry est en bigint (ms epoch). On gère les deux formats.
-    const expiryRaw = p.google_token_expiry || p.gmail_token_expiry;
-    gmailTokenExpiry = expiryRaw ? new Date(expiryRaw) : null;
-    // Facturation électronique
-    facturationElectroniqueActive = p.facturation_electronique_active === true;
-    facturationElectroniqueActivatedAt = p.facturation_electronique_activated_at || null;
-    facturationElectroniqueMandatAccepte = p.facturation_electronique_mandat_accepte === true;
-  }
-  const { data: fdata } = await sb.from("factures").select("*").eq("user_id", user.id).order("date_emission", {ascending:false});
-  if (fdata) factures = fdata;
-
-  // Gestion retour OAuth Google (mail + calendar unifiés)
-  const urlParams = new URLSearchParams(location.search);
-  const gmailCode = urlParams.get("code");
-  if (gmailCode) {
-    history.replaceState(null, "", location.pathname);
-    activeTab = "gmail";
-    render();
-    await handleGoogleCode(gmailCode);
+/* ───────────── INIT ───────────── */
+async function init() {
+  try {
+    await loadAll();
+  } catch (err) {
+    console.error('Init error:', err);
+    toast('Erreur de chargement. Réessayez.');
     return;
   }
 
-  const subParam = urlParams.get("subscription");
-  if (subParam === "success") { activeTab = "abonnement"; toast("✅ Abonnement activé ! Bienvenue dans le Plan Pro."); }
-  else if (subParam === "cancelled") { activeTab = "abonnement"; }
-  const tab = urlParams.get("tab");
-  if (tab && ["profil","compte","gmail","abonnement"].includes(tab)) activeTab = tab;
-  history.replaceState(null,"",location.pathname);
-  render();
-  // ── Tutoriel interactif : reprend si en cours ──
-  if(window.ArtioTour) window.ArtioTour.autoStart();
-})();
-</script>
-<div class="artio-legal-footer">
-  <a href="cgv.html">CGV</a> · <a href="cgu.html">CGU</a> · <a href="confidentialite.html">Politique de confidentialité</a>
-</div>
-<script src="chat-widget.js"></script>
-<script>
-  /* ── THEME TOGGLE ── */
-  
-  function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');}
-  function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open');}
-  async function _sidebarLogout(){await sb.auth.signOut();location.href='index.html';}
-  function toggleTheme(){
-    const cur=document.documentElement.getAttribute('data-theme')||'dark';
-    const next=cur==='dark'?'light':'dark';
-    document.documentElement.setAttribute('data-theme',next);
-    try{localStorage.setItem('artio-theme',next);}catch(e){}
+  // Gestion ?tab=... ?subscription=... ?code=...
+  const params = new URLSearchParams(window.location.search);
+  const oauthCode = params.get('code');
+  const subParam = params.get('subscription') || params.get('sub');
+  let tab = params.get('tab') || 'profil';
+
+  // Retour OAuth Google
+  if (oauthCode) {
+    try { history.replaceState(null, '', location.pathname); } catch(e) {}
+    show('google');
+    await handleGoogleCode(oauthCode);
+    return;
   }
+
+  if (subParam === 'success') {
+    tab = 'abonnement';
+    toast('✅ Abonnement activé ! Bienvenue dans le Plan Pro.');
+    try { history.replaceState(null, '', location.pathname + '?tab=abonnement'); } catch(e) {}
+  } else if (subParam === 'cancelled') {
+    tab = 'abonnement';
+    try { history.replaceState(null, '', location.pathname + '?tab=abonnement'); } catch(e) {}
+  }
+
+  if (!['profil','compte','google','facturation','abonnement'].includes(tab)) {
+    tab = 'profil';
+  }
+  show(tab);
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
