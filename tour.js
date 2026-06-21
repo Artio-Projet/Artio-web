@@ -1,7 +1,15 @@
 /* ──────────────────────────────────────────────────────────────
-   tour.js — Tutoriel interactif Artio (multi-pages)
+   tour.js — Tutoriel interactif Artio (multi-pages) — v2
    Source unique de vérité : étapes + moteur + persistance.
-   À inclure sur toutes les pages via : <script src="tour.js?v=1"></script>
+   À inclure sur toutes les pages via : <script src="tour.js?v=2"></script>
+
+   v2 — changements :
+   - Descriptions alignées sur les nouveaux designs (dashboard, calendrier, dossiers, clients, rédiger)
+   - Touche Échap pour quitter le tour à tout moment
+   - Bouton croix (✕) en haut à droite de la card
+   - Garde-fou anti-boucle : sessionStorage compteur, max 2 redirections vers la même page
+   - Garde-fou step invalide : page inconnue → end() au lieu de rediriger
+   - Auto-nettoyage si autoStart() lit un état corrompu (étape hors-bornes)
    ────────────────────────────────────────────────────────────── */
 (function(){
   'use strict';
@@ -10,14 +18,11 @@
   // HELPERS — Sidebar ouverte/fermée pour les étapes "menu"
   // ═══════════════════════════════════════════════════════════
   function _openSidebar(){
-    // Sur viewport étroit, menu ouvert + card 340px ne tiennent pas côte-à-côte
-    // → on n'ouvre pas, le moteur fera un fallback centré
     if(window.innerWidth < 760) return;
     const sb = document.querySelector('.sidebar');
     const ov = document.querySelector('.sidebar-overlay');
     if(sb) sb.classList.add('open');
     if(ov) ov.classList.add('open');
-    // La sidebar a une transition CSS (~250ms) — on re-positionne la card après
     setTimeout(function(){
       if(window.ArtioTour && window.ArtioTour.isActive()) window.ArtioTour.rerender();
     }, 320);
@@ -36,7 +41,7 @@
     {
       page:"home",
       title:"👋 Bienvenue sur Artio !",
-      desc:"En 2 minutes, découvre tout ce qu'Artio fait pour toi — création vocale de devis et factures, rédaction d'emails par IA, suivi de tes dossiers, signature électronique, et plus encore.<br><br>Tu peux quitter le tutoriel à tout moment.",
+      desc:"En 2 minutes, découvre tout ce qu'Artio fait pour toi — création vocale de devis et factures, rédaction d'emails par IA, suivi de tes dossiers, signature électronique, et plus encore.<br><br>Tu peux quitter le tutoriel à tout moment avec la croix en haut à droite ou la touche <strong>Échap</strong>.",
       target:null, pos:"center"
     },
     {
@@ -81,37 +86,37 @@
     {
       page:"rediger",
       title:"✉️ Rédiger un email client",
-      desc:"Page dédiée à la rédaction d'emails professionnels.<br><br>Tu colles le message reçu, tu choisis le ton (vouvoiement, cordial, ferme…) et l'IA rédige la réponse pour toi.<br><br>Si Gmail est connecté, ta boîte de réception s'affiche aussi ici via l'onglet <strong>Messagerie</strong> — tu peux répondre directement depuis Artio.",
+      desc:"Page dédiée à la rédaction d'emails professionnels.<br><br>Onglet <strong>Composer</strong> : tu colles le message reçu, choisis le ton (Vouvoiement, Chaleureux, Ferme…) et l'IA rédige la réponse.<br><br>Onglet <strong>Messagerie</strong> (Gmail connecté requis) : ta boîte de réception s'affiche directement dans Artio — tu peux lire et répondre sans quitter l'app.",
       target:null, pos:"center"
     },
     {
       page:"dossiers",
-      title:"📁 Tes dossiers",
-      desc:"Tous tes devis et factures, groupés par client. Statuts mis à jour en temps réel :<br>• 🟡 Devis envoyé<br>• ✅ Signé<br>• 🧾 Facturé<br>• 💶 Payé<br><br>Tu peux télécharger les PDF, relancer un client, marquer comme payé.",
+      title:"📁 Tes dossiers — vue inbox",
+      desc:"Tous tes devis et factures, organisés comme une boîte mail à 3 colonnes :<br>• <strong>Catégories</strong> à gauche (Tous, À relancer, Signés, À facturer, Payés…)<br>• <strong>Liste</strong> des dossiers au centre<br>• <strong>Aperçu</strong> du document à droite<br><br>Le statut « À relancer » apparaît automatiquement à mi-validité du devis. Tu peux convertir un devis signé en facture en un clic.",
       target:null, pos:"center"
     },
     {
       page:"clients",
       title:"👥 Annuaire clients",
-      desc:"Tous tes clients en un seul endroit. Ajoute-les manuellement, ou ils se créent automatiquement quand tu génères un devis.<br><br>Particuliers ou professionnels — pour les pros, ajoute le SIRET et Artio adapte les mentions légales sur tes PDF.",
+      desc:"Vue <strong>master-detail</strong> en plein écran : liste à gauche, fiche détaillée à droite.<br><br>Ajoute tes clients manuellement, ou ils se créent automatiquement quand tu génères un devis.<br><br>Pour les pros, renseigne le <strong>SIRET</strong> : Artio adapte les mentions légales sur tes PDF et peut aller chercher les infos via Pappers.",
       target:null, pos:"center"
     },
     {
       page:"dashboard",
       title:"📊 Tableau de bord",
-      desc:"Tes indicateurs clés en un coup d'œil : CA mensuel et annuel, nombre de devis envoyés et signés, taux de conversion, top clients.<br><br>Idéal pour faire le point en fin de mois.",
+      desc:"Tes indicateurs clés, repensés pour aller à l'essentiel :<br>• <strong>Hero CA</strong> avec courbe (sparkline) de l'évolution<br>• <strong>Anneau de conversion</strong> devis → facture<br>• <strong>Mini-cartes KPI</strong> (devis envoyés, signés, factures payées)<br>• <strong>Graphique annuel</strong> interactif par mois<br>• <strong>Flux d'activité</strong> en temps réel<br><br>Les calculs CA se basent sur la <strong>date de paiement</strong> (compatible URSSAF encaissement).",
       target:null, pos:"center"
     },
     {
       page:"calendar",
       title:"📅 Calendrier",
-      desc:"Visualise tes rendez-vous et prestations.<br><br>Connecte <strong>Google Calendar</strong> (offre Pro) pour synchroniser dans les deux sens : un événement créé dans Artio apparaît dans Google, et inversement.",
+      desc:"Vue jour à grand confort avec :<br>• <strong>Mini-calendrier</strong> mensuel à gauche, avec heat mapping (les jours chargés se distinguent)<br>• <strong>Panneau 7 jours</strong> des prochains rendez-vous<br>• Affichage automatique des <strong>jours fériés</strong><br><br>Connecte <strong>Google Calendar</strong> (offre Pro) pour synchroniser dans les deux sens : un événement créé dans Artio apparaît dans Google, et inversement.",
       target:null, pos:"center"
     },
     {
       page:"settings",
       title:"⚙️ Paramètres",
-      desc:"Configure tout ce qui personnalise ton expérience :<br>• Profil entreprise (SIRET, TVA, IBAN)<br>• Connexion Gmail & Google Calendar<br>• Contexte IA — pour des emails plus pertinents<br>• Abonnement et facturation",
+      desc:"Configure tout ce qui personnalise ton expérience :<br>• Profil entreprise (SIRET, TVA, IBAN)<br>• Connexion <strong>Gmail & Google Calendar</strong> (un seul clic, scopes unifiés)<br>• <strong>Contexte IA</strong> — pour des emails et descriptions plus pertinents<br>• Abonnement et facturation Stripe",
       target:null, pos:"center"
     },
     {
@@ -122,12 +127,23 @@
     }
   ];
 
+  // Pages valides — sert au garde-fou anti-step-invalide
+  const VALID_PAGES = (function(){
+    const s = {};
+    TOUR_STEPS.forEach(function(st){ s[st.page] = true; });
+    return s;
+  })();
+
   // ═══════════════════════════════════════════════════════════
   // STATE & PERSISTANCE
   // ═══════════════════════════════════════════════════════════
   const LS_STEP   = 'artio_tour_step';
   const LS_ACTIVE = 'artio_tour_active';
   const LS_DONE   = 'artio_tour_done';
+  // sessionStorage : compteur de redirections par page (anti-boucle)
+  const SS_REDIR_COUNT = 'artio_tour_redir_count';
+  const SS_REDIR_PAGE  = 'artio_tour_redir_page';
+  const MAX_REDIRECTS_SAME_PAGE = 2;
 
   const state = { active:false, step:0 };
 
@@ -136,9 +152,20 @@
   // ═══════════════════════════════════════════════════════════
   function _currentPage(){
     const file = (location.pathname.split('/').pop() || '').replace('.html','');
-    // Page d'accueil par défaut si racine
     if(!file || file === 'index') return 'home';
     return file;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CLEANUP — nettoyage complet de la persistance
+  // ═══════════════════════════════════════════════════════════
+  function _cleanupStorage(){
+    try {
+      localStorage.removeItem(LS_ACTIVE);
+      localStorage.removeItem(LS_STEP);
+      sessionStorage.removeItem(SS_REDIR_COUNT);
+      sessionStorage.removeItem(SS_REDIR_PAGE);
+    } catch(e){}
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -152,13 +179,15 @@
       #artio-tour-overlay{position:fixed;inset:0;z-index:99999;pointer-events:none;}
       #artio-tour-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0);transition:background .4s;pointer-events:none;z-index:99996;}
       #artio-tour-backdrop.active{background:rgba(8,11,20,.78);pointer-events:all;}
-      /* Spotlight = "trou" dans le voile : la zone surlignée reste claire, le reste est sombre */
       #artio-tour-spotlight{position:fixed;border-radius:14px;pointer-events:none;z-index:99997;box-shadow:0 0 0 9999px rgba(8,11,20,.78);transition:top .15s ease-out,left .15s ease-out,width .15s ease-out,height .15s ease-out;display:none;}
       #artio-tour-spotlight.active{display:block;}
       .tour-card{position:fixed;z-index:100001;background:var(--surface,#0e1220);border:1px solid rgba(245,167,66,.35);border-radius:16px;padding:22px 24px 18px;width:340px;max-width:calc(100vw - 24px);max-height:calc(100vh - 32px);overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.6);pointer-events:all;transition:opacity .25s ease;opacity:0;}
-      .tour-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-      .tour-card-title{font-family:var(--fh,'Space Grotesk',sans-serif);font-size:15px;font-weight:700;color:var(--text,#e2e5f1);}
+      .tour-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+      .tour-card-title{font-family:var(--fh,'Space Grotesk',sans-serif);font-size:15px;font-weight:700;color:var(--text,#e2e5f1);flex:1;min-width:0;}
+      .tour-card-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;}
       .tour-card-step{font-size:11px;color:var(--muted,#6b7494);font-weight:500;}
+      .tour-card-close{background:none;border:none;color:var(--muted,#6b7494);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1;transition:all .15s;}
+      .tour-card-close:hover{background:rgba(255,255,255,.06);color:var(--text,#e2e5f1);}
       .tour-card-desc{font-size:13px;color:var(--muted,#9aa3c2);line-height:1.6;margin-bottom:16px;}
       .tour-card-pro{display:inline-flex;align-items:center;gap:5px;background:rgba(245,167,66,.12);border:1px solid rgba(245,167,66,.3);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--amber,#f5a742);font-weight:600;margin-bottom:12px;}
       .tour-progress{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
@@ -177,8 +206,6 @@
       .tour-forceclick-hint{display:flex;align-items:center;gap:8px;padding:12px 14px;background:rgba(245,167,66,.12);border:1px dashed rgba(245,167,66,.45);border-radius:10px;font-size:12.5px;color:var(--amber,#f5a742);font-weight:600;line-height:1.45;margin-bottom:8px;}
       .tour-forceclick-hint .tour-fc-arrow{font-size:18px;animation:tour-fc-arrow 1s ease-in-out infinite;}
       @keyframes tour-fc-arrow{0%,100%{transform:translateX(0);}50%{transform:translateX(4px);}}
-      /* La cible n'a plus besoin d'outline blanc puisque le spotlight la dégrise déjà.
-         On garde juste un halo ambré et un pulse léger pour l'effet "lumière". */
       .tour-highlight{position:relative;z-index:100000;border-radius:10px;box-shadow:0 0 0 4px rgba(245,167,66,.45),0 0 40px 10px rgba(245,167,66,.55)!important;animation:tour-pulse 1.8s ease-in-out infinite;}
       @keyframes tour-pulse{
         0%,100%{box-shadow:0 0 0 4px rgba(245,167,66,.45),0 0 32px 8px rgba(245,167,66,.5);}
@@ -210,7 +237,6 @@
     }
   }
 
-  // Affiche un voile plat (pas de cible visible) — utilisé pour pos:"center"
   function _showFlatBackdrop(){
     const bd = document.getElementById('artio-tour-backdrop');
     if(bd) bd.classList.add('active');
@@ -218,7 +244,6 @@
     if(sp) sp.classList.remove('active');
   }
 
-  // Affiche un spotlight avec un "trou" à la position de la cible (ou de l'union des cibles)
   function _showSpotlight(rect){
     if(!rect){ _showFlatBackdrop(); return; }
     const bd = document.getElementById('artio-tour-backdrop');
@@ -243,7 +268,7 @@
     });
   }
 
-  // ── ForceClick : capture le clic sur la cible pour avancer le tour ──
+  // ── ForceClick ──
   let _forceClickEl = null;
   let _forceClickHandler = null;
   function _detachForceClick(){
@@ -261,14 +286,12 @@
     if(!el) return;
     _forceClickEl = el;
     _forceClickHandler = function(){
-      // Laisse le handler natif de la page s'exécuter, puis avance
       setTimeout(function(){ if(state.active) next(); }, 100);
     };
-    // Capture phase = on est sûrs d'être notifiés même si onclick inline e.stopPropagation
     el.addEventListener('click', _forceClickHandler, true);
   }
 
-  // ── Tracking : suit la zone surlignée si l'utilisateur scrolle ou redimensionne ──
+  // ── Tracking scroll/resize ──
   let _activeTargets = null;
   let _activePos = null;
   let _activePrimary = null;
@@ -276,12 +299,10 @@
   let _trackingRaf = null;
 
   function _onTrackingEvent(){
-    // throttle via RAF — évite de recalculer 60×/seconde
     if(_trackingRaf) return;
     _trackingRaf = requestAnimationFrame(function(){
       _trackingRaf = null;
       if(!state.active || !_activeTargets || _activeTargets.length === 0) return;
-      // Met à jour uniquement le spotlight (la card reste fixe dans le viewport)
       const rect = _activeTargets.length > 1
         ? _unionRect(_activeTargets)
         : _activeTargets[0].getBoundingClientRect();
@@ -290,9 +311,8 @@
   }
 
   function _attachTrackingListeners(){
-    if(_trackingListener) return; // déjà attaché
+    if(_trackingListener) return;
     _trackingListener = _onTrackingEvent;
-    // Capture phase pour attraper aussi les scrolls de conteneurs internes
     document.addEventListener('scroll', _trackingListener, true);
     window.addEventListener('resize', _trackingListener);
   }
@@ -308,10 +328,29 @@
     if(_trackingRaf){ cancelAnimationFrame(_trackingRaf); _trackingRaf = null; }
   }
 
+  // ── Échap pour quitter ──
+  let _keydownListener = null;
+  function _attachKeydown(){
+    if(_keydownListener) return;
+    _keydownListener = function(e){
+      if(e.key === 'Escape' || e.keyCode === 27){
+        if(state.active){
+          e.preventDefault();
+          e.stopPropagation();
+          end();
+        }
+      }
+    };
+    document.addEventListener('keydown', _keydownListener, true);
+  }
+  function _detachKeydown(){
+    if(!_keydownListener) return;
+    document.removeEventListener('keydown', _keydownListener, true);
+    _keydownListener = null;
+  }
+
   function _esc(s){ return String(s == null ? '' : s); }
 
-  // ── Scroll INSTANTANÉ avec marge — la cible n'est pas collée au bord ──
-  // Instant pour qu'on puisse positionner la card immédiatement avec la position finale
   function _scrollTargetIntoView(rect, pos){
     const vh = window.innerHeight;
     const margin = 90;
@@ -354,20 +393,14 @@
       return;
     }
 
-    // Union des rects si plusieurs cibles
     const useUnion = (allTargets && allTargets.length > 1);
     let anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
 
-    // Scroll instantané pour amener la cible dans la zone utile du viewport
     _scrollTargetIntoView(anchorRect, pos);
 
-    // Re-mesure après scroll (scroll instant → rect immédiatement à jour)
     anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
-
-    // Mets à jour le spotlight (trou dans le voile à la position de la cible)
     _showSpotlight(anchorRect);
 
-    // Position de la card
     const rect = anchorRect;
     const vw = window.innerWidth, vh = window.innerHeight;
     const cw = 340;
@@ -376,7 +409,6 @@
     card.style.transform = '';
     card.style.position = 'fixed';
 
-    // Positionnement latéral (right/left)
     if(pos === 'right' || pos === 'left'){
       let leftVal;
       if(pos === 'right'){
@@ -395,7 +427,6 @@
       return;
     }
 
-    // Positionnement vertical (top/bottom) — défaut
     const spaceBelow = vh - rect.bottom - gap;
     const spaceAbove = rect.top - gap;
     const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
@@ -406,7 +437,6 @@
     } else {
       topVal = rect.bottom + gap;
     }
-    // CLAMP absolu : la card ne sort jamais du viewport
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
     card.style.top = topVal + 'px';
 
@@ -427,7 +457,6 @@
     _removeHighlight();
     _detachForceClick();
 
-    // ── Cibles : string OU array de strings → highlight multiple ──
     const targetEls = [];
     if(step.target){
       const selectors = Array.isArray(step.target) ? step.target : [step.target];
@@ -440,7 +469,6 @@
         }
       });
     }
-    // La 1ère cible sert d'ancre pour positionner la card
     const primaryEl = targetEls[0] || null;
 
     const dots = TOUR_STEPS.map(function(_, i){
@@ -459,7 +487,6 @@
       ? '<button class="tour-btn-prev" onclick="window.ArtioTour.prev()">←</button>'
       : '';
 
-    // ── ForceClick : pas de bouton "Suivant", remplacé par un hint ──
     const isForceClick = !!step.forceClick;
     let nextBlock;
     if(isForceClick){
@@ -477,14 +504,17 @@
     }
 
     const skipBtn = state.step < TOUR_STEPS.length - 1
-      ? '<button class="tour-btn-skip" onclick="window.ArtioTour.end()">Quitter le tutoriel</button>'
+      ? '<button class="tour-btn-skip" onclick="window.ArtioTour.end()">Quitter le tutoriel (Échap)</button>'
       : '';
 
     overlay.innerHTML =
       '<div class="tour-card" id="tour-card" style="top:-9999px;left:-9999px;opacity:0;">'
         + '<div class="tour-card-header">'
           + '<span class="tour-card-title">' + _esc(step.title) + '</span>'
-          + '<span class="tour-card-step">' + (state.step + 1) + ' / ' + TOUR_STEPS.length + '</span>'
+          + '<span class="tour-card-meta">'
+            + '<span class="tour-card-step">' + (state.step + 1) + ' / ' + TOUR_STEPS.length + '</span>'
+            + '<button class="tour-card-close" onclick="window.ArtioTour.end()" title="Quitter le tutoriel (Échap)" aria-label="Quitter">✕</button>'
+          + '</span>'
         + '</div>'
         + '<div class="tour-progress">' + dots + '</div>'
         + proBadge
@@ -497,39 +527,57 @@
     const card = document.getElementById('tour-card');
     if(!card) return;
 
-    // Mémorise les cibles actives pour le tracking au scroll/resize
     _activeTargets = targetEls;
     _activePos = step.pos;
     _activePrimary = primaryEl;
 
-    // Délai si onEnter modifie le DOM (ex. sidebar qui s'ouvre avec une transition CSS).
-    // Sans ce délai, rect.right serait mesuré pendant l'animation et la card finirait
-    // derrière le menu une fois celui-ci complètement ouvert.
     const hasOnEnter = !!step.onEnter;
     const delay = hasOnEnter ? 320 : 30;
     setTimeout(function(){
-      // Re-vérifie qu'on est toujours sur la même étape (l'utilisateur a pu cliquer Suivant entre-temps)
       if(!state.active || TOUR_STEPS[state.step] !== step) return;
       _position(card, primaryEl, step.pos, targetEls);
-      // Attache le forceClick listener APRÈS le positionnement
       if(isForceClick) _attachForceClick(step.forceClick);
-      // Active le tracking scroll/resize pour que le spotlight suive la zone
       _attachTrackingListeners();
     }, delay);
   }
 
-
   // ═══════════════════════════════════════════════════════════
-  // CROSS-PAGE NAVIGATION
+  // CROSS-PAGE NAVIGATION — avec garde-fou anti-boucle
   // ═══════════════════════════════════════════════════════════
   function _redirectTo(step){
-    localStorage.setItem(LS_STEP, String(state.step));
-    localStorage.setItem(LS_ACTIVE, '1');
+    // Garde-fou : compteur de redirections vers la même page
+    let count = 0;
+    let lastPage = '';
+    try {
+      count = parseInt(sessionStorage.getItem(SS_REDIR_COUNT) || '0', 10);
+      lastPage = sessionStorage.getItem(SS_REDIR_PAGE) || '';
+    } catch(e){}
+
+    if(lastPage === step.page){
+      count += 1;
+    } else {
+      count = 1;
+    }
+
+    if(count > MAX_REDIRECTS_SAME_PAGE){
+      console.warn('[ArtioTour] Boucle de redirection détectée vers ' + step.page + ' — nettoyage et abandon.');
+      _cleanupStorage();
+      try { localStorage.setItem(LS_DONE, '1'); } catch(e){}
+      state.active = false;
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(SS_REDIR_COUNT, String(count));
+      sessionStorage.setItem(SS_REDIR_PAGE, step.page);
+      localStorage.setItem(LS_STEP, String(state.step));
+      localStorage.setItem(LS_ACTIVE, '1');
+    } catch(e){}
     location.href = step.page + '.html?tour=1';
   }
 
   // ═══════════════════════════════════════════════════════════
-  // HOOKS — onEnter / onLeave (fonction directe ou nom window)
+  // HOOKS
   // ═══════════════════════════════════════════════════════════
   function _callHook(hook){
     if(!hook) return;
@@ -549,16 +597,30 @@
       ? stepIndex : 0;
 
     const step = TOUR_STEPS[state.step];
-    // Si l'étape de départ est sur une autre page, on redirige
-    if(step && step.page !== _currentPage()){
+    if(!step){ end(); return; }
+
+    // Garde-fou : si la page de l'étape n'existe pas dans nos étapes connues, on quitte
+    if(!VALID_PAGES[step.page]){
+      console.warn('[ArtioTour] Étape avec page inconnue : ' + step.page + ' — abandon.');
+      end();
+      return;
+    }
+
+    if(step.page !== _currentPage()){
       _redirectTo(step);
       return;
     }
 
-    localStorage.setItem(LS_ACTIVE, '1');
-    localStorage.setItem(LS_STEP, String(state.step));
+    // On est arrivé à destination sans boucler — reset compteur
+    try { sessionStorage.removeItem(SS_REDIR_COUNT); sessionStorage.removeItem(SS_REDIR_PAGE); } catch(e){}
+
+    try {
+      localStorage.setItem(LS_ACTIVE, '1');
+      localStorage.setItem(LS_STEP, String(state.step));
+    } catch(e){}
     _injectCSS();
     _mount();
+    _attachKeydown();
     _callHook(step && step.onEnter);
     _render();
   }
@@ -580,7 +642,7 @@
       return;
     }
 
-    localStorage.setItem(LS_STEP, String(state.step));
+    try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
     _callHook(nextStep.onEnter);
     _render();
   }
@@ -602,7 +664,7 @@
       return;
     }
 
-    localStorage.setItem(LS_STEP, String(state.step));
+    try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
     _callHook(prevStep.onEnter);
     _render();
   }
@@ -611,7 +673,7 @@
     _removeHighlight();
     _detachForceClick();
     _detachTrackingListeners();
-    // Appel du onLeave de l'étape courante (ex. fermer la sidebar si elle était ouverte)
+    _detachKeydown();
     const curStep = TOUR_STEPS[state.step];
     _callHook(curStep && curStep.onLeave);
     state.active = false;
@@ -620,6 +682,8 @@
       localStorage.setItem(LS_DONE, '1');
       localStorage.removeItem(LS_ACTIVE);
       localStorage.removeItem(LS_STEP);
+      sessionStorage.removeItem(SS_REDIR_COUNT);
+      sessionStorage.removeItem(SS_REDIR_PAGE);
     } catch(e){}
     const ov = document.getElementById('artio-tour-overlay');
     if(ov) ov.remove();
@@ -638,22 +702,16 @@
   }
 
   // ═══════════════════════════════════════════════════════════
-  // AUTO-START — appelé par chaque page après initialisation
+  // AUTO-START
   // ═══════════════════════════════════════════════════════════
-  // opts.firstTime : si true, démarre le tour pour les nouveaux utilisateurs
-  //                  (seulement sur la page d'accueil par convention)
   function autoStart(opts){
     opts = opts || {};
     const qs = new URLSearchParams(location.search).get('tour');
     const isResume = localStorage.getItem(LS_ACTIVE) === '1';
 
-    // ?tour=restart : reset complet et démarrage depuis le début
     if(qs === 'restart'){
-      try {
-        localStorage.removeItem(LS_DONE);
-        localStorage.removeItem(LS_ACTIVE);
-        localStorage.removeItem(LS_STEP);
-      } catch(e){}
+      _cleanupStorage();
+      try { localStorage.removeItem(LS_DONE); } catch(e){}
       try {
         const url = new URL(location.href);
         url.searchParams.delete('tour');
@@ -665,7 +723,6 @@
     }
 
     if(qs === '1' || isResume){
-      // Nettoyer ?tour=1 de l'URL
       if(qs === '1'){
         try {
           const url = new URL(location.href);
@@ -675,11 +732,20 @@
         } catch(e){}
       }
       const savedStep = parseInt(localStorage.getItem(LS_STEP) || '0', 10);
+
+      // Garde-fou : étape hors-bornes → reset propre
+      if(isNaN(savedStep) || savedStep < 0 || savedStep >= TOUR_STEPS.length){
+        console.warn('[ArtioTour] Étape sauvegardée invalide (' + savedStep + ') — nettoyage.');
+        _cleanupStorage();
+        return false;
+      }
+
+      // Garde-fou : si l'étape sauvegardée pointe vers une page qui n'a jamais été atteinte
+      // après MAX_REDIRECTS_SAME_PAGE redirections, _redirectTo() avorte tout seul.
       setTimeout(function(){ start(savedStep); }, 600);
       return true;
     }
 
-    // Auto-démarrage pour les nouveaux utilisateurs (uniquement sur la page d'accueil)
     if(opts.firstTime && !localStorage.getItem(LS_DONE)){
       setTimeout(function(){ start(0); }, 800);
       return true;
@@ -701,12 +767,9 @@
     _runAction: _runAction,
     isActive: function(){ return state.active; },
     reset: function(){
-      try {
-        localStorage.removeItem(LS_DONE);
-        localStorage.removeItem(LS_ACTIVE);
-        localStorage.removeItem(LS_STEP);
-      } catch(e){}
+      _cleanupStorage();
+      try { localStorage.removeItem(LS_DONE); } catch(e){}
     },
-    steps: TOUR_STEPS  // exposé en lecture pour debug
+    steps: TOUR_STEPS
   };
 })();
