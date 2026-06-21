@@ -564,9 +564,10 @@ function render(){
   const diffDays=Math.round(diffMs/86400000);
   const relLabel=diffDays===0?"Aujourd'hui":diffDays===1?"Demain":diffDays===-1?"Hier":diffDays>0?`J+${diffDays}`:`J${diffDays}`;
 
-  // Upcoming 7j
+  // Upcoming 7j — part d'aujourd'hui (pas du jour affiché)
   const upcoming=[];
-  for(let i=1;i<=7;i++){const d=new Date(viewDate);d.setDate(d.getDate()+i);const k=localKey(d);(ev[k]||[]).filter(e=>!e.isFerie).forEach(e=>upcoming.push({...e,dk:k,day:d.getDate(),dow:JOURS_SHORT[d.getDay()],mois:MOIS_SHORT[d.getMonth()]}));}
+  const todayBase=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  for(let i=0;i<=7;i++){const d=new Date(todayBase);d.setDate(d.getDate()+i);const k=localKey(d);(ev[k]||[]).filter(e=>!e.isFerie).forEach(e=>upcoming.push({...e,dk:k,day:d.getDate(),dow:JOURS_SHORT[d.getDay()],mois:MOIS_SHORT[d.getMonth()]}));}
 
   // Timeline rows
   const tlRows=HOURS.map(h=>{
@@ -600,7 +601,7 @@ function render(){
   // Upcoming items
   const upHtml=upcoming.length===0
     ?`<div style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center;">Aucun événement dans les 7 prochains jours</div>`
-    :upcoming.slice(0,5).map(e=>`<div class="up-item" onclick="viewDate=new Date('${e.dk}T12:00:00');miniDate=new Date(viewDate.getFullYear(),viewDate.getMonth(),1);render();">
+    :upcoming.slice(0,4).map(e=>`<div class="up-item" onclick="viewDate=new Date('${e.dk}T12:00:00');miniDate=new Date(viewDate.getFullYear(),viewDate.getMonth(),1);render();">
         <div class="up-date ${e.c==="teal"?"teal":e.c==="green"?"teal":""}"><div class="d">${e.day}</div><div class="m">${e.dow}</div></div>
         <div class="up-body">
           <div class="up-row-title">${esc(e.label)}</div>
