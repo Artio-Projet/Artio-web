@@ -600,7 +600,7 @@ function render(){
 
   // Upcoming items
   const upHtml=upcoming.length===0
-    ?`<div style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center;">Aucun événement dans les 7 prochains jours</div>`
+    ?`<div style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center;">Aucun événement à venir</div>`
     :upcoming.slice(0,4).map(e=>`<div class="up-item" onclick="viewDate=new Date('${e.dk}T12:00:00');miniDate=new Date(viewDate.getFullYear(),viewDate.getMonth(),1);render();">
         <div class="up-date ${e.c==="teal"?"teal":e.c==="green"?"teal":""}"><div class="d">${e.day}</div><div class="m">${e.dow}</div></div>
         <div class="up-body">
@@ -628,7 +628,7 @@ function render(){
           <div class="stat">
             <div class="stat-icon teal"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
             <div class="stat-body">
-              <div class="stat-label">7 prochains jours</div>
+              <div class="stat-label">À venir</div>
               <div class="stat-val"><b>${upcoming.length}</b> à venir</div>
             </div>
           </div>
@@ -688,7 +688,7 @@ function render(){
         </div>
         <div class="up-card">
           <div class="up-head">
-            <div class="up-title">À venir <span class="accent">— 7 prochains jours</span></div>
+            <div class="up-title">À venir</div>
           </div>
           <div class="up-list">${upHtml}</div>
         </div>
