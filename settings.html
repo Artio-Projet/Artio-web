@@ -790,6 +790,7 @@ let billingPeriod = "monthly";
 let cancellationRequested = false;
 let syncing = false;
 let logoBase64 = null;
+let siretVerifie = false;
 let deleteConfirm = false;
 let deleteLoading = false;
 let gmailConnecting = false;
@@ -914,6 +915,9 @@ async function loadAll() {
 
   // Logo PDF
   logoBase64 = profil.logo_base64 || null;
+  // SIRET considéré vérifié si déjà en base et non bidon
+  const _sc = (profil.siret || '').replace(/\s/g,'');
+  siretVerifie = _sc.length === 14 && /^\d+$/.test(_sc) && !/^0+$/.test(_sc) && !!profil.siret_verifie;
 
   // Factures Stripe
   try {
@@ -1108,6 +1112,7 @@ async function lookupSiretProfil(rawValue) {
       if (!r.ok) {
         status.textContent = '✗ ' + (data.error || 'Erreur');
         status.style.color = '#dc2626';
+        siretVerifie = false;
         return;
       }
       const fill = (key, value, force = false) => {
@@ -1128,13 +1133,18 @@ async function lookupSiretProfil(rawValue) {
       if (data.entreprise_cessee) {
         status.textContent = '⚠️ Entreprise cessée';
         status.style.color = '#d97706';
+        siretVerifie = false;
       } else {
         status.textContent = data.cached ? '✓ Vérifié (cache)' : '✓ Vérifié SIRENE';
         status.style.color = '#16a34a';
+        siretVerifie = true;
+        // Persister le flag en base
+        sb.from('profils').update({ siret_verifie: true }).eq('user_id', user.id).then(() => {});
       }
     } catch (e) {
       status.textContent = '✗ Erreur réseau';
       status.style.color = '#dc2626';
+      siretVerifie = false;
     }
   }, 350);
 }
@@ -1495,7 +1505,7 @@ async function doGoogleDisconnect() {
    SECTION 4 — FACTURATION ÉLECTRONIQUE (4 cartes)
    ═══════════════════════════════════════════════════ */
 function renderFacturationHTML() {
-  const hasSiret = !!(profil.siret && profil.siret.replace(/\s/g,'').length >= 9);
+  const hasSiret = siretVerifie === true;
   const isActive = facturationElectroniqueActive === true;
   const activatedDate = facturationElectroniqueActivatedAt
     ? new Date(facturationElectroniqueActivatedAt).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
