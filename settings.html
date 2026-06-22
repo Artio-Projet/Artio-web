@@ -1233,8 +1233,63 @@ function renderCompteHTML() {
       <div class="card-title-row">
         <div class="card-title">Préférences</div>
       </div>
-      <div class="card-sub">Paramètres supplémentaires à venir dans une prochaine mise à jour.</div>
-      <div style="font-size:13px;color:var(--muted);padding:8px 0;">Aucun réglage disponible pour le moment.</div>
+      <div class="card-sub">Couleurs des événements Google Calendar selon leur statut.</div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="dot-devis" style="width:14px;height:14px;border-radius:50%;background:#5484ED;flex-shrink:0;transition:background .15s;"></div>
+          <span style="font-size:13px;color:var(--text);min-width:150px;">Devis en attente</span>
+          <select class="field-input" id="cal-color-devis" style="flex:1;" onchange="updateColorDot('devis',this.value)">
+            <option value="1" >Lavande</option>
+<option value="2" >Sauge</option>
+<option value="3" >Raisin</option>
+<option value="4" >Flamant</option>
+<option value="5" >Banane</option>
+<option value="6" >Mandarine</option>
+<option value="7" >Paon</option>
+<option value="8" >Graphite</option>
+<option value="9" selected>Myrtille</option>
+<option value="10" >Basilic</option>
+<option value="11" >Tomate</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="dot-signe" style="width:14px;height:14px;border-radius:50%;background:#51B749;flex-shrink:0;transition:background .15s;"></div>
+          <span style="font-size:13px;color:var(--text);min-width:150px;">Devis signé</span>
+          <select class="field-input" id="cal-color-signe" style="flex:1;" onchange="updateColorDot('signe',this.value)">
+            <option value="1" >Lavande</option>
+<option value="2" >Sauge</option>
+<option value="3" >Raisin</option>
+<option value="4" >Flamant</option>
+<option value="5" >Banane</option>
+<option value="6" >Mandarine</option>
+<option value="7" >Paon</option>
+<option value="8" >Graphite</option>
+<option value="9" >Myrtille</option>
+<option value="10" selected>Basilic</option>
+<option value="11" >Tomate</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="dot-facture" style="width:14px;height:14px;border-radius:50%;background:#46D6DB;flex-shrink:0;transition:background .15s;"></div>
+          <span style="font-size:13px;color:var(--text);min-width:150px;">Facture</span>
+          <select class="field-input" id="cal-color-facture" style="flex:1;" onchange="updateColorDot('facture',this.value)">
+            <option value="1" >Lavande</option>
+<option value="2" >Sauge</option>
+<option value="3" >Raisin</option>
+<option value="4" >Flamant</option>
+<option value="5" >Banane</option>
+<option value="6" >Mandarine</option>
+<option value="7" selected>Paon</option>
+<option value="8" >Graphite</option>
+<option value="9" >Myrtille</option>
+<option value="10" >Basilic</option>
+<option value="11" >Tomate</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions" style="display:flex;justify-content:flex-end;margin-top:14px;">
+        <button class="btn btn-primary" onclick="saveCalendarColors()">Enregistrer les couleurs</button>
+      </div>
     </div>
 
     <div class="card" style="border-color:rgba(248,113,113,0.2);">
@@ -1266,7 +1321,10 @@ function renderCompteHTML() {
 
 function paintCompte() {
   const el = document.getElementById('compte-content');
-  if (el) el.innerHTML = renderCompteHTML();
+  if (el) {
+    el.innerHTML = renderCompteHTML();
+    initCalendarColorSelects();
+  }
 }
 
 function setDeleteConfirm(v) { deleteConfirm = !!v; paintCompte(); }
@@ -1977,6 +2035,36 @@ function downloadFacture(index) {
 }
 
 
+
+/* ───────────── COULEURS CALENDRIER ───────────── */
+const GC_COLOR_HEX = {"1":"#A4BDFC","2":"#7AE7BF","3":"#DBADFF","4":"#FF887C","5":"#FBD75B","6":"#FFB878","7":"#46D6DB","8":"#E1E1E1","9":"#5484ED","10":"#51B749","11":"#DC2127"};
+
+function updateColorDot(key, colorId) {
+  const dot = document.getElementById('dot-' + key);
+  if (dot) dot.style.background = GC_COLOR_HEX[colorId] || '#5484ED';
+}
+
+function initCalendarColorSelects() {
+  const colors = profil.calendar_colors || { devis: '9', signe: '10', facture: '7' };
+  ['devis', 'signe', 'facture'].forEach(key => {
+    const sel = document.getElementById('cal-color-' + key);
+    const dot = document.getElementById('dot-' + key);
+    if (sel) sel.value = String(colors[key] || (key === 'facture' ? '7' : key === 'signe' ? '10' : '9'));
+    if (dot) dot.style.background = GC_COLOR_HEX[sel?.value] || '#5484ED';
+  });
+}
+
+async function saveCalendarColors() {
+  const colors = {
+    devis:   document.getElementById('cal-color-devis')?.value   || '9',
+    signe:   document.getElementById('cal-color-signe')?.value   || '10',
+    facture: document.getElementById('cal-color-facture')?.value || '7',
+  };
+  const { error } = await sb.from('profils').update({ calendar_colors: colors }).eq('user_id', user.id);
+  if (error) { toast('Erreur : ' + error.message); return; }
+  profil.calendar_colors = colors;
+  toast('✓ Couleurs enregistrées');
+}
 
 /* ───────────── INIT ───────────── */
 async function init() {
