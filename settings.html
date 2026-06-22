@@ -1651,12 +1651,12 @@ let cancelLoading = false;
 
 const PAYMENT_LINKS = {
   solo: {
-    monthly: 'https://buy.stripe.com/fZu00j9whc0Xckb9vN7N601',
-    annual:  'https://buy.stripe.com/3cI3cvdMxfd96ZR0Zh7N605'
+    monthly: 'https://buy.stripe.com/aFa4gzaAl8OLesj5fx7N606',
+    annual:  'https://buy.stripe.com/3cI5kDeQBd511FxcHZ7N607'
   },
   pro: {
-    monthly: 'https://buy.stripe.com/14A3cv37Td5197Z37p7N603',
-    annual:  'https://buy.stripe.com/7sYfZhgYJghdbg7gYf7N600'
+    monthly: 'https://buy.stripe.com/8x26oHeQB1mjesjeQ77N608',
+    annual:  'https://buy.stripe.com/00weVd9wh7KH2JB23l7N609'
   }
 };
 
@@ -1724,10 +1724,12 @@ function renderAbonnementHTML() {
         ${isSolo ? `<span style="background:#a78bfa;color:#fff;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.05em;margin-left:auto;">PLAN ACTUEL</span>` : ''}
       </div>
       ${isAnnual ? `
-        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">190 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
-        <div style="font-size:12px;color:#5fc97a;margin-bottom:14px;">✓ 2 mois offerts — 15,83 €/mois</div>
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">140 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
+        <div style="font-size:12px;color:#5fc97a;margin-bottom:4px;">✓ 2 mois offerts — 11,67 €/mois</div>
+        <div style="font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:10px;">190 €/an — tarif standard</div>
       ` : `
-        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 14px;">19 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 4px;">14 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+        <div style="font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:10px;">19 €/mois — tarif standard</div>
       `}
       <ul style="list-style:none;padding:0;margin:0 0 16px 0;display:flex;flex-direction:column;gap:8px;">
         ${features_solo.map(f=>`<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;"><span style="color:#5fc97a;flex-shrink:0;font-weight:700;">✓</span><span>${f}</span></li>`).join('')}
@@ -1744,7 +1746,7 @@ function renderAbonnementHTML() {
           `)
         : isPro
           ? `<div style="padding:10px;border-radius:9px;background:var(--surface-2);text-align:center;font-size:12px;color:var(--muted);">Disponible après expiration du Pro</div>`
-          : `<button class="btn btn-secondary" onclick="startCheckout('solo')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`S'abonner en Solo (${isAnnual?'annuel':'mensuel'})`}</button>`
+          : `<button class="btn btn-secondary" onclick="startCheckout('solo')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`S'abonner en Solo — tarif de lancement (${isAnnual?'annuel':'mensuel'})`}</button>`
       }
     </div>
   `;
@@ -1756,10 +1758,12 @@ function renderAbonnementHTML() {
         ${isPro ? `<span style="background:#a78bfa;color:#fff;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.05em;margin-left:auto;">PLAN ACTUEL</span>` : ''}
       </div>
       ${isAnnual ? `
-        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">390 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
-        <div style="font-size:12px;color:#5fc97a;margin-bottom:14px;">✓ 2 mois offerts — 32,50 €/mois</div>
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0;">290 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / an</span></div>
+        <div style="font-size:12px;color:#5fc97a;margin-bottom:4px;">✓ 2 mois offerts — 24,17 €/mois</div>
+        <div style="font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:10px;">390 €/an — tarif standard</div>
       ` : `
-        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 14px;">39 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+        <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 4px;">29 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+        <div style="font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:10px;">39 €/mois — tarif standard</div>
       `}
       <ul style="list-style:none;padding:0;margin:0 0 16px 0;display:flex;flex-direction:column;gap:8px;">
         ${features_pro.map(f=>`<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;"><span style="color:#5fc97a;flex-shrink:0;font-weight:700;">✓</span><span>${f}</span></li>`).join('')}
@@ -1774,7 +1778,7 @@ function renderAbonnementHTML() {
           ` : `
             <button class="btn btn-danger" onclick="requestCancellation()" ${cancelLoading?'disabled':''} style="width:100%;">${cancelLoading?'Envoi…':`Demander l’annulation`}</button>
           `)
-        : `<button class="btn btn-primary" onclick="startCheckout('pro')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`${isSolo?'Passer au Pro':'S’abonner en Pro'} (${isAnnual?'annuel':'mensuel'})`}</button>`
+        : `<button class="btn btn-primary" onclick="startCheckout('pro')" ${checkoutLoading?'disabled':''} style="width:100%;">${checkoutLoading?'Redirection…':`${isSolo?'Passer au Pro':'S’abonner en Pro'} — tarif de lancement (${isAnnual?'annuel':'mensuel'})`}</button>`
       }
     </div>
   `;
@@ -1836,6 +1840,7 @@ function renderAbonnementHTML() {
     <div class="card">
       <div class="card-title-row"><div class="card-title">Comparer les plans</div></div>
       <div class="card-sub">Choisissez la formule qui correspond à votre activité. Sans engagement, annulation à tout moment.</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(217,119,6,0.10);border:1px solid rgba(217,119,6,0.25);border-radius:8px;font-size:12px;color:var(--amber);font-weight:600;margin-bottom:14px;">⏱ Tarif de lancement — valable jusqu'au 1er septembre 2026</div>
       ${toggle}
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:10px;">
         ${soloCard}
