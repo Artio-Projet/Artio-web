@@ -1034,42 +1034,6 @@ function renderProfilHTML() {
       <div style="font-size:11px;color:var(--muted);margin-top:2px">Ce texte est injecté dans chaque génération de réponse email. Il n'apparaît jamais dans tes documents.</div>
     </div>
 
-    ${isPro ? `
-    <div class="card" style="border-color:rgba(167,139,250,0.25);">
-      <div class="card-title-row">
-        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-          <span style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:.05em;">PRO</span>
-          Identité visuelle PDF
-        </div>
-      </div>
-      <div class="card-sub">Votre logo et votre couleur apparaissent sur tous vos devis et factures.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;">
-        <div class="field">
-          <label class="field-label">Logo (PNG ou JPG)</label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            ${logoBase64 ? `<img src="${logoBase64}" style="height:36px;max-width:80px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:#fff;padding:4px;" />` : `<div style="width:50px;height:36px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼</div>`}
-            <label style="cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2);white-space:nowrap;">
-              ${logoBase64 ? 'Changer' : 'Importer'}
-              <input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="uploadLogo(event)"/>
-            </label>
-            ${logoBase64 ? `<button onclick="removeLogo()" style="padding:7px 10px;border-radius:8px;border:1px solid rgba(248,113,113,.2);font-size:12px;color:var(--red);background:rgba(248,113,113,0.08);cursor:pointer;">✕</button>` : ''}
-          </div>
-        </div>
-        <div class="field">
-          <label class="field-label">Couleur principale</label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <input type="color" value="${esc(profil.couleur_pdf||'#378ADD')}"
-              style="width:42px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:var(--surface-2);"
-              oninput="profil.couleur_pdf=this.value;document.getElementById('color-preview').style.background=this.value"/>
-            <div id="color-preview" style="flex:1;height:36px;border-radius:8px;background:${esc(profil.couleur_pdf||'#378ADD')};border:1px solid var(--border);transition:background .2s;"></div>
-          </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Utilisée sur l'en-tête du tableau de vos documents.</div>
-        </div>
-      </div>
-    </div>` : ''}
-
-    <div class="actions" style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-      <button class="btn btn-primary" ${syncing?'disabled':''} onclick="saveProfil()">
         ${syncing ? 'Enregistrement…' : 'Enregistrer les modifications'}
       </button>
     </div>
@@ -1203,6 +1167,7 @@ async function removeLogo() {
    SECTION 2 — COMPTE
    ═══════════════════════════════════════════════════ */
 function renderCompteHTML() {
+  const isPro = subscriptionStatus === 'pro' || subscriptionStatus === 'active' || isAdmin;
   return `
     <div class="card">
       <div class="card-title-row">
@@ -1291,6 +1256,40 @@ function renderCompteHTML() {
         <button class="btn btn-primary" onclick="saveCalendarColors()">Enregistrer les couleurs</button>
       </div>
     </div>
+
+    ${isPro ? `
+    <div class="card" style="border-color:rgba(167,139,250,0.25);">
+      <div class="card-title-row">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <span style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:.05em;">PRO</span>
+          Identité visuelle PDF
+        </div>
+      </div>
+      <div class="card-sub">Votre logo et votre couleur apparaissent sur tous vos devis et factures.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;">
+        <div class="field">
+          <label class="field-label">Logo (PNG ou JPG)</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${logoBase64 ? `<img src="${logoBase64}" style="height:36px;max-width:80px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:#fff;padding:4px;" />` : `<div style="width:50px;height:36px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼</div>`}
+            <label style="cursor:pointer;padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2);white-space:nowrap;">
+              ${logoBase64 ? 'Changer' : 'Importer'}
+              <input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="uploadLogo(event)"/>
+            </label>
+            ${logoBase64 ? `<button onclick="removeLogo()" style="padding:7px 10px;border-radius:8px;border:1px solid rgba(248,113,113,.2);font-size:12px;color:var(--red);background:rgba(248,113,113,0.08);cursor:pointer;">✕</button>` : ''}
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Couleur principale</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="color" value="${esc(profil.couleur_pdf||'#378ADD')}"
+              style="width:42px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:var(--surface-2);"
+              oninput="profil.couleur_pdf=this.value;document.getElementById('color-preview').style.background=this.value"/>
+            <div id="color-preview" style="flex:1;height:36px;border-radius:8px;background:${esc(profil.couleur_pdf||'#378ADD')};border:1px solid var(--border);transition:background .2s;"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Utilisée sur l'en-tête du tableau de vos documents.</div>
+        </div>
+      </div>
+    </div>` : ''}
 
     <div class="card" style="border-color:rgba(248,113,113,0.2);">
       <div class="card-title-row">
