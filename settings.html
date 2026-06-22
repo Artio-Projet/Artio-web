@@ -1034,6 +1034,8 @@ function renderProfilHTML() {
       <div style="font-size:11px;color:var(--muted);margin-top:2px">Ce texte est injecté dans chaque génération de réponse email. Il n'apparaît jamais dans tes documents.</div>
     </div>
 
+    <div class="actions" style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" ${syncing?'disabled':''} onclick="saveProfil()">
         ${syncing ? 'Enregistrement…' : 'Enregistrer les modifications'}
       </button>
     </div>
