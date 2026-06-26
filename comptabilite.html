@@ -1,149 +1,188 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<link rel="icon" type="image/png" href="artio-icon.png"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Artio — Comptabilité</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root, [data-theme="dark"] {
-  --bg:#080b14; --surface:#0e1220; --surface-2:#141829; --surface-3:#1a2035;
-  --border:rgba(255,255,255,0.07); --border-hi:rgba(255,255,255,0.13);
-  --text:#e2e5f1; --muted:#6b7494;
-  --amber:#f5a742; --amber-2:#e07a18; --amber-dim:rgba(245,167,66,0.12); --amber-glow:rgba(245,167,66,0.28);
-  --teal:#3ecfcf; --teal-dim:rgba(62,207,207,0.11);
-  --green:#4ade80; --green-dim:rgba(74,222,128,0.11);
-  --red:#f87171; --red-dim:rgba(248,113,113,0.10);
-  --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.11);
-  --fh:'Space Grotesk',sans-serif; --fb:'Plus Jakarta Sans',sans-serif; --fm:'JetBrains Mono',monospace;
-  --r:16px;
-}
-[data-theme="light"] {
-  --bg:#faf8f3; --surface:#fff; --surface-2:#f3efe6; --surface-3:#ece7dc;
-  --border:rgba(20,18,12,0.08); --border-hi:rgba(20,18,12,0.16);
-  --text:#1a1a1f; --muted:#6a6b78;
-  --amber:#d97706; --teal:#0d9488; --green:#16a34a; --red:#dc2626; --purple:#7c3aed;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
-body::before{content:'';position:fixed;top:-220px;right:-160px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,var(--amber-glow) 0%,transparent 60%);opacity:.45;pointer-events:none;z-index:0}
-body::after{content:'';position:fixed;bottom:-220px;left:-140px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(62,207,207,0.13) 0%,transparent 60%);opacity:.5;pointer-events:none;z-index:0}
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="artio-icon.png"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Artio — Comptabilité</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="dark"] {
+      --bg:#080b14; --surface:#0e1220; --surface-2:#141829; --surface-3:#1a2035;
+      --border:rgba(255,255,255,0.07); --border-hi:rgba(255,255,255,0.13);
+      --text:#e2e5f1; --muted:#6b7494;
+      --amber:#f5a742; --amber-2:#e07a18; --amber-dim:rgba(245,167,66,0.12); --amber-glow:rgba(245,167,66,0.32);
+      --teal:#3ecfcf; --teal-dim:rgba(62,207,207,0.11);
+      --green:#4ade80; --green-dim:rgba(74,222,128,0.11);
+      --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.11);
+      --blue:#60a5fa; --blue-dim:rgba(96,165,250,0.12);
+      --red:#f87171; --red-dim:rgba(248,113,113,0.10);
+      --fh:'Space Grotesk',sans-serif; --fb:'Plus Jakarta Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+      --r:16px;
+    }
+    [data-theme="light"] {
+      --bg:#faf8f3; --surface:#ffffff; --surface-2:#f3efe6; --surface-3:#ece7dc;
+      --border:rgba(20,18,12,0.08); --border-hi:rgba(20,18,12,0.16);
+      --text:#1a1a1f; --muted:#6a6b78;
+      --amber:#d97706; --amber-2:#b15808; --amber-dim:rgba(217,119,6,0.10); --amber-glow:rgba(217,119,6,0.28);
+      --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10);
+      --green:#16a34a; --green-dim:rgba(22,163,74,0.10);
+      --purple:#7c3aed; --purple-dim:rgba(124,58,237,0.10);
+      --blue:#2563eb; --blue-dim:rgba(37,99,235,0.10);
+      --red:#dc2626; --red-dim:rgba(220,38,38,0.10);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+    body::before{content:'';position:fixed;top:-220px;right:-160px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,var(--amber-glow) 0%,transparent 60%);opacity:.45;pointer-events:none;z-index:0}
+    body::after{content:'';position:fixed;bottom:-220px;left:-140px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(62,207,207,0.13) 0%,transparent 60%);opacity:.5;pointer-events:none;z-index:0}
 
-.nav{position:sticky;top:0;z-index:50;background:rgba(8,11,20,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:18px}
-[data-theme="light"] .nav{background:rgba(250,248,243,0.85)}
-.nav .brand{font-family:var(--fh);font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
-.nav .brand .dot{color:var(--amber)}
-.nav .back{color:var(--muted);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px}
-.nav .back:hover{color:var(--text)}
+    /* ── SIDEBAR ── */
+    .sidebar-trigger{position:fixed;top:11px;left:14px;z-index:110;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .15s}
+    .sidebar-trigger:hover{background:var(--surface-3)}
+    .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:120;opacity:0;pointer-events:none;transition:opacity .2s}
+    .sidebar-overlay.open{opacity:1;pointer-events:auto}
+    .sidebar{position:fixed;top:0;left:-280px;bottom:0;width:280px;background:var(--surface);border-right:1px solid var(--border);z-index:130;transition:left .25s ease;display:flex;flex-direction:column}
+    .sidebar.open{left:0}
+    .sidebar-head{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
+    .sidebar-logo-img{width:28px;height:28px}
+    .sidebar-brand{font-family:var(--fh);font-weight:700;font-size:17px;flex:1}
+    .sidebar-close{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--muted);font-size:18px;display:flex;align-items:center;justify-content:center}
+    .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+    .sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;color:var(--muted);text-decoration:none;background:transparent;border:none;text-align:left;cursor:pointer;transition:background .12s,color .12s;font-family:var(--fb);width:100%}
+    .sidebar-link:hover{background:var(--surface-2);color:var(--text)}
+    .sidebar-link.active{background:var(--amber-dim);color:var(--amber);font-weight:600}
+    .sidebar-sep{height:1px;background:var(--border);margin:8px 12px}
+    .sidebar-logout{color:#f87171}
+    .sidebar-foot{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+    @media(max-width:767px){.sidebar.open{width:100%}}
 
-main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:40px 28px 80px}
+    main{position:relative;z-index:1;flex:1;max-width:1200px;width:100%;margin:0 auto;padding:72px clamp(20px,4vw,56px) 60px}
 
-.page-head{margin-bottom:32px}
-.crumbs{font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:8px}
-.crumbs a{color:var(--muted);text-decoration:none}
-.crumbs a:hover{color:var(--text)}
-h1{font-family:var(--fh);font-size:36px;font-weight:700;letter-spacing:-0.02em}
-h1 .accent{color:var(--amber)}
-.sub{color:var(--muted);font-size:14px;margin-top:6px;max-width:680px;line-height:1.55}
+    .page-head{margin-bottom:24px}
+    .crumbs{font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:8px}
+    .crumbs a{color:var(--muted);text-decoration:none}
+    .crumbs a:hover{color:var(--text)}
+    h1{font-family:var(--fh);font-size:36px;font-weight:700;letter-spacing:-0.02em}
+    h1 .accent{color:var(--amber)}
+    .sub{color:var(--muted);font-size:14px;margin-top:6px;max-width:680px;line-height:1.55}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:24px 0}
-.kpi{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden}
-.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
-.kpi-value{font-family:var(--fh);font-size:28px;font-weight:700;margin-top:8px;letter-spacing:-0.01em}
-.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--fm)}
-.kpi-green .kpi-value{color:var(--green)}
-.kpi-red .kpi-value{color:var(--red)}
-.kpi-teal .kpi-value{color:var(--teal)}
-.kpi-amber .kpi-value{color:var(--amber)}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:24px 0}
+    .kpi{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden}
+    .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+    .kpi-value{font-family:var(--fh);font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-0.01em;color:var(--text)}
+    .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--fm)}
+    .kpi-amber .kpi-value{color:var(--amber)}
+    .kpi-green .kpi-value{color:var(--green)}
+    .kpi-red .kpi-value{color:var(--red)}
 
-.tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:18px;width:fit-content}
-.tab{padding:9px 18px;background:transparent;border:none;color:var(--muted);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s}
-.tab:hover{color:var(--text)}
-.tab.active{background:var(--surface-2);color:var(--text)}
-.tab .count{background:var(--surface-3);color:var(--muted);font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
-.tab.active .count{background:var(--amber);color:#000}
-.tab.active.tab-recues .count{background:var(--teal);color:#000}
+    .tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:18px;width:fit-content}
+    .tab{padding:9px 18px;background:transparent;border:none;color:var(--muted);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s}
+    .tab:hover{color:var(--text)}
+    .tab.active{background:var(--surface-2);color:var(--text)}
+    .tab .count{background:var(--surface-3);color:var(--muted);font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
+    .tab.active .count{background:var(--amber);color:#000}
+    [data-theme="light"] .tab.active .count{color:#fff}
 
-.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface);border:1px solid var(--border-hi);color:var(--text);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;font-family:var(--fb);transition:all 0.15s}
-.btn:hover{background:var(--surface-2)}
-.btn-primary{background:var(--teal);border-color:var(--teal);color:#000}
-.btn-primary:hover{background:var(--teal);opacity:0.9}
-.btn-ghost{background:transparent;border:1px solid var(--border)}
-.btn:disabled{opacity:0.5;cursor:not-allowed}
-.search{flex:1;min-width:200px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:var(--fb)}
-.search:focus{outline:none;border-color:var(--amber)}
+    .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface);border:1px solid var(--border-hi);color:var(--text);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;font-family:var(--fb);transition:all 0.15s}
+    .btn:hover{background:var(--surface-2)}
+    .btn-primary{background:var(--amber);border-color:var(--amber);color:#080b14}
+    .btn-primary:hover{background:var(--amber-2);border-color:var(--amber-2)}
+    [data-theme="light"] .btn-primary{color:#fff}
+    .btn-ghost{background:transparent;border:1px solid var(--border)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .search{flex:1;min-width:200px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:var(--fb)}
+    .search:focus{outline:none;border-color:var(--amber)}
 
-.empty{text-align:center;padding:80px 20px;background:var(--surface);border:1px dashed var(--border-hi);border-radius:var(--r)}
-.empty-icon{font-size:48px;margin-bottom:16px}
-.empty-title{font-family:var(--fh);font-size:18px;font-weight:600;margin-bottom:6px}
-.empty-sub{color:var(--muted);font-size:13px;line-height:1.55;max-width:480px;margin:0 auto}
+    .empty{text-align:center;padding:80px 20px;background:var(--surface);border:1px dashed var(--border-hi);border-radius:var(--r)}
+    .empty-icon{font-size:48px;margin-bottom:16px}
+    .empty-title{font-family:var(--fh);font-size:18px;font-weight:600;margin-bottom:6px}
+    .empty-sub{color:var(--muted);font-size:13px;line-height:1.55;max-width:480px;margin:0 auto}
 
-.list{display:flex;flex-direction:column;gap:8px}
-.row{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
-.row:hover{border-color:var(--border-hi)}
-.row.unread{border-left:3px solid var(--teal)}
-.row.impaye{border-left:3px solid var(--amber)}
-.row-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:10px}
-.row-main{min-width:0}
-.row-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-meta{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-amount{font-family:var(--fh);font-size:15px;font-weight:700;white-space:nowrap}
-.row-amount.in{color:var(--green)}
-.row-amount.out{color:var(--red)}
-.row-date{font-size:12px;color:var(--muted);white-space:nowrap;font-family:var(--fm)}
-.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap}
-.badge-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
-.badge-pending{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
-.badge-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
-.badge-info{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,0.25)}
-.row-actions{display:flex;gap:6px}
-.icon-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:all 0.15s}
-.icon-btn:hover{background:var(--surface-3);border-color:var(--teal);color:var(--teal)}
-.icon-btn svg{width:16px;height:16px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .row{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
+    .row:hover{border-color:var(--border-hi)}
+    .row.unread{border-left:3px solid var(--amber)}
+    .row.impaye{border-left:3px solid var(--amber)}
+    .row-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:10px}
+    .row-main{min-width:0}
+    .row-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row-meta{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row-amount{font-family:var(--fh);font-size:15px;font-weight:700;white-space:nowrap}
+    .row-amount.in{color:var(--green)}
+    .row-amount.out{color:var(--red)}
+    .row-date{font-size:12px;color:var(--muted);white-space:nowrap;font-family:var(--fm)}
+    .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap}
+    .badge-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+    .badge-pending{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
+    .badge-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+    .badge-info{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
+    .row-actions{display:flex;gap:6px}
+    .icon-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:all 0.15s;text-decoration:none}
+    .icon-btn:hover{background:var(--surface-3);border-color:var(--amber);color:var(--amber)}
+    .icon-btn svg{width:16px;height:16px}
 
-.banner{padding:14px 16px;background:var(--amber-dim);border:1px solid rgba(245,167,66,0.25);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
-.banner a{color:var(--amber);font-weight:600;text-decoration:none}
+    .banner{padding:14px 16px;background:var(--amber-dim);border:1px solid rgba(245,167,66,0.25);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
+    .banner a{color:var(--amber);font-weight:600;text-decoration:none}
 
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 18px;background:var(--surface-2);border:1px solid var(--border-hi);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 18px;background:var(--surface-2);border:1px solid var(--border-hi);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:20px}
-.modal.open{display:flex}
-.modal-content{background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--r);max-width:900px;width:100%;max-height:90vh;display:flex;flex-direction:column}
-.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-family:var(--fh);font-weight:700;font-size:15px}
-.modal-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:4px 8px}
-.modal-body{flex:1;overflow:auto;padding:0}
-.modal-body iframe{width:100%;height:75vh;border:none;background:#fff}
+    .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.open{display:flex}
+    .modal-content{background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--r);max-width:900px;width:100%;max-height:90vh;display:flex;flex-direction:column}
+    .modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .modal-title{font-family:var(--fh);font-weight:700;font-size:15px}
+    .modal-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:4px 8px}
+    .modal-body{flex:1;overflow:auto;padding:0}
+    .modal-body iframe{width:100%;height:75vh;border:none;background:#fff}
 
-@media(max-width:720px){
-  main{padding:24px 16px 60px}
-  h1{font-size:28px}
-  .row{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:8px 12px}
-  .row-icon{grid-row:1/3}
-  .row-date{grid-column:3;grid-row:1}
-  .row-amount{grid-column:2;grid-row:2;text-align:left}
-  .row-actions{grid-column:3;grid-row:2;justify-content:flex-end}
-  .row .badge{display:none}
-}
-</style>
+    @media(max-width:720px){
+      main{padding:64px 16px 60px}
+      h1{font-size:28px}
+      .row{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:8px 12px}
+      .row-icon{grid-row:1/3}
+      .row-date{grid-column:3;grid-row:1}
+      .row-amount{grid-column:2;grid-row:2;text-align:left}
+      .row-actions{grid-column:3;grid-row:2;justify-content:flex-end}
+      .row .badge{display:none}
+    }
+  </style>
 </head>
 <body>
 
-<nav class="nav">
-  <a href="app.html" class="brand">Artio<span class="dot">.</span></a>
-  <a href="app.html" class="back">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    Retour
-  </a>
-</nav>
+<button class="sidebar-trigger" onclick="toggleSidebar()" aria-label="Menu">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <img src="artio-icon.png" alt="" class="sidebar-logo-img"/>
+    <span class="sidebar-brand">Artio</span>
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Fermer">×</button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="home.html" class="sidebar-link">🏠 Accueil</a>
+    <a href="app.html" class="sidebar-link">🎙 Créer</a>
+    <a href="dossiers.html" class="sidebar-link">📁 Dossiers</a>
+    <a href="rediger.html" class="sidebar-link">✉️ Rédiger</a>
+    <a href="clients.html" class="sidebar-link">👥 Clients</a>
+    <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
+    <a href="comptabilite.html" class="sidebar-link active">🧾 Comptabilité</a>
+    <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>
+  </nav>
+  <div class="sidebar-foot">
+    <a href="aide.html" class="sidebar-link">❔ Aide</a>
+    <a href="settings.html" class="sidebar-link">⚙️ Paramètres</a>
+    <div class="sidebar-sep" style="margin:4px 0;"></div>
+    <button class="sidebar-link sidebar-logout" onclick="doLogout()">↪ Déconnexion</button>
+  </div>
+</aside>
 
 <main>
   <div class="page-head">
-    <div class="crumbs"><a href="app.html">Artio</a> / Comptabilité</div>
+    <div class="crumbs"><a href="home.html">Artio</a> / Comptabilité</div>
     <h1>Comptabilité<span class="accent">.</span></h1>
     <div class="sub">Tous vos flux financiers en un seul endroit. Factures émises (revenus) et reçues (dépenses), avec votre solde net en temps réel.</div>
   </div>
@@ -163,7 +202,7 @@ h1 .accent{color:var(--amber)}
 
   <div class="toolbar">
     <input type="text" class="search" id="search" placeholder="Rechercher par numéro, client, fournisseur…" oninput="renderList()"/>
-    <button class="btn btn-primary" id="btn-action" onclick="doAction()"></button>
+    <button class="btn btn-primary" id="btn-action"></button>
   </div>
 
   <div id="content"></div>
@@ -214,13 +253,9 @@ function fmtEUR(n){
 
 function fmtDate(s){
   if(!s) return '—';
-  // Format FR DD/MM/YYYY
-  if(typeof s === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(s)){
-    return s;
-  }
-  try {
-    return new Date(s).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
-  } catch(e) { return s; }
+  if(typeof s === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  try { return new Date(s).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }); }
+  catch(e){ return s; }
 }
 
 function parseFrDate(s){
@@ -270,7 +305,6 @@ async function loadFacturesEmises(){
     });
   });
 
-  // Trier par date desc (paye en priorité date_paye, sinon date)
   out.sort((a,b) => {
     const da = parseFrDate(a.date_paye || a.date);
     const db = parseFrDate(b.date_paye || b.date);
@@ -295,7 +329,6 @@ function computeKPIs(){
   const mois = now.getMonth();
   const annee = now.getFullYear();
 
-  // CA encaissé du mois
   const caMois = facturesEmises
     .filter(f => f.paye)
     .filter(f => {
@@ -304,12 +337,10 @@ function computeKPIs(){
     })
     .reduce((s, f) => s + f.ttc, 0);
 
-  // Impayés
   const impayes = facturesEmises
     .filter(f => !f.paye)
     .reduce((s, f) => s + f.ttc, 0);
 
-  // Factures reçues du mois (= dépenses estimées, on n'a pas le montant en sandbox)
   const recuesMois = facturesRecues.length;
   const recuesNonLues = facturesRecues.filter(f => !f.lu).length;
 
@@ -318,7 +349,7 @@ function computeKPIs(){
 
 function renderKPIs(){
   const k = computeKPIs();
-  const html = `
+  document.getElementById('kpis').innerHTML = `
     <div class="kpi kpi-green">
       <div class="kpi-label">CA encaissé ce mois</div>
       <div class="kpi-value">${fmtEUR(k.caMois)}</div>
@@ -329,13 +360,11 @@ function renderKPIs(){
       <div class="kpi-value">${fmtEUR(k.impayes)}</div>
       <div class="kpi-sub">${facturesEmises.filter(f=>!f.paye).length} facture(s) en attente</div>
     </div>
-    <div class="kpi kpi-teal">
+    <div class="kpi kpi-amber">
       <div class="kpi-label">Reçues ce mois</div>
       <div class="kpi-value">${k.recuesMois}</div>
       <div class="kpi-sub">${k.recuesNonLues} non lue(s)</div>
-    </div>
-  `;
-  document.getElementById('kpis').innerHTML = html;
+    </div>`;
   document.getElementById('count-emises').textContent = facturesEmises.length;
   document.getElementById('count-recues').textContent = facturesRecues.length;
 }
@@ -360,10 +389,11 @@ function switchTab(tab){
   document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
   const btn = document.getElementById('btn-action');
   if(tab === 'emises'){
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nouvelle facture';
-    btn.onclick = () => window.location.href = 'app.html?action=new-facture';
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nouvelle facture';
+    btn.onclick = () => window.location.href = 'app.html';
+    btn.disabled = false;
   } else {
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synchroniser';
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synchroniser';
     btn.onclick = doSync;
     btn.disabled = !superpdpConnected;
   }
@@ -389,7 +419,7 @@ function renderList(){
         <div class="empty">
           <div class="empty-icon">📤</div>
           <div class="empty-title">${facturesEmises.length === 0 ? 'Aucune facture émise' : 'Aucun résultat'}</div>
-          <div class="empty-sub">${facturesEmises.length === 0 ? 'Créez votre première facture depuis l\'application.' : 'Essayez un autre terme de recherche.'}</div>
+          <div class="empty-sub">${facturesEmises.length === 0 ? "Créez votre première facture depuis l'application." : 'Essayez un autre terme de recherche.'}</div>
         </div>`;
       return;
     }
@@ -419,7 +449,6 @@ function renderList(){
     return;
   }
 
-  // Onglet reçues
   if(!superpdpConnected){
     el.innerHTML = `
       <div class="empty">
@@ -506,10 +535,6 @@ async function doSync(){
   btn.innerHTML = oldHTML;
 }
 
-function doAction(){
-  // Géré par switchTab qui assigne la fonction
-}
-
 function b64ToBlob(b64, type){
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
@@ -574,6 +599,14 @@ async function downloadFacture(flowId, name){
   }
 }
 
+async function doLogout(){
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open');}
+
 async function init(){
   const savedTheme = localStorage.getItem('artio-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -582,7 +615,6 @@ async function init(){
   if(!u){ window.location.href = 'login.html'; return; }
   user = u;
 
-  // Chargement parallèle
   const [emises, recues] = await Promise.all([
     loadFacturesEmises(),
     loadFacturesRecues(),
@@ -590,7 +622,6 @@ async function init(){
   facturesEmises = emises;
   facturesRecues = recues;
 
-  // Initial tab via URL ?tab=recues
   const params = new URLSearchParams(location.search);
   const tab = params.get('tab') === 'recues' ? 'recues' : 'emises';
 
