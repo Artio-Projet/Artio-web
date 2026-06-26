@@ -54,7 +54,7 @@
     [data-theme="light"] .icon-moon{display:none;}
 
     /* ── ARTIO TOPBAR ── */
-    .artio-nav{position:sticky;top:0;z-index:900;display:flex;align-items:center;padding:0 20px;height:60px;background:var(--bg);border-bottom:1px solid var(--border);gap:12px;}
+    .artio-nav{position:sticky;top:0;z-index:900;display:flex;align-items:center;padding:0 20px 0 66px;height:60px;background:var(--bg);border-bottom:1px solid var(--border);gap:12px;}
     .nav-logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--fh);font-size:20px;font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.02em;}
     .nav-logo img{width:28px;height:28px;border-radius:7px;}
     .theme-toggle{background:none;border:1px solid var(--border);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);margin-left:auto;}
@@ -129,6 +129,7 @@
 <button class="sidebar-trigger" onclick="toggleSidebar()" aria-label="Menu">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
+
 <div class="sidebar-overlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
   <div class="sidebar-head">
