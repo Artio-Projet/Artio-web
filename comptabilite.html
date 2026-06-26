@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="artio-icon.png"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Artio — Comptabilité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg:#080b14; --surface:#0e1220; --surface-2:#141829; --surface-3:#1a2035;
+  --border:rgba(255,255,255,0.07); --border-hi:rgba(255,255,255,0.13);
+  --text:#e2e5f1; --muted:#6b7494;
+  --amber:#f5a742; --amber-2:#e07a18; --amber-dim:rgba(245,167,66,0.12); --amber-glow:rgba(245,167,66,0.28);
+  --teal:#3ecfcf; --teal-dim:rgba(62,207,207,0.11);
+  --green:#4ade80; --green-dim:rgba(74,222,128,0.11);
+  --red:#f87171; --red-dim:rgba(248,113,113,0.10);
+  --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.11);
+  --fh:'Space Grotesk',sans-serif; --fb:'Plus Jakarta Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+  --r:16px;
+}
+[data-theme="light"] {
+  --bg:#faf8f3; --surface:#fff; --surface-2:#f3efe6; --surface-3:#ece7dc;
+  --border:rgba(20,18,12,0.08); --border-hi:rgba(20,18,12,0.16);
+  --text:#1a1a1f; --muted:#6a6b78;
+  --amber:#d97706; --teal:#0d9488; --green:#16a34a; --red:#dc2626; --purple:#7c3aed;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;top:-220px;right:-160px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,var(--amber-glow) 0%,transparent 60%);opacity:.45;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-220px;left:-140px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(62,207,207,0.13) 0%,transparent 60%);opacity:.5;pointer-events:none;z-index:0}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(8,11,20,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:18px}
+[data-theme="light"] .nav{background:rgba(250,248,243,0.85)}
+.nav .brand{font-family:var(--fh);font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
+.nav .brand .dot{color:var(--amber)}
+.nav .back{color:var(--muted);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.nav .back:hover{color:var(--text)}
+
+main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:40px 28px 80px}
+
+.page-head{margin-bottom:32px}
+.crumbs{font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:8px}
+.crumbs a{color:var(--muted);text-decoration:none}
+.crumbs a:hover{color:var(--text)}
+h1{font-family:var(--fh);font-size:36px;font-weight:700;letter-spacing:-0.02em}
+h1 .accent{color:var(--amber)}
+.sub{color:var(--muted);font-size:14px;margin-top:6px;max-width:680px;line-height:1.55}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:24px 0}
+.kpi{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.kpi-value{font-family:var(--fh);font-size:28px;font-weight:700;margin-top:8px;letter-spacing:-0.01em}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--fm)}
+.kpi-green .kpi-value{color:var(--green)}
+.kpi-red .kpi-value{color:var(--red)}
+.kpi-teal .kpi-value{color:var(--teal)}
+.kpi-amber .kpi-value{color:var(--amber)}
+
+.tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:18px;width:fit-content}
+.tab{padding:9px 18px;background:transparent;border:none;color:var(--muted);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--surface-2);color:var(--text)}
+.tab .count{background:var(--surface-3);color:var(--muted);font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
+.tab.active .count{background:var(--amber);color:#000}
+.tab.active.tab-recues .count{background:var(--teal);color:#000}
+
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface);border:1px solid var(--border-hi);color:var(--text);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;font-family:var(--fb);transition:all 0.15s}
+.btn:hover{background:var(--surface-2)}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#000}
+.btn-primary:hover{background:var(--teal);opacity:0.9}
+.btn-ghost{background:transparent;border:1px solid var(--border)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.search{flex:1;min-width:200px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:var(--fb)}
+.search:focus{outline:none;border-color:var(--amber)}
+
+.empty{text-align:center;padding:80px 20px;background:var(--surface);border:1px dashed var(--border-hi);border-radius:var(--r)}
+.empty-icon{font-size:48px;margin-bottom:16px}
+.empty-title{font-family:var(--fh);font-size:18px;font-weight:600;margin-bottom:6px}
+.empty-sub{color:var(--muted);font-size:13px;line-height:1.55;max-width:480px;margin:0 auto}
+
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
+.row:hover{border-color:var(--border-hi)}
+.row.unread{border-left:3px solid var(--teal)}
+.row.impaye{border-left:3px solid var(--amber)}
+.row-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:10px}
+.row-main{min-width:0}
+.row-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-meta{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-amount{font-family:var(--fh);font-size:15px;font-weight:700;white-space:nowrap}
+.row-amount.in{color:var(--green)}
+.row-amount.out{color:var(--red)}
+.row-date{font-size:12px;color:var(--muted);white-space:nowrap;font-family:var(--fm)}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap}
+.badge-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.badge-pending{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
+.badge-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+.badge-info{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,0.25)}
+.row-actions{display:flex;gap:6px}
+.icon-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:all 0.15s}
+.icon-btn:hover{background:var(--surface-3);border-color:var(--teal);color:var(--teal)}
+.icon-btn svg{width:16px;height:16px}
+
+.banner{padding:14px 16px;background:var(--amber-dim);border:1px solid rgba(245,167,66,0.25);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
+.banner a{color:var(--amber);font-weight:600;text-decoration:none}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 18px;background:var(--surface-2);border:1px solid var(--border-hi);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.modal-content{background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--r);max-width:900px;width:100%;max-height:90vh;display:flex;flex-direction:column}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--fh);font-weight:700;font-size:15px}
+.modal-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:4px 8px}
+.modal-body{flex:1;overflow:auto;padding:0}
+.modal-body iframe{width:100%;height:75vh;border:none;background:#fff}
+
+@media(max-width:720px){
+  main{padding:24px 16px 60px}
+  h1{font-size:28px}
+  .row{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:8px 12px}
+  .row-icon{grid-row:1/3}
+  .row-date{grid-column:3;grid-row:1}
+  .row-amount{grid-column:2;grid-row:2;text-align:left}
+  .row-actions{grid-column:3;grid-row:2;justify-content:flex-end}
+  .row .badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="app.html" class="brand">Artio<span class="dot">.</span></a>
+  <a href="app.html" class="back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Retour
+  </a>
+</nav>
+
+<main>
+  <div class="page-head">
+    <div class="crumbs"><a href="app.html">Artio</a> / Comptabilité</div>
+    <h1>Comptabilité<span class="accent">.</span></h1>
+    <div class="sub">Tous vos flux financiers en un seul endroit. Factures émises (revenus) et reçues (dépenses), avec votre solde net en temps réel.</div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tabs">
+    <button class="tab tab-emises active" id="tab-emises" onclick="switchTab('emises')">
+      <span>📤</span> Émises <span class="count" id="count-emises">0</span>
+    </button>
+    <button class="tab tab-recues" id="tab-recues" onclick="switchTab('recues')">
+      <span>📥</span> Reçues <span class="count" id="count-recues">0</span>
+    </button>
+  </div>
+
+  <div id="banner-superpdp"></div>
+
+  <div class="toolbar">
+    <input type="text" class="search" id="search" placeholder="Rechercher par numéro, client, fournisseur…" oninput="renderList()"/>
+    <button class="btn btn-primary" id="btn-action" onclick="doAction()"></button>
+  </div>
+
+  <div id="content"></div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div class="modal" id="pdf-modal" onclick="if(event.target===this)closePdfModal()">
+  <div class="modal-content">
+    <div class="modal-head">
+      <div class="modal-title" id="pdf-modal-title">Facture</div>
+      <button class="modal-close" onclick="closePdfModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="pdf-modal-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="plan-guard.js"></script>
+<script>
+const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+const FUNCTIONS_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let user = null;
+let currentTab = 'emises';
+let facturesEmises = [];
+let facturesRecues = [];
+let superpdpConnected = false;
+let syncing = false;
+
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+function fmtEUR(n){
+  return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:2 }).format(n||0);
+}
+
+function fmtDate(s){
+  if(!s) return '—';
+  // Format FR DD/MM/YYYY
+  if(typeof s === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(s)){
+    return s;
+  }
+  try {
+    return new Date(s).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+  } catch(e) { return s; }
+}
+
+function parseFrDate(s){
+  if(!s) return null;
+  const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+async function callInbox(action, extra = {}){
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(FUNCTIONS_URL + '/factpulse-inbox', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  return res.json();
+}
+
+async function loadFacturesEmises(){
+  const { data: dossiers, error } = await sb
+    .from('dossiers')
+    .select('id, nom, client, statut, documents')
+    .eq('user_id', user.id);
+  if(error){ console.error(error); return []; }
+
+  const out = [];
+  (dossiers||[]).forEach(dos => {
+    let docs = dos.documents;
+    if(typeof docs === 'string'){ try { docs = JSON.parse(docs); } catch(e){ docs = []; } }
+    (docs||[]).forEach(d => {
+      if(d.type !== 'facture') return;
+      out.push({
+        kind: 'emise',
+        dossier_id: dos.id,
+        dossier_nom: dos.nom,
+        client: dos.client || (d.client && d.client.nom) || '—',
+        docNumber: d.docNumber || d.numero,
+        date: d.date,
+        date_paye: d.date_paye,
+        ttc: parseFloat(d.ttc || 0),
+        paye: !!d.paye,
+        factpulse_id: d.factpulse_id || null,
+        doc: d,
+      });
+    });
+  });
+
+  // Trier par date desc (paye en priorité date_paye, sinon date)
+  out.sort((a,b) => {
+    const da = parseFrDate(a.date_paye || a.date);
+    const db = parseFrDate(b.date_paye || b.date);
+    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+  });
+
+  return out;
+}
+
+async function loadFacturesRecues(){
+  const data = await callInbox('list', { limit: 100 });
+  if(!data.success){
+    superpdpConnected = false;
+    return [];
+  }
+  superpdpConnected = !!data.connected;
+  return data.factures || [];
+}
+
+function computeKPIs(){
+  const now = new Date();
+  const mois = now.getMonth();
+  const annee = now.getFullYear();
+
+  // CA encaissé du mois
+  const caMois = facturesEmises
+    .filter(f => f.paye)
+    .filter(f => {
+      const d = parseFrDate(f.date_paye || f.date);
+      return d && d.getMonth() === mois && d.getFullYear() === annee;
+    })
+    .reduce((s, f) => s + f.ttc, 0);
+
+  // Impayés
+  const impayes = facturesEmises
+    .filter(f => !f.paye)
+    .reduce((s, f) => s + f.ttc, 0);
+
+  // Factures reçues du mois (= dépenses estimées, on n'a pas le montant en sandbox)
+  const recuesMois = facturesRecues.length;
+  const recuesNonLues = facturesRecues.filter(f => !f.lu).length;
+
+  return { caMois, impayes, recuesMois, recuesNonLues };
+}
+
+function renderKPIs(){
+  const k = computeKPIs();
+  const html = `
+    <div class="kpi kpi-green">
+      <div class="kpi-label">CA encaissé ce mois</div>
+      <div class="kpi-value">${fmtEUR(k.caMois)}</div>
+      <div class="kpi-sub">${facturesEmises.filter(f=>f.paye).length} facture(s) payée(s)</div>
+    </div>
+    <div class="kpi kpi-amber">
+      <div class="kpi-label">À encaisser</div>
+      <div class="kpi-value">${fmtEUR(k.impayes)}</div>
+      <div class="kpi-sub">${facturesEmises.filter(f=>!f.paye).length} facture(s) en attente</div>
+    </div>
+    <div class="kpi kpi-teal">
+      <div class="kpi-label">Reçues ce mois</div>
+      <div class="kpi-value">${k.recuesMois}</div>
+      <div class="kpi-sub">${k.recuesNonLues} non lue(s)</div>
+    </div>
+  `;
+  document.getElementById('kpis').innerHTML = html;
+  document.getElementById('count-emises').textContent = facturesEmises.length;
+  document.getElementById('count-recues').textContent = facturesRecues.length;
+}
+
+function renderBanner(){
+  const el = document.getElementById('banner-superpdp');
+  if(currentTab !== 'recues' || superpdpConnected){
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `
+    <div class="banner">
+      <div style="font-size:18px;">🔌</div>
+      <div style="flex:1;">SuperPDP non connecté. Connectez votre compte FactPulse pour recevoir automatiquement les factures de vos fournisseurs.</div>
+      <a href="settings.html?tab=facturation">Connecter →</a>
+    </div>`;
+}
+
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tab-emises').classList.toggle('active', tab === 'emises');
+  document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
+  const btn = document.getElementById('btn-action');
+  if(tab === 'emises'){
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nouvelle facture';
+    btn.onclick = () => window.location.href = 'app.html?action=new-facture';
+  } else {
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synchroniser';
+    btn.onclick = doSync;
+    btn.disabled = !superpdpConnected;
+  }
+  renderBanner();
+  renderList();
+}
+
+function renderList(){
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  const el = document.getElementById('content');
+
+  if(currentTab === 'emises'){
+    let list = facturesEmises;
+    if(q){
+      list = list.filter(f =>
+        (f.docNumber||'').toLowerCase().includes(q) ||
+        (f.client||'').toLowerCase().includes(q) ||
+        (f.dossier_nom||'').toLowerCase().includes(q)
+      );
+    }
+    if(list.length === 0){
+      el.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">📤</div>
+          <div class="empty-title">${facturesEmises.length === 0 ? 'Aucune facture émise' : 'Aucun résultat'}</div>
+          <div class="empty-sub">${facturesEmises.length === 0 ? 'Créez votre première facture depuis l\'application.' : 'Essayez un autre terme de recherche.'}</div>
+        </div>`;
+      return;
+    }
+    const html = list.map(f => {
+      const badge = f.paye
+        ? '<span class="badge badge-success">Payée</span>'
+        : '<span class="badge badge-pending">En attente</span>';
+      const fpBadge = f.factpulse_id ? '<span class="badge badge-info" title="Émise via FactPulse">⚡ E-invoice</span>' : '';
+      return `
+        <div class="row ${f.paye ? '' : 'impaye'}">
+          <div class="row-icon">📤</div>
+          <div class="row-main">
+            <div class="row-title">${esc(f.docNumber || '—')} · ${esc(f.client)}</div>
+            <div class="row-meta">${esc(f.dossier_nom || '')}${fpBadge ? ' · ' + fpBadge : ''}</div>
+          </div>
+          <div class="row-amount in">${fmtEUR(f.ttc)}</div>
+          <div class="row-date">${fmtDate(f.date_paye || f.date)}</div>
+          ${badge}
+          <div class="row-actions">
+            <a class="icon-btn" href="dossiers.html#${esc(f.dossier_id)}" title="Voir le dossier">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>`;
+    }).join('');
+    el.innerHTML = '<div class="list">' + html + '</div>';
+    return;
+  }
+
+  // Onglet reçues
+  if(!superpdpConnected){
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🔌</div>
+        <div class="empty-title">SuperPDP non connecté</div>
+        <div class="empty-sub">Pour recevoir vos factures fournisseurs dans Artio, connectez votre compte FactPulse SuperPDP depuis les paramètres.</div>
+        <div style="margin-top:20px;"><a href="settings.html?tab=facturation" class="btn btn-primary">Connecter SuperPDP</a></div>
+      </div>`;
+    return;
+  }
+  let list = facturesRecues;
+  if(q){
+    list = list.filter(f =>
+      (f.flow_name||'').toLowerCase().includes(q) ||
+      (f.flow_id||'').toLowerCase().includes(q)
+    );
+  }
+  if(list.length === 0){
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">${facturesRecues.length === 0 ? 'Aucune facture reçue' : 'Aucun résultat'}</div>
+        <div class="empty-sub">${facturesRecues.length === 0 ? 'Quand vos fournisseurs vous enverront des factures via leur PDP, elles apparaîtront ici. Cliquez sur Synchroniser pour vérifier.' : 'Essayez un autre terme de recherche.'}</div>
+      </div>`;
+    return;
+  }
+  const html = list.map(f => {
+    const name = f.flow_name || ('Facture ' + (f.flow_id||'').slice(0, 12));
+    const syntax = f.flow_syntax ? f.flow_syntax.toUpperCase() : '—';
+    const ack = f.ack_status || '';
+    let ackBadge = '<span class="badge badge-info">Reçue</span>';
+    if(ack){
+      const s = ack.toLowerCase();
+      if(s.includes('accept') || s==='ok') ackBadge = '<span class="badge badge-success">Acceptée</span>';
+      else if(s.includes('error') || s.includes('reject') || s.includes('refus')) ackBadge = '<span class="badge badge-error">' + esc(ack) + '</span>';
+      else if(s.includes('pending') || s.includes('wait')) ackBadge = '<span class="badge badge-pending">En attente</span>';
+      else ackBadge = '<span class="badge badge-info">' + esc(ack) + '</span>';
+    }
+    return `
+      <div class="row ${f.lu ? '' : 'unread'}">
+        <div class="row-icon">📥</div>
+        <div class="row-main">
+          <div class="row-title">${esc(name)}</div>
+          <div class="row-meta">${esc(syntax)} · ${esc(f.flow_id||'')}</div>
+        </div>
+        <div class="row-amount out">—</div>
+        <div class="row-date">${fmtDate(f.submitted_at)}</div>
+        ${ackBadge}
+        <div class="row-actions">
+          <button class="icon-btn" title="Aperçu" onclick="previewFacture('${esc(f.flow_id)}', '${esc(name).replace(/'/g,"\\'")}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="icon-btn" title="Télécharger" onclick="downloadFacture('${esc(f.flow_id)}', '${esc(name).replace(/'/g,"\\'")}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+  el.innerHTML = '<div class="list">' + html + '</div>';
+}
+
+async function doSync(){
+  if(syncing) return;
+  syncing = true;
+  const btn = document.getElementById('btn-action');
+  const oldHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Synchronisation…';
+  try {
+    const data = await callInbox('sync');
+    if(data.success){
+      toast('✅ ' + (data.message || 'Synchronisé'));
+      facturesRecues = await loadFacturesRecues();
+      renderKPIs();
+      renderList();
+    } else {
+      toast('❌ ' + (data.error || 'Erreur'));
+    }
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+  syncing = false;
+  btn.disabled = false;
+  btn.innerHTML = oldHTML;
+}
+
+function doAction(){
+  // Géré par switchTab qui assigne la fonction
+}
+
+function b64ToBlob(b64, type){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type });
+}
+
+async function previewFacture(flowId, name){
+  toast('⏳ Chargement…');
+  try {
+    const data = await callInbox('download', { flow_id: flowId });
+    if(!data.success || !data.pdf_b64){
+      toast('❌ ' + (data.error || 'Téléchargement impossible'));
+      return;
+    }
+    const blob = b64ToBlob(data.pdf_b64, 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    document.getElementById('pdf-modal-title').textContent = name;
+    document.getElementById('pdf-modal-frame').src = url;
+    document.getElementById('pdf-modal').classList.add('open');
+    const f = facturesRecues.find(x => x.flow_id === flowId);
+    if(f) f.lu = true;
+    renderKPIs();
+    renderList();
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+}
+
+function closePdfModal(){
+  const m = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-modal-frame');
+  try { URL.revokeObjectURL(frame.src); } catch(e) {}
+  frame.src = 'about:blank';
+  m.classList.remove('open');
+}
+
+async function downloadFacture(flowId, name){
+  toast('⏳ Téléchargement…');
+  try {
+    const data = await callInbox('download', { flow_id: flowId });
+    if(!data.success || !data.pdf_b64){
+      toast('❌ ' + (data.error || 'Téléchargement impossible'));
+      return;
+    }
+    const blob = b64ToBlob(data.pdf_b64, 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (name || 'facture').replace(/[^\w\-.]/g, '_') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('✅ Téléchargé');
+    const f = facturesRecues.find(x => x.flow_id === flowId);
+    if(f) f.lu = true;
+    renderKPIs();
+    renderList();
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+}
+
+async function init(){
+  const savedTheme = localStorage.getItem('artio-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  const { data: { user: u } } = await sb.auth.getUser();
+  if(!u){ window.location.href = 'login.html'; return; }
+  user = u;
+
+  // Chargement parallèle
+  const [emises, recues] = await Promise.all([
+    loadFacturesEmises(),
+    loadFacturesRecues(),
+  ]);
+  facturesEmises = emises;
+  facturesRecues = recues;
+
+  // Initial tab via URL ?tab=recues
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab') === 'recues' ? 'recues' : 'emises';
+
+  renderKPIs();
+  switchTab(tab);
+}
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closePdfModal(); });
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
