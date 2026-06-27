@@ -518,7 +518,27 @@ ${subject?`Sujet : ${subject}\n`:""}${msgRecu?`Message reçu du client :\n${msgR
 Réponds directement avec le texte de l'email (pas de markdown). Signe "${e.nom||""}".`;
     const { text, usage } = await callClaude(prompt, 900);
     logTokens("email_compose", usage);
-    S.composer.body = text;
+
+    // Extraire "Objet : …" du texte si le champ objet est vide
+    let finalText = text;
+    const subjectField = document.getElementById("cmp-subject");
+    const currentSubject = (subjectField?.value || S.composer.subject || "").trim();
+    if(!currentSubject){
+      // Chercher "Objet : …" ou "Objet: …" en début de ligne
+      const objMatch = finalText.match(/^(?:Objet|Subject)\s*:\s*(.+)$/mi);
+      if(objMatch){
+        const extractedSubject = objMatch[1].trim();
+        S.composer.subject = extractedSubject;
+        if(subjectField) subjectField.value = extractedSubject;
+        // Retirer la ligne objet + ligne vide suivante du corps
+        finalText = finalText.replace(/^(?:Objet|Subject)\s*:.*\n?/mi, "").trimStart();
+      }
+    } else {
+      // Objet déjà renseigné : retirer quand même la ligne "Objet:" du corps si l'IA l'a mis
+      finalText = finalText.replace(/^(?:Objet|Subject)\s*:.*\n?/mi, "").trimStart();
+    }
+
+    S.composer.body = finalText;
     const ta = document.getElementById("cmp-body");
     if(ta) ta.value = text;
   }catch(e){
