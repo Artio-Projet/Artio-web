@@ -106,7 +106,7 @@
       <div class="doc-title">Politique de Confidentialité</div>
       <div class="doc-meta">
         <span>Service Artio — monartio.fr</span>
-        <span>Version 2.2 — Juin 2026</span>
+        <span>Version 2.3 — 29 juin 2026</span>
       </div>
     </div>
 
@@ -156,9 +156,9 @@
       </div>
       <h3>2.6 Données issues de l'intégration Gmail (si activée)</h3>
       <ul>
-        <li>Accès en lecture aux emails (affichage dans Artio, sous consentement explicite)</li>
-        <li>Accès en écriture pour l'envoi d'emails depuis votre compte Gmail</li>
-        <li>Accès aux étiquettes Gmail pour les actions d'archivage, mise à la corbeille et marquage comme lu (déclenchées par l'Utilisateur depuis Artio). Aucune suppression définitive ni modification de paramètres du compte Gmail n'est possible.</li>
+        <li>Accès en écriture pour l'envoi d'emails depuis votre compte Gmail, uniquement sur action explicite de l'Utilisateur</li>
+        <li>Aucune lecture de la boîte de réception, aucun accès aux emails reçus, aucune action sur les étiquettes Gmail</li>
+        <li>Le scope utilisé est limité à <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">gmail.send</code> (scope sensible, non restreint au sens du CASA Google)</li>
         <li>Tokens d'accès OAuth 2.0 (stockés de manière sécurisée, révocables à tout moment)</li>
       </ul>
 
@@ -184,7 +184,7 @@
           <tr><td>Journaux de sécurité et détection de fraude</td><td>Intérêt légitime</td><td>1 an (courant), 3 ans (incidents)</td></tr>
           <tr><td>Statistiques d'amélioration du Service</td><td>Intérêt légitime</td><td>2 ans (données anonymisées)</td></tr>
           <tr><td>Communication sur mises à jour et offres</td><td>Consentement</td><td>Jusqu'au désabonnement</td></tr>
-          <tr><td>Intégration Gmail (envoi/lecture)</td><td>Consentement explicite OAuth</td><td>Révocable à tout moment</td></tr>
+          <tr><td>Intégration Gmail (envoi uniquement)</td><td>Consentement explicite OAuth</td><td>Révocable à tout moment</td></tr>
         </tbody>
       </table>
 
@@ -238,12 +238,11 @@
 
       <h2>7. Intégration Gmail — traitement spécifique</h2>
       <h3>7.1 Données accédées</h3>
-      <p>L'accès est strictement limité aux actions initiées par l'Utilisateur. Aucun parcours automatique de la boîte mail, aucune lecture en masse, aucune indexation systématique.</p>
+      <p>L'intégration Gmail d'Artio est limitée à l'<strong>envoi d'emails</strong> uniquement. Le scope OAuth utilisé est <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">gmail.send</code>. Artio n'accède pas à la boîte de réception, ne lit pas les emails reçus, et n'effectue aucune action sur les étiquettes ou dossiers Gmail.</p>
       <h3>7.2 Utilisation des données Gmail</h3>
-      <p>Les données Gmail sont utilisées exclusivement pour afficher les emails dans Artio, générer des réponses assistées par IA (sur demande explicite), et envoyer des emails validés. Elles ne sont <strong>pas</strong> utilisées à des fins publicitaires, partagées avec des tiers inutiles, ni utilisées pour entraîner des modèles d'IA.</p>
-      <p>Aucun accès humain aux emails n'est effectué par l'Éditeur, sauf nécessité technique exceptionnelle (incident de sécurité, débogage critique) et dans ce cas uniquement dans le strict minimum nécessaire, sans lecture du contenu des messages.</p>
+      <p>La connexion Gmail est utilisée exclusivement pour envoyer, au nom de l'Utilisateur, des emails rédigés ou générés dans l'interface Artio, sur validation explicite de l'Utilisateur. Le contenu des emails envoyés n'est pas stocké par Artio après envoi. Il n'est pas utilisé à des fins publicitaires, partagé avec des tiers, ni utilisé pour entraîner des modèles d'IA.</p>
       <h3>7.3 Conformité Google</h3>
-      <p>L'utilisation de l'API Gmail est conforme à la <strong>Google API Services User Data Policy</strong>, notamment la politique d'utilisation limitée (Limited Use Policy).</p>
+      <p>L'utilisation de l'API Gmail est conforme à la <strong>Google API Services User Data Policy</strong>, notamment la politique d'utilisation limitée (Limited Use Policy). Le scope <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">gmail.send</code> est classifié comme sensible (non restreint) par Google et ne requiert pas d'évaluation de sécurité CASA.</p>
 
       <h2>8. IA — traitement spécifique</h2>
       <h3>8.1 Données transmises à Anthropic</h3>
@@ -273,7 +272,7 @@
   </main>
 
   <footer>
-    <span>Politique de Confidentialité — Artio — Version 2.2 — Juin 2026</span>
+    <span>Politique de Confidentialité — Artio — Version 2.3 — 29 juin 2026</span>
   </footer>
   <script src="legal-footer.js"></script>
 <script>
