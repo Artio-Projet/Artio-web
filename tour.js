@@ -18,7 +18,6 @@
   // HELPERS — Sidebar ouverte/fermée pour les étapes "menu"
   // ═══════════════════════════════════════════════════════════
   function _openSidebar(){
-    if(window.innerWidth < 760) return;
     const sb = document.querySelector('.sidebar');
     const ov = document.querySelector('.sidebar-overlay');
     if(sb) sb.classList.add('open');
@@ -85,8 +84,8 @@
     },
     {
       page:"rediger",
-      title:"✉️ Rédiger — Gmail intégré",
-      desc:"Page dédiée aux emails clients, avec deux onglets :<br><br>• <strong>Messagerie</strong> (par défaut) — ta boîte Gmail s'affiche directement dans Artio. Tu peux lire et répondre sans quitter l'app.<br>• <strong>Composer</strong> — tu colles le message reçu, choisis le ton (Vouvoiement, Chaleureux, Ferme…) et l'IA rédige la réponse pour toi.<br><br>Nécessite la connexion Gmail dans <strong>Paramètres</strong>.",
+      title:"✉️ Rédiger — le compositeur IA",
+      desc:"Tu colles le message reçu d'un client, tu choisis le ton (<strong>Vouvoiement, Tutoiement, Chaleureux, Formel, Concis, Ferme…</strong>) et l'IA rédige la réponse pour toi.<br><br>Tu peux aussi décrire ta demande en langage naturel et l'IA produit un email complet, signé avec tes coordonnées.<br><br>L'envoi se fait directement depuis Artio si tu as connecté Gmail dans <strong>Paramètres</strong>.",
       target:null, pos:"center"
     },
     {
@@ -351,13 +350,18 @@
 
   function _esc(s){ return String(s == null ? '' : s); }
 
-  function _scrollTargetIntoView(rect, pos){
+  function _scrollTargetIntoView(rect, pos, isMobile){
     const vh = window.innerHeight;
-    const margin = 90;
+    // Sur mobile, on réserve davantage de place pour la card (qui peut faire ~50% de l'écran).
+    // pos:'top' = card AU-DESSUS de la cible → on veut la cible en bas → marge = haut du viewport
+    // pos:'bottom' = card EN DESSOUS de la cible → on veut la cible en haut
+    const margin = isMobile ? Math.round(vh * 0.45) : 90;
     let delta = 0;
     if(pos === 'bottom'){
-      delta = rect.top - margin;
+      // Cible doit être suffisamment haut pour laisser la place à la card dessous
+      delta = rect.top - 90;
     } else if(pos === 'top'){
+      // Cible doit être suffisamment bas pour laisser la place à la card dessus
       delta = rect.bottom - (vh - margin);
     } else if(pos === 'right' || pos === 'left'){
       delta = rect.top + rect.height / 2 - vh / 2;
@@ -396,16 +400,26 @@
     const useUnion = (allTargets && allTargets.length > 1);
     let anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
 
-    _scrollTargetIntoView(anchorRect, pos);
+    const vwInit = window.innerWidth;
+    const isMobile = vwInit < 760;
+
+    // ── Mobile : on ne tente jamais le placement right/left (trop étroit).
+    //    On bascule vers top/bottom selon l'espace dispo, et on garde le spotlight.
+    if(isMobile && (pos === 'right' || pos === 'left')){
+      const vhPre = window.innerHeight;
+      pos = (anchorRect.top + anchorRect.height / 2) < vhPre / 2 ? 'bottom' : 'top';
+    }
+
+    _scrollTargetIntoView(anchorRect, pos, isMobile);
 
     anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
     _showSpotlight(anchorRect);
 
     const rect = anchorRect;
     const vw = window.innerWidth, vh = window.innerHeight;
-    const cw = 340;
+    const cw = Math.min(340, vw - 24);
     const ch = card.offsetHeight || 260;
-    const gap = 24;
+    const gap = isMobile ? 16 : 24;
     card.style.transform = '';
     card.style.position = 'fixed';
 
