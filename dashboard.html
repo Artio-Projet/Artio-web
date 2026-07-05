@@ -381,7 +381,6 @@ body::after {
     <a href="rediger.html" class="sidebar-link">✉️ Rediger</a>
     <a href="clients.html" class="sidebar-link">👥 Clients</a>
     <a href="dashboard.html" class="sidebar-link active">📊 Tableau de bord</a>
-    <a href="comptabilite.html" class="sidebar-link">🧾 Comptabilité</a>
     <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>  </nav>
   <div class="sidebar-foot">
     <a href="aide.html" class="sidebar-link">❔ Aide</a>
@@ -463,12 +462,17 @@ function buildBars(caParMois, now) {
   } else if (chartFilter === "annee") {
     for (let i=0; i<12; i++) { const k=now.getFullYear()+"-"+i; bars.push({label:MOIS[i], val:caParMois[k]||0}); }
   } else if (chartFilter === "custom" && chartFrom && chartTo) {
-    const from = new Date(chartFrom), to = new Date(chartTo);
+    let from = new Date(chartFrom);
+    const to = new Date(chartTo);
+    const minAllowed = new Date(chartMinFrom());
+    if (from < minAllowed) from = minAllowed;
     let cur = new Date(from.getFullYear(), from.getMonth(), 1);
-    while (cur <= to) {
+    let count = 0;
+    while (cur <= to && count < CHART_CUSTOM_MAX_MONTHS) {
       const k = cur.getFullYear()+"-"+cur.getMonth();
       bars.push({label:MOIS[cur.getMonth()]+" "+String(cur.getFullYear()).slice(2), val:caParMois[k]||0});
       cur.setMonth(cur.getMonth()+1);
+      count++;
     }
   }
   return bars;
@@ -613,6 +617,29 @@ window.setKpiFilter = function(type) {
 
 window.setChartFilter = function(type) {
   chartFilter = type;
+  render();
+};
+
+const CHART_CUSTOM_MAX_MONTHS = 24;
+function chartMinFrom() {
+  const now = new Date();
+  const byMaxMonths = new Date(now.getFullYear(), now.getMonth() - (CHART_CUSTOM_MAX_MONTHS - 1), 1);
+  const accountCreated = user?.created_at ? new Date(user.created_at) : null;
+  const floor = accountCreated && accountCreated > byMaxMonths
+    ? new Date(accountCreated.getFullYear(), accountCreated.getMonth(), 1)
+    : byMaxMonths;
+  return floor.toISOString().slice(0, 10);
+}
+window.setChartFrom = function(v) {
+  chartFrom = v;
+  const min = chartMinFrom();
+  if (chartFrom < min) { chartFrom = min; showToast("Plage limitée à 24 mois / création du compte"); }
+  render();
+};
+window.setChartTo = function(v) {
+  chartTo = v;
+  const min = chartMinFrom();
+  if (chartFrom && chartFrom < min) { chartFrom = min; showToast("Plage limitée à 24 mois / création du compte"); }
   render();
 };
 
@@ -1021,10 +1048,11 @@ function render() {
             <button class="${chartFilter==='custom'?'on':''}" onclick="setChartFilter('custom')">Custom</button>
           </div>
         </div>
-        ${chartFilter === "custom" ? `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
-          <input type="date" class="date-input" value="${chartFrom}" onchange="chartFrom=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+        ${chartFilter === "custom" ? `<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+          <input type="date" class="date-input" value="${chartFrom}" onchange="setChartFrom(this.value)" max="${new Date().toISOString().slice(0,10)}" min="${chartMinFrom()}"/>
           <span class="date-sep">→</span>
-          <input type="date" class="date-input" value="${chartTo}" onchange="chartTo=this.value;render()" max="${new Date().toISOString().slice(0,10)}"/>
+          <input type="date" class="date-input" value="${chartTo}" onchange="setChartTo(this.value)" max="${new Date().toISOString().slice(0,10)}"/>
+          <span style="font-size:11px;color:var(--muted);">24 mois max</span>
         </div>` : ""}
         <div class="bar-chart">${bars}</div>
       </div>
