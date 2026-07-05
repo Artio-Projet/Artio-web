@@ -214,7 +214,6 @@ button{font-family:var(--fb);cursor:pointer}
     <a href="rediger.html" class="sidebar-link" data-route="rediger">✉️ Rédiger</a>
     <a href="clients.html" class="sidebar-link" data-route="clients">👥 Clients</a>
     <a href="dashboard.html" class="sidebar-link" data-route="dashboard">📊 Tableau de bord</a>
-    <a href="comptabilite.html" class="sidebar-link" data-route="comptabilite">🧾 Comptabilité</a>
     <a href="calendar.html" class="sidebar-link" data-route="calendar">📅 Calendrier</a>
   </nav>
   <div class="sidebar-foot">
@@ -516,7 +515,16 @@ window.emettreFacture=async function(dosId,docNum,opts){
     return;
   }
   if(!S.entreprise?.siret){if(!silent)showToast("⚠️ SIRET manquant dans ton profil — va dans Paramètres.");return;}
-  let clientSiret=(doc.client?.siret||"").replace(/\s/g,"");
+  // Fallback : le SIRET peut avoir été ajouté/modifié sur la fiche client APRÈS
+  // la création du devis — dans ce cas doc.client.siret est un snapshot périmé.
+  // On retombe sur la fiche client vivante avant de considérer que le SIRET manque.
+  const liveClient=S.clients.find(c=>c.nom===dos.client);
+  let clientSiret=(doc.client?.siret||liveClient?.siret||"").replace(/\s/g,"");
+  if(clientSiret&&!doc.client?.siret){
+    // On persiste le SIRET retrouvé sur le document pour que le snapshot reste cohérent.
+    doc.client=doc.client||{};doc.client.siret=clientSiret;
+    try{await upsertDossier(dos);}catch(e){console.warn("Sync SIRET doc:",e);}
+  }
   if(!clientSiret){if(silent)return;set({showSiretModal:{dosId,docNum}});return;}
   set({emettreId:docNum});
   try{
@@ -719,9 +727,7 @@ function renderDossierCard(dos){
           ${S.deleteConfirm===doc.docNumber?`<button class="btn-small btn-red" onclick="confirmDeleteDoc('${dos.id}','${doc.docNumber}')">Confirmer</button><button class="btn-small" onclick="set({deleteConfirm:null})">Annuler</button>`:`<button class="btn-small" style="color:#A32D2D;border-color:#F09595;" onclick="set({deleteConfirm:'${doc.docNumber}'})">🗑</button>`}
         </div>
       </div>
-      ${S.previewDocNum===doc.docNumber
-        ?`<div style="background:var(--surface-2);border-radius:8px;border:1px solid var(--border);overflow:hidden;"><div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);"><span style="font-size:11px;font-weight:600;color:var(--muted);">Aperçu</span><button class="btn-small" style="font-size:11px;padding:2px 10px;" onclick="set({previewDocNum:null})">✕ Fermer</button></div><div style="padding:1rem;">${renderDocPreview(doc)}</div></div>`
-        :`<button class="btn-small" style="font-size:11px;" onclick="set({previewDocNum:'${doc.docNumber}'})">👁 Aperçu</button>`}
+      <button class="btn-small" style="font-size:11px;" onclick="set({previewDocNum:{dosId:'${dos.id}',docNum:'${doc.docNumber}'}})">👁 Aperçu</button>
     </div>`;
   }).join("");
   return`<div class="dossier-card" data-dos-id="${dos.id}"${needsRelance?' style="border-left:3px solid #FFB74D;"':''}><div class="dossier-header" onclick="toggleDossier('${dos.id}')"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;"><span class="badge" style="background:${st.bg};color:${st.color};">${st.label}</span>${needsRelance?'<span style="font-size:10px;background:#FFF3E0;color:#E65100;padding:2px 6px;border-radius:4px;">📩 À relancer</span>':'' }<span style="font-size:13px;font-weight:500;">${esc(dos.nom)}</span></div><p style="font-size:12px;color:#888;">${(dos.documents||[]).length} document${(dos.documents||[]).length>1?"s":""} · ${dos.createdAt||""}</p></div><div style="display:flex;align-items:center;gap:8px;margin-left:12px;">${dos.statut!=="termine"?`<button class="btn-small btn-teal" onclick="event.stopPropagation();markTermine('${dos.id}')">✓ Clôturer</button>`:""} ${S.renamingDossierId===dos.id?`<input value="${esc(S.renamingDossierVal)}" onclick="event.stopPropagation()" oninput="S.renamingDossierVal=this.value" onkeydown="if(event.key==='Enter')renameDossier('${dos.id}')" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #378ADD;width:150px;"/><button class="btn-small btn-blue" onclick="event.stopPropagation();renameDossier('${dos.id}')">OK</button><button class="btn-small" onclick="event.stopPropagation();set({renamingDossierId:null})">✕</button>`:`<button class="btn-small" onclick="event.stopPropagation();startRename('${dos.id}')">✏</button>`}<button class="btn-small" onclick="event.stopPropagation();if(window.confirm('Supprimer ce dossier définitivement ?'))confirmDeleteDossier('${dos.id}')" style="color:#A32D2D;border-color:#F09595;">🗑</button></div></div>${isOpen?`<div style="padding:12px;border-top:0.5px solid var(--border);">${docsHTML}</div>`:""}</div>`;
@@ -1137,6 +1143,15 @@ function renderModals(){
   if(S.showMiseEnDemeureModal){
     const {dosId,docNum}=S.showMiseEnDemeureModal;
     m+=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)set({showMiseEnDemeureModal:null})"><div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:420px;max-width:100%;box-shadow:0 24px 64px rgba(0,0,0,.4);"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="width:40px;height:40px;border-radius:10px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⚖️</div><div><p style="font-size:16px;font-weight:700;color:var(--text);margin:0;">Envoyer une mise en demeure</p><p style="font-size:12px;color:var(--muted);margin:2px 0 0;">Facture ${docNum}</p></div></div><div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:10px;padding:14px;margin-bottom:20px;"><p style="font-size:13px;color:#dc2626;line-height:1.6;margin:0;"><strong>Cette action est irréversible.</strong><br>Artio va générer une lettre de mise en demeure formelle et l'ouvrir dans l'éditeur pour que vous puissiez la relire avant envoi.</p></div><p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 20px;">La lettre mentionnera les pénalités de retard légales et accordera un délai de 8 jours au client pour régulariser.</p><div style="display:flex;gap:10px;"><button onclick="set({showMiseEnDemeureModal:null})" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:14px;">Annuler</button><button onclick="genererMiseEnDemeure('${dosId}','${docNum}')" style="flex:1.4;padding:12px;border-radius:10px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-size:14px;font-weight:700;">⚖️ Générer la lettre</button></div></div></div>`;
+  }
+  if(S.previewDocNum){
+    const{dosId,docNum}=S.previewDocNum;
+    const dos=S.dossiers.find(d=>d.id===dosId);
+    const doc=dos&&dos.documents.find(d=>d.docNumber===docNum);
+    if(!doc){set({previewDocNum:null});}
+    else{
+      m+=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)set({previewDocNum:null})"><div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:640px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.4);"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;"><p style="font-size:14px;font-weight:700;margin:0;">${doc.type==="devis"?"📄 Aperçu du devis":"🧾 Aperçu de la facture"} — ${docNum}</p><button class="btn-small" onclick="set({previewDocNum:null})">✕ Fermer</button></div><div style="padding:20px;overflow-y:auto;">${renderDocPreview(doc)}</div><div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;"><button onclick="set({previewDocNum:null})" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:14px;">Fermer</button><button onclick="downloadPDF('${docNum}')" style="flex:1.4;padding:11px;border-radius:10px;background:var(--amber);color:#080b14;border:none;cursor:pointer;font-size:14px;font-weight:700;">📄 Télécharger le PDF</button></div></div></div>`;
+    }
   }
   if(m){const div=document.createElement("div");div.id="modals-root";div.innerHTML=m;const old=document.getElementById("modals-root");if(old)old.replaceWith(div);else document.body.appendChild(div);}
   else{const old=document.getElementById("modals-root");if(old)old.remove();}
