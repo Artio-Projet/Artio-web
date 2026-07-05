@@ -864,7 +864,7 @@ const ANSWERS = {
   "signature": "La signature électronique s'active depuis un devis généré : cliquez sur ✍️ Signature. Un lien sécurisé est envoyé au client, valable 72h. Le client reçoit un code OTP par email pour s'authentifier avant de signer.",
   "connexion": "Si vous ne pouvez pas vous connecter, vérifiez d'abord votre email de confirmation. Vous pouvez aussi réinitialiser votre mot de passe depuis la page de connexion.",
   "facturation": "Artio est **Solution Compatible** avec la réforme DGFiP 2026. La facturation électronique Pro se configure dans Paramètres → Mon entreprise → Token FactPulse.",
-  "gmail": "Pour connecter Gmail : allez dans Paramètres → Gmail → entrez votre Google Client ID OAuth 2.0. Un guide complet est disponible dans la documentation.",
+  "gmail": "Pour connecter Gmail : allez dans Paramètres → Gmail → cliquez sur \"Connecter Gmail\" et autorisez l'accès depuis Google. Un guide complet est disponible dans la documentation.",
 };
 
 function getAnswer(msg) {
@@ -1107,24 +1107,22 @@ const ARTICLE_CONTENT = {
     title: '📬 Connexion Gmail & Calendrier',
     body: `
       <h2>Deux intégrations Google en une</h2>
-      <p>La connexion Google relie Artio à votre compte Gmail pour deux usages distincts : la <strong>lecture de vos emails</strong> et la <strong>synchronisation avec votre agenda</strong>. Fonctionnalité <strong>réservée au plan Pro</strong>.</p>
+      <p>La connexion Google relie Artio à votre compte Gmail pour <strong>l'envoi d'emails</strong> depuis l'onglet Rédiger et la <strong>synchronisation avec votre agenda</strong>. Fonctionnalité <strong>réservée au plan Pro</strong>.</p>
 
       <h2>Connecter Gmail</h2>
-      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Allez dans Paramètres → Gmail</strong><span>Ou cliquez sur l'onglet "Messagerie" dans l'Application.</span></div></div>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Allez dans Paramètres → Gmail</strong></div></div>
       <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Cliquez "Connecter Gmail"</strong><span>Vous êtes redirigé vers Google pour autoriser Artio.</span></div></div>
       <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Autorisez l'accès</strong><span>Une seule connexion suffit pour activer les deux fonctionnalités.</span></div></div>
 
-      <h2>📧 Messagerie — Lire & répondre</h2>
-      <p>Depuis l'onglet <strong>Messagerie</strong> dans l'Application, consultez vos emails non lus directement dans Artio sans changer d'onglet. Cliquez sur un email pour voir son contenu et générer une réponse IA en un clic.</p>
-
-      <h2>✍️ Rédiger une réponse avec l'IA</h2>
-      <p>Depuis l'onglet <strong>Rédiger</strong>, collez le message reçu. Choisissez le ton (vouvoiement, amical, ferme…) et l'IA rédige une réponse professionnelle adaptée à votre activité.</p>
+      <h2>✍️ Rédiger un email avec l'IA et l'envoyer</h2>
+      <p>Depuis l'onglet <strong>Rédiger</strong>, collez le message reçu si c'est une réponse, choisissez le ton (vouvoiement, amical, ferme…) et laissez l'IA rédiger un email professionnel adapté à votre activité. Une fois satisfait, envoyez-le directement depuis votre boîte Gmail connectée, sans changer d'onglet.</p>
+      <p style="color:var(--muted);font-size:13px;">Artio n'a accès qu'à l'<strong>envoi</strong> — il ne lit jamais le contenu de votre boîte de réception.</p>
 
       <h2>📅 Calendrier — Synchronisation Google</h2>
       <p>Votre calendrier Artio et votre <strong>Google Agenda</strong> sont liés. Les rendez-vous créés dans Artio apparaissent dans votre Google Agenda et inversement. Plus besoin de jongler entre deux agendas.</p>
 
       <div class="article-tip"><strong>💡 Conseil :</strong> Remplissez le champ "Contexte IA" dans Paramètres pour que les réponses générées soient encore mieux adaptées à votre activité.</div>
-      <div class="article-warn"><strong>⚠ Session :</strong> La connexion Google expire périodiquement. Reconnectez depuis Paramètres → Gmail si la Messagerie ne charge plus.</div>`
+      <div class="article-warn"><strong>⚠ Session :</strong> La connexion Google expire périodiquement. Reconnectez depuis Paramètres → Gmail si l'envoi ne fonctionne plus.</div>`
   },
   'tableau-bord': {
     title: '📊 Tableau de bord & KPIs',
