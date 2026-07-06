@@ -131,35 +131,6 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.3);
     }
 
-    /* ── LANG SELECTOR ── */
-    .lang-row {
-      display: flex; justify-content: flex-end; margin-bottom: 20px;
-      position: relative;
-    }
-    .lang-trigger {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 12px;
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      cursor: pointer; font-family: var(--fb); transition: border-color .2s;
-    }
-    .lang-trigger:hover { border-color: var(--border-hi); color: var(--text); }
-    .lang-drop {
-      display: none; position: absolute; top: calc(100% + 6px); right: 0;
-      background: var(--surface); border: 1px solid var(--border-hi);
-      border-radius: 12px; overflow: hidden; z-index: 50; min-width: 160px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.5);
-    }
-    .lang-drop.open { display: block; }
-    .lang-opt {
-      display: block; width: 100%; text-align: left;
-      padding: 10px 14px; border: none; background: transparent;
-      color: var(--muted); cursor: pointer; font-size: 13px; font-family: var(--fb);
-      transition: background .15s, color .15s;
-    }
-    .lang-opt:hover { background: var(--surface-2); color: var(--text); }
-    .lang-opt.active { color: var(--amber); background: var(--amber-dim); }
-
     /* ── FORM ── */
     .field { margin-bottom: 16px; }
     .field-label {
@@ -288,12 +259,7 @@ let S = {
   loading: false,
   error: '',
   success: '',
-  lang: localStorage.getItem('artio_langue') || 'fr',
-  langOpen: false,
 };
-
-const FLAGS = { fr:'🇫🇷', en:'🇬🇧', es:'🇪🇸', zh:'🇨🇳' };
-const LANGS = { fr:'Français', en:'English', es:'Español', zh:'中文' };
 
 const LABELS = {
   subtitle:       { fr:"Votre admin, pilotée par la voix",          en:"Your admin, powered by voice",              es:"Tu admin, controlada por voz",          zh:"语音驱动的行政管理" },
@@ -324,17 +290,12 @@ const LABELS = {
 };
 
 function L(key) {
-  return (LABELS[key] || {})[S.lang] || (LABELS[key] || {}).fr || key;
+  const v = LABELS[key];
+  if (!v) return key;
+  return typeof v === 'string' ? v : (v.fr || key);
 }
 
 function set(patch) { Object.assign(S, patch); render(); }
-
-function setLang(code) {
-  S.lang = code;
-  S.langOpen = false;
-  localStorage.setItem('artio_langue', code);
-  render();
-}
 
 /* ── PASSWORD VALIDATION ── */
 function validatePassword(pass) {
@@ -378,18 +339,6 @@ async function handleForgot() {
 /* ── RENDER ── */
 function render() {
   const root = document.getElementById('root');
-  const langMenu = `
-    <div class="lang-row">
-      <button class="lang-trigger" onclick="set({langOpen:!S.langOpen})">
-        ${FLAGS[S.lang]} ${LANGS[S.lang]}
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="lang-drop ${S.langOpen ? 'open' : ''}">
-        ${Object.entries(LANGS).map(([code, name]) => `
-          <button class="lang-opt ${S.lang === code ? 'active' : ''}" onclick="setLang('${code}')">${FLAGS[code]} ${name}</button>
-        `).join('')}
-      </div>
-    </div>`;
 
   if (S.view === 'forgot') {
     root.innerHTML = `
@@ -398,7 +347,7 @@ function render() {
         <p class="auth-tagline">${L('subtitle')}</p>
       </div>
       <div class="auth-card">
-        ${langMenu}
+
         <div style="margin-bottom:20px">
           <div style="font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:6px">${L('forgot_title')}</div>
           <div style="font-size:13px;color:var(--muted);line-height:1.65">${L('forgot_sub')}</div>
@@ -447,7 +396,7 @@ function render() {
       <p class="auth-tagline">${L('subtitle')}</p>
     </div>
     <div class="auth-card">
-      ${langMenu}
+
       <div class="auth-tabs">
         <button class="auth-tab ${S.tab === 'login' ? 'active' : ''}" onclick="set({tab:'login',error:'',success:''})">${L('tab_login')}</button>
         <button class="auth-tab ${S.tab === 'register' ? 'active' : ''}" onclick="set({tab:'register',error:'',success:''})">${L('tab_register')}</button>
@@ -482,12 +431,6 @@ function render() {
 }
 
 /* ── INIT ── */
-document.addEventListener('click', (e) => {
-  if (S.langOpen && !e.target.closest('.lang-row')) {
-    S.langOpen = false;
-    render();
-  }
-});
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
