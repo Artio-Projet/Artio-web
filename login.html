@@ -283,7 +283,7 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let S = {
-  tab: 'login',          // 'login' | 'register'
+  tab: (new URLSearchParams(location.search).get('tab') === 'register') ? 'register' : 'login',          // 'login' | 'register'
   view: 'auth',          // 'auth' | 'forgot' | 'forgot_sent'
   loading: false,
   error: '',
