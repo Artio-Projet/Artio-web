@@ -119,6 +119,12 @@
       target:null, pos:"center"
     },
     {
+      page:"settings",
+      title:"🏛️ Facturation électronique",
+      desc:"Artio est <strong>Solution Compatible DGFiP</strong> via <strong>FactPulse</strong>, une plateforme agréée. Active-la ici pour émettre tes factures au format électronique (offre <strong>Pro</strong>).<br><br><strong>⚠ Démarche obligatoire :</strong> tu dois <strong>déclarer FactPulse comme ta plateforme</strong> dans l'annuaire du <strong>Portail Public de Facturation</strong> sur <strong>impots.gouv.fr</strong>. Cette déclaration se fait entreprise par entreprise, avec ton SIRET — Artio ne peut pas la faire à ta place.<br><br>Retrouve la démarche complète dans <strong>Aide → Réforme facturation électronique 2026</strong>.",
+      target:null, pos:"center"
+    },
+    {
       page:"home",
       title:"🎉 Tu es prêt !",
       desc:"Bravo, tu as fait le tour complet d'Artio.<br><br>Retrouve ce tutoriel à tout moment depuis la page <strong style=\"color:var(--amber)\">Aide</strong>.<br><br><small style=\"color:var(--muted)\">La création de documents et l'IA nécessitent un abonnement Solo ou Pro.</small>",
