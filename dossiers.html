@@ -9,7 +9,7 @@
   <title>Artio — Dossiers</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="plan-guard.js?v=1"></script>
-  <script src="tour.js?v=1"></script>
+  <script src="tour.js?v=3"></script>
   <script>const PAGE_PLAN_REQUIRED = "solo";</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1292,6 +1292,6 @@ function closeSidebar(){document.querySelector(".sidebar").classList.remove("ope
 function toggleTheme(){const cur=document.documentElement.getAttribute("data-theme")||"dark";const next=cur==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("artio-theme",next);}catch(e){}}
 async function handleLogout(){await sb.auth.signOut();location.href="login.html";}
 </script>
-<script src="chat-widget.js?v=1"></script>
+<script src="chat-widget.js?v=2"></script>
 </body>
 </html>

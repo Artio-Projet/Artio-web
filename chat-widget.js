@@ -33,7 +33,7 @@ Artio permet de :
 == PLANS ET TARIFS ==
 - Gratuit : accès limité, consultation de l'historique uniquement
 - Solo : 19 €/mois ou 190 €/an — création de devis, factures, clients, calendrier
-- Pro : 39 €/mois ou 390 €/an — tout Solo + signature électronique, messagerie Gmail, relances IA, rappels de paiement IA, branding PDF, templates sauvegardés
+- Pro : 39 €/mois ou 390 €/an — tout Solo + signature électronique, envoi d'emails Gmail via Rédiger, relances IA, rappels de paiement IA, branding PDF, templates sauvegardés, facturation électronique via FactPulse
 - Offre Fondateurs (lancement) : Solo 14 €/mois / 140 €/an — Pro 29 €/mois / 290 €/an — tarif figé à vie, essai 62 jours, 2 mois offerts sur l'annuel
 - Paiement par carte bancaire via Stripe. Résiliation à tout moment sans frais, effet en fin de période.
 - Satisfaction 7 jours : remboursement intégral du 1er mois si usage non significatif.
@@ -46,7 +46,7 @@ Artio permet de :
 - clients.html → gestion des fiches clients
 - dashboard.html → tableau de bord financier (CA, stats, évolution)
 - calendar.html → agenda et rendez-vous (sync Google Calendar)
-- settings.html → paramètres entreprise, abonnement, connexion Google, FactPulse
+- settings.html → paramètres entreprise, abonnement, connexion Google, facturation électronique (FactPulse)
 - aide.html → documentation et FAQ complète
 
 == SUPPORT — PROBLÈMES FRÉQUENTS ET SOLUTIONS ==
@@ -72,7 +72,7 @@ ABONNEMENT ET FACTURATION :
 GMAIL ET GOOGLE :
 - "Comment connecter Gmail ?" → Paramètres → Gmail → cliquer sur Connecter Gmail → suivre le flux OAuth Google. Un seul OAuth pour Gmail + Google Calendar.
 - "Gmail est déconnecté" → Paramètres → Gmail → Reconnecter. Cela peut arriver après une expiration de token.
-- "Je ne vois pas mes emails" → Vérifier que Gmail est bien connecté. L'onglet Messagerie est disponible en plan Pro uniquement.
+- "Est-ce qu'Artio lit mes emails ?" → Non, Artio n'accède qu'à l'envoi d'emails via l'onglet Rédiger. Il ne lit jamais le contenu de votre boîte de réception.
 
 SIGNATURE ÉLECTRONIQUE :
 - "La signature est-elle légale ?" → Oui, c'est une signature électronique simple au sens du règlement eIDAS. Elle est juridiquement valable pour les devis commerciaux.
@@ -85,9 +85,10 @@ DEVIS ET FACTURES (suite) :
 - "Le statut de mon devis ne change pas" → La page Dossiers se met à jour automatiquement en arrière-plan. Le statut bascule dès qu'un événement intervient (signature client, paiement, etc.) sans nécessiter de rafraîchissement manuel.
 
 FACTURATION ÉLECTRONIQUE :
-- "Qu'est-ce que la facturation électronique ?" → Obligation légale pour les entreprises assujetties à la TVA à partir de 2026. Artio est compatible via FactPulse (PDP agréée DGFiP).
-- "Comment activer FactPulse ?" → Paramètres → Mon entreprise → Token FactPulse. Nécessite un compte FactPulse sur factpulse.fr.
-- "Je suis micro-entrepreneur en franchise TVA, suis-je concerné ?" → Non, les auto-entrepreneurs en franchise de base TVA ne sont pas concernés dans un premier temps.
+- "Qu'est-ce que la facturation électronique ?" → Réforme obligatoire pour les entreprises françaises. À partir du 1er septembre 2026, toutes les entreprises (y compris les micro-entrepreneurs en franchise TVA) doivent pouvoir recevoir des factures électroniques. L'obligation d'émission arrive le 1er septembre 2026 pour les grandes entreprises et ETI, et le 1er septembre 2027 pour les PME et micro-entrepreneurs. Artio est Solution Compatible DGFiP via FactPulse, une plateforme agréée.
+- "Comment activer FactPulse ?" → Paramètres → Facturation électronique → Activer FactPulse. Fonctionnalité incluse dans l'offre Pro, aucun compte ou token FactPulse à créer, tout est intégré à Artio.
+- "Dois-je faire une démarche sur impots.gouv.fr ?" → Oui, c'est obligatoire. Chaque entreprise doit déclarer elle-même sa plateforme dans l'annuaire du Portail Public de Facturation (PPF) sur impots.gouv.fr, avec son propre SIRET. Artio ne peut pas faire cette démarche à votre place. Étapes : se connecter à son espace professionnel → rubrique Facturation électronique → Annuaire → sélectionner FactPulse comme plateforme. À faire avant le 1er septembre 2026. Article complet dans Aide → Réforme facturation électronique 2026.
+- "Je suis micro-entrepreneur en franchise TVA, suis-je concerné ?" → Oui. Depuis la mise à jour de la réforme, tous les micro-entrepreneurs — y compris ceux en franchise en base de TVA (art. 293 B CGI) — sont concernés par l'obligation de réception dès le 1er septembre 2026. L'obligation d'émission arrive le 1er septembre 2027.
 
 DIVERS :
 - "Comment contacter le support ?" → Par email à contact@monartio.fr ou via ce chat. Réponse sous 24-48h.
