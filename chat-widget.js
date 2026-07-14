@@ -183,45 +183,17 @@ DIVERS :
   async function sendRecapEmail(conv) {
     if (!userEmail || conv.length === 0) return;
     try {
-      const lines = conv.map(m =>
-        `<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-          <td style="padding:8px 12px;width:70px;color:${m.role === 'user' ? '#f5a742' : '#3ecfcf'};font-weight:600;font-size:12px;vertical-align:top;white-space:nowrap">
-            ${m.role === 'user' ? 'Vous' : 'Artio'}
-          </td>
-          <td style="padding:8px 12px;font-size:13px;color:#e2e5f1;line-height:1.6">
-            ${m.content.replace(/\n/g, '<br>')}
-          </td>
-        </tr>`
-      ).join("");
-
-      const html = `
-        <div style="background:#080b14;padding:32px;font-family:sans-serif">
-          <div style="max-width:560px;margin:0 auto">
-            <div style="margin-bottom:20px">
-              <span style="font-size:22px;font-weight:700;color:#f5a742">Artio</span>
-              <span style="font-size:13px;color:#6b7494;margin-left:10px">Récap de votre conversation</span>
-            </div>
-            <div style="background:#0e1220;border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
-              <table style="width:100%;border-collapse:collapse">${lines}</table>
-            </div>
-            <p style="font-size:12px;color:#6b7494;margin-top:20px;text-align:center">
-              Besoin d'aide ? <a href="mailto:support@monartio.fr" style="color:#f5a742">support@monartio.fr</a>
-            </p>
-          </div>
-        </div>`;
-
-      const textLines = conv.map(m => `${m.role === 'user' ? 'Vous' : 'Artio'} : ${m.content}`).join("\n\n");
-
+      // Le HTML du récap est désormais rendu CÔTÉ SERVEUR (échappé).
+      // On n'envoie plus que des données structurées : le serveur
+      // n'accepte plus de HTML brut ni de destinataire arbitraire.
       await fetch(`${SUPABASE_URL}/functions/v1/send-contact-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_KEY}` },
         body: JSON.stringify({
-          nom: "Récap conversation",
+          mode: "recap",
           email: userEmail,
           sujet: "Récap de votre conversation Artio",
-          message: textLines,
-          to_override: userEmail,
-          html_override: html
+          conversation: conv.map(m => ({ role: m.role, content: m.content }))
         })
       });
     } catch (e) { console.warn("Récap email:", e.message); }
