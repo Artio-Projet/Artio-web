@@ -1583,6 +1583,17 @@ async function hashDoc(obj) {
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
+// Génère un token de signature imprévisible (43 caractères base64url,
+// ~256 bits d'entropie) via l'API Web Crypto. Compatible avec la
+// validation serveur isValidToken (^[A-Za-z0-9_-]+$, 10..128).
+function genSignatureToken(){
+  const bytes=new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  let bin="";
+  for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+
 sendForSignature=async(dosId,docNum)=>{
     if(window.PlanGuard&&!window.PlanGuard.isPro()){
       window.PlanGuard.showProModal("Signature électronique");return;
@@ -1591,7 +1602,10 @@ sendForSignature=async(dosId,docNum)=>{
   const doc=dos?.documents?.find(d=>d.docNumber===docNum);
   if(!doc){alert("Document introuvable.");return}
   set({loading:true});
-  const token=[...Array(32)].map(()=>(Math.random().toString(36)[2]||"a")).join("");
+  // Token cryptographiquement sûr (crypto.getRandomValues) : c'est le seul
+  // secret qui protège l'accès au document à valeur eIDAS. Ne jamais revenir
+  // à Math.random() (PRNG prédictible, alphabet réduit).
+  const token=genSignatureToken();
   // dossier_id en texte libre (pas de FK stricte) + dosId dans doc_data
   const docHash = await hashDoc({...doc, _dossier_id:dosId});
   // expires_at = date de création + validité du devis (en jours).

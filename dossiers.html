@@ -481,13 +481,26 @@ async function genererRelance(dosId,docNum){
   }
 }
 
+// Génère un token de signature imprévisible (43 caractères base64url,
+// ~256 bits d'entropie) via l'API Web Crypto. Compatible avec la
+// validation serveur isValidToken (^[A-Za-z0-9_-]+$, 10..128).
+function genSignatureToken(){
+  const bytes=new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  let bin="";
+  for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+
 sendForSignature=async(dosId,docNum)=>{
   if(window.PlanGuard&&!window.PlanGuard.isPro()){window.PlanGuard.showProModal("Signature électronique");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);
   const doc=dos?.documents?.find(d=>d.docNumber===docNum);
   if(!doc){alert("Document introuvable.");return;}
   set({loading:true});
-  const token=[...Array(32)].map(()=>(Math.random().toString(36)[2]||"a")).join("");
+  // Token cryptographiquement sûr (crypto.getRandomValues) : seul secret
+  // protégeant l'accès au document eIDAS. Ne jamais revenir à Math.random().
+  const token=genSignatureToken();
   const docHash=await hashDoc({...doc,_dossier_id:dosId});
   const validiteJoursLink=parseInt(doc.validite_jours)||3;
   const expiresAt=new Date(Date.now()+validiteJoursLink*86400000).toISOString();
