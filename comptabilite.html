@@ -137,6 +137,32 @@
     .icon-btn svg{width:16px;height:16px}
 
     .banner{padding:14px 16px;background:var(--amber-dim);border:1px solid rgba(245,167,66,0.25);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
+
+    /* ── Onglet "Ajoutées" : dépôt de PDF ── */
+    .badge-manual{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.25)}
+    .kpi-purple .kpi-value{color:var(--purple)}
+    .dropzone{border:2px dashed var(--border-hi);border-radius:14px;padding:28px 20px;text-align:center;margin-bottom:18px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+    .dropzone:hover,.dropzone.drag{border-color:var(--purple);background:var(--purple-dim)}
+    .dropzone-icon{font-size:30px;margin-bottom:8px}
+    .dropzone-title{font-family:var(--fh);font-weight:700;font-size:15px;margin-bottom:4px}
+    .dropzone-sub{font-size:12px;color:var(--muted);line-height:1.5}
+    .dropzone input[type=file]{display:none}
+    .upload-queue{display:flex;flex-direction:column;gap:6px;margin-top:14px;text-align:left}
+    .upload-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface-2);border-radius:9px;font-size:12px}
+    .upload-item .spin{width:13px;height:13px;border:2px solid var(--border-hi);border-top-color:var(--purple);border-radius:50%;animation:cspin .7s linear infinite;flex-shrink:0}
+    @keyframes cspin{to{transform:rotate(360deg)}}
+    .upload-item.ok{color:var(--green)}
+    .upload-item.error{color:var(--red)}
+    .icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+    .modal-content.small{max-width:430px}
+    .modal-body.pad{padding:18px 20px 20px}
+    .field{margin-bottom:12px}
+    .field-label{display:block;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px}
+    .field-input{width:100%;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:var(--fb);outline:none;transition:border-color .2s}
+    .field-input:focus{border-color:var(--amber)}
+    textarea.field-input{resize:vertical;min-height:58px}
+    .fields-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:720px){.fields-2{grid-template-columns:1fr}}
     .banner a{color:var(--amber);font-weight:600;text-decoration:none}
 
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 18px;background:var(--surface-2);border:1px solid var(--border-hi);border-radius:12px;color:var(--text);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw}
@@ -216,11 +242,22 @@
       <span>📤</span> Émises <span class="count" id="count-emises">0</span>
     </button>
     <button class="tab tab-recues" id="tab-recues" onclick="switchTab('recues')">
-      <span>📥</span> Reçues <span class="count" id="count-recues">0</span>
+      <span>📥</span> Reçues (PDP) <span class="count" id="count-recues">0</span>
+    </button>
+    <button class="tab tab-ajoutees" id="tab-ajoutees" onclick="switchTab('ajoutees')">
+      <span>🗂</span> Ajoutées <span class="count" id="count-ajoutees">0</span>
     </button>
   </div>
 
   <div id="banner-superpdp"></div>
+
+  <div class="dropzone" id="dropzone" style="display:none" onclick="document.getElementById('file-input').click()">
+    <div class="dropzone-icon">📥</div>
+    <div class="dropzone-title">Déposez vos factures PDF ici, ou cliquez pour parcourir</div>
+    <div class="dropzone-sub">Pour les factures reçues par email ou en papier, que vos fournisseurs n'envoient pas via une PDP.<br/>PDF uniquement — 15 Mo maximum par fichier.</div>
+    <input type="file" id="file-input" accept="application/pdf" multiple/>
+    <div class="upload-queue" id="upload-queue"></div>
+  </div>
 
   <div class="toolbar">
     <input type="text" class="search" id="search" placeholder="Rechercher par numéro, client, fournisseur…" oninput="renderList()"/>
@@ -244,6 +281,28 @@
   </div>
 </div>
 
+<div class="modal" id="meta-modal" onclick="if(event.target===this)closeMetaModal()">
+  <div class="modal-content small">
+    <div class="modal-head">
+      <div class="modal-title">Détails de la facture</div>
+      <button class="modal-close" onclick="closeMetaModal()">✕</button>
+    </div>
+    <div class="modal-body pad">
+      <div class="field"><label class="field-label">Fournisseur</label><input id="meta-fournisseur" class="field-input" type="text" placeholder="Ex : EDF, Leroy Merlin, garage…"/></div>
+      <div class="fields-2">
+        <div class="field"><label class="field-label">N° de facture</label><input id="meta-numero" class="field-input" type="text" placeholder="F-2026-081"/></div>
+        <div class="field"><label class="field-label">Date de facture</label><input id="meta-date" class="field-input" type="date"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field"><label class="field-label">Montant HT</label><input id="meta-ht" class="field-input" type="number" step="0.01" placeholder="0.00"/></div>
+        <div class="field"><label class="field-label">Montant TTC</label><input id="meta-ttc" class="field-input" type="number" step="0.01" placeholder="0.00"/></div>
+      </div>
+      <div class="field"><label class="field-label">Notes</label><textarea id="meta-notes" class="field-input" placeholder="Optionnel"></textarea></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveMeta()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="plan-guard.js"></script>
 <script>
@@ -257,8 +316,13 @@ let user = null;
 let currentTab = 'emises';
 let facturesEmises = [];
 let facturesRecues = [];
+let facturesAjoutees = [];
 let superpdpConnected = false;
 let syncing = false;
+let metaEditId = null;
+
+const BUCKET = 'factures-recues';
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 
@@ -343,7 +407,21 @@ async function loadFacturesRecues(){
     return [];
   }
   superpdpConnected = !!data.connected;
-  return data.factures || [];
+  // L'Edge Function renvoie tout factures_recues : on ne garde ici que le flux PDP.
+  return (data.factures || []).filter(f => (f.source || 'pdp') !== 'manuel');
+}
+
+// Les factures déposées manuellement sont lues directement (RLS par user_id).
+async function loadFacturesAjoutees(){
+  const { data, error } = await sb
+    .from('factures_recues')
+    .select('id,source,storage_path,nom_fichier,fournisseur,numero_facture,date_facture,montant_ht,montant_ttc,notes,lu,created_at')
+    .eq('user_id', user.id)
+    .eq('source', 'manuel')
+    .order('date_facture', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false });
+  if(error){ console.error(error); return []; }
+  return data || [];
 }
 
 function computeKPIs(){
@@ -366,7 +444,12 @@ function computeKPIs(){
   const recuesMois = facturesRecues.length;
   const recuesNonLues = facturesRecues.filter(f => !f.lu).length;
 
-  return { caMois, impayes, recuesMois, recuesNonLues };
+  // Dépenses connues : uniquement les manuelles renseignées (le flux PDP ne
+  // remonte pas de montant exploitable côté liste).
+  const depenses = facturesAjoutees.reduce((s, f) => s + (parseFloat(f.montant_ttc) || 0), 0);
+  const sansMontant = facturesAjoutees.filter(f => f.montant_ttc === null || f.montant_ttc === undefined).length;
+
+  return { caMois, impayes, recuesMois, recuesNonLues, depenses, sansMontant };
 }
 
 function renderKPIs(){
@@ -383,12 +466,18 @@ function renderKPIs(){
       <div class="kpi-sub">${facturesEmises.filter(f=>!f.paye).length} facture(s) en attente</div>
     </div>
     <div class="kpi kpi-amber">
-      <div class="kpi-label">Reçues ce mois</div>
+      <div class="kpi-label">Reçues via PDP</div>
       <div class="kpi-value">${k.recuesMois}</div>
       <div class="kpi-sub">${k.recuesNonLues} non lue(s)</div>
+    </div>
+    <div class="kpi kpi-purple">
+      <div class="kpi-label">Dépenses ajoutées</div>
+      <div class="kpi-value">${fmtEUR(k.depenses)}</div>
+      <div class="kpi-sub">${facturesAjoutees.length} facture(s)${k.sansMontant ? ' · ' + k.sansMontant + ' sans montant' : ''}</div>
     </div>`;
   document.getElementById('count-emises').textContent = facturesEmises.length;
   document.getElementById('count-recues').textContent = facturesRecues.length;
+  document.getElementById('count-ajoutees').textContent = facturesAjoutees.length;
 }
 
 function renderBanner(){
@@ -409,15 +498,25 @@ function switchTab(tab){
   currentTab = tab;
   document.getElementById('tab-emises').classList.toggle('active', tab === 'emises');
   document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
+  document.getElementById('tab-ajoutees').classList.toggle('active', tab === 'ajoutees');
+  document.getElementById('dropzone').style.display = tab === 'ajoutees' ? 'block' : 'none';
+
   const btn = document.getElementById('btn-action');
   if(tab === 'emises'){
+    btn.style.display = '';
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nouvelle facture';
     btn.onclick = () => window.location.href = 'app.html';
     btn.disabled = false;
-  } else {
+  } else if(tab === 'recues'){
+    btn.style.display = '';
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Synchroniser';
     btn.onclick = doSync;
     btn.disabled = !superpdpConnected;
+  } else {
+    btn.style.display = '';
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Déposer un PDF';
+    btn.onclick = () => document.getElementById('file-input').click();
+    btn.disabled = false;
   }
   renderBanner();
   renderList();
@@ -464,6 +563,59 @@ function renderList(){
             <a class="icon-btn" href="dossiers.html#${esc(f.dossier_id)}" title="Voir le dossier">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </a>
+          </div>
+        </div>`;
+    }).join('');
+    el.innerHTML = '<div class="list">' + html + '</div>';
+    return;
+  }
+
+  if(currentTab === 'ajoutees'){
+    let list = facturesAjoutees;
+    if(q){
+      list = list.filter(f =>
+        (f.fournisseur||'').toLowerCase().includes(q) ||
+        (f.numero_facture||'').toLowerCase().includes(q) ||
+        (f.nom_fichier||'').toLowerCase().includes(q) ||
+        (f.notes||'').toLowerCase().includes(q)
+      );
+    }
+    if(list.length === 0){
+      el.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🗂</div>
+          <div class="empty-title">${facturesAjoutees.length === 0 ? 'Aucune facture ajoutée' : 'Aucun résultat'}</div>
+          <div class="empty-sub">${facturesAjoutees.length === 0 ? 'Déposez vos factures fournisseurs en PDF dans la zone ci-dessus pour les conserver et les retrouver ici.' : 'Essayez un autre terme de recherche.'}</div>
+        </div>`;
+      return;
+    }
+    const html = list.map(f => {
+      const titre = f.fournisseur || f.nom_fichier || 'Facture';
+      const meta = [f.numero_facture, f.nom_fichier].filter(Boolean).map(esc).join(' · ');
+      const safeTitre = esc(titre).replace(/'/g, "\\'");
+      return `
+        <div class="row">
+          <div class="row-icon">🗂</div>
+          <div class="row-main">
+            <div class="row-title">${esc(titre)}</div>
+            <div class="row-meta">${meta || '—'}</div>
+          </div>
+          <div class="row-amount out">${f.montant_ttc !== null && f.montant_ttc !== undefined ? fmtEUR(f.montant_ttc) : '—'}</div>
+          <div class="row-date">${fmtDate(f.date_facture)}</div>
+          <span class="badge badge-manual">Ajoutée</span>
+          <div class="row-actions">
+            <button class="icon-btn" title="Modifier les détails" onclick="openMetaModal('${f.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </button>
+            <button class="icon-btn" title="Aperçu" onclick="previewManual('${f.id}','${safeTitre}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="icon-btn" title="Télécharger" onclick="downloadManual('${f.id}','${safeTitre}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="icon-btn danger" title="Supprimer" onclick="deleteManual('${f.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
           </div>
         </div>`;
     }).join('');
@@ -589,7 +741,7 @@ async function previewFacture(flowId, name){
 function closePdfModal(){
   const m = document.getElementById('pdf-modal');
   const frame = document.getElementById('pdf-modal-frame');
-  try { URL.revokeObjectURL(frame.src); } catch(e) {}
+  try { if(frame.src.startsWith('blob:')) URL.revokeObjectURL(frame.src); } catch(e) {}
   frame.src = 'about:blank';
   m.classList.remove('open');
 }
@@ -621,6 +773,187 @@ async function downloadFacture(flowId, name){
   }
 }
 
+/* ═══ FACTURES AJOUTÉES MANUELLEMENT ═══ */
+
+function sanitizeFilename(name){
+  return String(name || 'facture')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w.\- ]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 120);
+}
+
+function renderUploadQueue(items){
+  const el = document.getElementById('upload-queue');
+  if(!items.length){ el.innerHTML = ''; return; }
+  el.innerHTML = items.map(it => {
+    if(it.status === 'ok')    return `<div class="upload-item ok">✅ ${esc(it.name)} — ajoutée</div>`;
+    if(it.status === 'error') return `<div class="upload-item error">❌ ${esc(it.name)} — ${esc(it.error)}</div>`;
+    return `<div class="upload-item"><span class="spin"></span> ${esc(it.name)}</div>`;
+  }).join('');
+}
+
+async function handleFiles(fileList){
+  const files = Array.from(fileList || []);
+  if(!files.length) return;
+
+  const queue = files.map(f => ({ name: f.name, status: 'pending', error: '' }));
+  renderUploadQueue(queue);
+
+  let added = 0;
+  for(let i = 0; i < files.length; i++){
+    const file = files[i];
+    try {
+      if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){
+        queue[i].status = 'error'; queue[i].error = 'PDF uniquement';
+        renderUploadQueue(queue); continue;
+      }
+      if(file.size > MAX_UPLOAD_BYTES){
+        queue[i].status = 'error'; queue[i].error = 'fichier trop volumineux (15 Mo max)';
+        renderUploadQueue(queue); continue;
+      }
+
+      const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, {
+        contentType: 'application/pdf', upsert: false,
+      });
+      if(upErr) throw new Error(upErr.message);
+
+      const { data, error } = await sb.from('factures_recues').insert([{
+        user_id: user.id,
+        source: 'manuel',
+        storage_path: path,
+        nom_fichier: file.name,
+        lu: true,
+      }]).select().single();
+
+      if(error){
+        // Ne pas laisser un fichier orphelin dans le bucket si l'insert échoue.
+        await sb.storage.from(BUCKET).remove([path]);
+        throw new Error(error.message);
+      }
+
+      facturesAjoutees.unshift(data);
+      queue[i].status = 'ok';
+      added++;
+    } catch(e){
+      queue[i].status = 'error';
+      queue[i].error = e.message || 'erreur';
+    }
+    renderUploadQueue(queue);
+  }
+
+  renderKPIs();
+  renderList();
+  if(added) toast(`✅ ${added} facture(s) ajoutée(s)`);
+  setTimeout(() => renderUploadQueue([]), 6000);
+  document.getElementById('file-input').value = '';
+}
+
+async function signedUrlFor(id){
+  const f = facturesAjoutees.find(x => x.id === id);
+  if(!f || !f.storage_path) throw new Error('Fichier introuvable');
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(f.storage_path, 300);
+  if(error || !data?.signedUrl) throw new Error(error?.message || 'Lien indisponible');
+  return data.signedUrl;
+}
+
+async function previewManual(id, name){
+  toast('⏳ Chargement…');
+  try {
+    const url = await signedUrlFor(id);
+    document.getElementById('pdf-modal-title').textContent = name;
+    document.getElementById('pdf-modal-frame').src = url;
+    document.getElementById('pdf-modal').classList.add('open');
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
+async function downloadManual(id, name){
+  toast('⏳ Téléchargement…');
+  try {
+    const f = facturesAjoutees.find(x => x.id === id);
+    const url = await signedUrlFor(id);
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Téléchargement impossible');
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objUrl;
+    a.download = sanitizeFilename(f?.nom_fichier || name || 'facture').replace(/\.pdf$/i, '') + '.pdf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+    toast('✅ Téléchargé');
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
+async function deleteManual(id){
+  const f = facturesAjoutees.find(x => x.id === id);
+  if(!f) return;
+  const label = f.fournisseur || f.nom_fichier || 'cette facture';
+  if(!confirm(`Supprimer définitivement « ${label} » ? Le PDF sera effacé.`)) return;
+  try {
+    const { error } = await sb.from('factures_recues').delete().eq('id', id).eq('user_id', user.id);
+    if(error) throw new Error(error.message);
+    if(f.storage_path) await sb.storage.from(BUCKET).remove([f.storage_path]);
+    facturesAjoutees = facturesAjoutees.filter(x => x.id !== id);
+    renderKPIs(); renderList();
+    toast('✅ Supprimée');
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
+function openMetaModal(id){
+  const f = facturesAjoutees.find(x => x.id === id);
+  if(!f) return;
+  metaEditId = id;
+  document.getElementById('meta-fournisseur').value = f.fournisseur || '';
+  document.getElementById('meta-numero').value      = f.numero_facture || '';
+  document.getElementById('meta-date').value        = f.date_facture || '';
+  document.getElementById('meta-ht').value          = f.montant_ht ?? '';
+  document.getElementById('meta-ttc').value         = f.montant_ttc ?? '';
+  document.getElementById('meta-notes').value       = f.notes || '';
+  document.getElementById('meta-modal').classList.add('open');
+  setTimeout(() => document.getElementById('meta-fournisseur').focus(), 80);
+}
+
+function closeMetaModal(){
+  document.getElementById('meta-modal').classList.remove('open');
+  metaEditId = null;
+}
+
+async function saveMeta(){
+  if(!metaEditId) return;
+  const num = v => v === '' || v === null ? null : (isNaN(parseFloat(v)) ? null : parseFloat(v));
+  const patch = {
+    fournisseur:    document.getElementById('meta-fournisseur').value.trim() || null,
+    numero_facture: document.getElementById('meta-numero').value.trim() || null,
+    date_facture:   document.getElementById('meta-date').value || null,
+    montant_ht:     num(document.getElementById('meta-ht').value),
+    montant_ttc:    num(document.getElementById('meta-ttc').value),
+    notes:          document.getElementById('meta-notes').value.trim() || null,
+  };
+  try {
+    const { error } = await sb.from('factures_recues')
+      .update(patch).eq('id', metaEditId).eq('user_id', user.id);
+    if(error) throw new Error(error.message);
+    const i = facturesAjoutees.findIndex(x => x.id === metaEditId);
+    if(i > -1) facturesAjoutees[i] = { ...facturesAjoutees[i], ...patch };
+    closeMetaModal();
+    renderKPIs(); renderList();
+    toast('✅ Détails enregistrés');
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
+function initDropzone(){
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('file-input');
+  input.addEventListener('change', e => handleFiles(e.target.files));
+  ['dragenter','dragover'].forEach(ev =>
+    dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev =>
+    dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => handleFiles(e.dataTransfer?.files));
+}
+
 async function doLogout(){
   await sb.auth.signOut();
   window.location.href = 'login.html';
@@ -643,15 +976,20 @@ async function init(){
   if(!u){ window.location.href = 'login.html'; return; }
   user = u;
 
-  const [emises, recues] = await Promise.all([
+  const [emises, recues, ajoutees] = await Promise.all([
     loadFacturesEmises(),
     loadFacturesRecues(),
+    loadFacturesAjoutees(),
   ]);
   facturesEmises = emises;
   facturesRecues = recues;
+  facturesAjoutees = ajoutees;
+
+  initDropzone();
 
   const params = new URLSearchParams(location.search);
-  const tab = params.get('tab') === 'recues' ? 'recues' : 'emises';
+  const asked = params.get('tab');
+  const tab = ['recues','ajoutees'].includes(asked) ? asked : 'emises';
 
   renderKPIs();
   switchTab(tab);
