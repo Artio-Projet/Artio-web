@@ -307,6 +307,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Pas de PAGE_PLAN_REQUIRED : la consultation des factures reste ouverte à
+     tous, y compris aux comptes résiliés (obligation de conservation).
+     plan-guard.js n'est chargé que pour distinguer lecture seule / écriture. -->
 <script src="plan-guard.js"></script>
 <script>
 const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
@@ -323,6 +326,7 @@ let facturesAjoutees = [];
 let superpdpConnected = false;
 let syncing = false;
 let metaEditId = null;
+let readOnly = false;   // compte résilié : consultation autorisée, écriture non
 
 const BUCKET = 'factures-recues';
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
@@ -487,6 +491,15 @@ function renderKPIs(){
 
 function renderBanner(){
   const el = document.getElementById('banner-superpdp');
+  if(readOnly){
+    el.innerHTML = `
+      <div class="banner">
+        <div style="font-size:18px;">🔒</div>
+        <div style="flex:1;">Votre abonnement est inactif. Vous conservez l'accès à l'ensemble de vos factures et pouvez les consulter et les télécharger, mais l'ajout et la synchronisation sont désactivés.</div>
+        <a href="settings.html?tab=abonnement">Se réabonner →</a>
+      </div>`;
+    return;
+  }
   if(currentTab !== 'recues' || superpdpConnected){
     el.innerHTML = '';
     return;
@@ -504,9 +517,16 @@ function switchTab(tab){
   document.getElementById('tab-emises').classList.toggle('active', tab === 'emises');
   document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
   document.getElementById('tab-ajoutees').classList.toggle('active', tab === 'ajoutees');
-  document.getElementById('dropzone').style.display = tab === 'ajoutees' ? 'block' : 'none';
+  document.getElementById('dropzone').style.display = (tab === 'ajoutees' && !readOnly) ? 'block' : 'none';
 
   const btn = document.getElementById('btn-action');
+  if(readOnly){
+    // Ex-abonné : aucune action d'écriture (dépôt, synchro, création).
+    btn.style.display = 'none';
+    renderBanner();
+    renderList();
+    return;
+  }
   if(tab === 'emises'){
     btn.style.display = '';
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nouvelle facture';
@@ -590,7 +610,7 @@ function renderList(){
         <div class="empty">
           <div class="empty-icon"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
           <div class="empty-title">${facturesAjoutees.length === 0 ? 'Aucune facture ajoutée' : 'Aucun résultat'}</div>
-          <div class="empty-sub">${facturesAjoutees.length === 0 ? 'Déposez vos factures fournisseurs en PDF dans la zone ci-dessus pour les conserver et les retrouver ici.' : 'Essayez un autre terme de recherche.'}</div>
+          <div class="empty-sub">${facturesAjoutees.length === 0 ? (readOnly ? "Vous n'avez aucune facture déposée. L'ajout nécessite un abonnement actif." : 'Déposez vos factures fournisseurs en PDF dans la zone ci-dessus pour les conserver et les retrouver ici.') : 'Essayez un autre terme de recherche.'}</div>
         </div>`;
       return;
     }
@@ -614,18 +634,18 @@ function renderList(){
           <div class="row-date">${fmtDate(f.date_facture)}</div>
           <span class="badge badge-manual">Ajoutée</span>
           <div class="row-actions">
-            <button class="icon-btn" title="Modifier les détails" onclick="openMetaModal('${f.id}')">
+            ${readOnly ? '' : `<button class="icon-btn" title="Modifier les détails" onclick="openMetaModal('${f.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            </button>
+            </button>`}
             <button class="icon-btn" title="Aperçu" onclick="previewManual('${f.id}','${safeTitre}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
             <button class="icon-btn" title="Télécharger" onclick="downloadManual('${f.id}','${safeTitre}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
-            <button class="icon-btn danger" title="Supprimer" onclick="deleteManual('${f.id}')">
+            ${readOnly ? '' : `<button class="icon-btn danger" title="Supprimer" onclick="deleteManual('${f.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
+            </button>`}
           </div>
         </div>`;
     }).join('');
@@ -695,6 +715,7 @@ function renderList(){
 }
 
 async function doSync(){
+  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
   if(syncing) return;
   syncing = true;
   const btn = document.getElementById('btn-action');
@@ -815,6 +836,7 @@ function renderUploadQueue(items){
 }
 
 async function handleFiles(fileList){
+  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
   const files = Array.from(fileList || []);
   if(!files.length) return;
 
@@ -920,6 +942,7 @@ async function downloadManual(id, name){
 }
 
 async function deleteManual(id){
+  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
   const label = f.fournisseur || f.nom_fichier || 'cette facture';
@@ -935,6 +958,7 @@ async function deleteManual(id){
 }
 
 function openMetaModal(id){
+  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
   metaEditId = id;
@@ -1019,6 +1043,15 @@ async function init(){
   facturesAjoutees = ajoutees;
 
   initDropzone();
+
+  // Lecture seule pour les comptes résiliés : l'historique reste consultable
+  // (obligation de conservation), mais plus d'ajout ni de synchronisation.
+  await new Promise(resolve => {
+    if(!window.PlanGuard){ resolve(); return; }
+    const timeout = setTimeout(resolve, 3000);   // ne jamais bloquer la page
+    window.PlanGuard.onReady(() => { clearTimeout(timeout); resolve(); });
+  });
+  readOnly = !!(window.PlanGuard && window.PlanGuard.isFree());
 
   const params = new URLSearchParams(location.search);
   const asked = params.get('tab');
