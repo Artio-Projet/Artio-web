@@ -693,6 +693,10 @@ let user = null, dossiers = [], clients = [], search = "", selectedClientId = nu
 const AVATAR_COLORS = ["#d97706","#0d9488","#7c3aed","#dc2626","#2563eb","#db2777","#059669","#ea580c"];
 
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// Échappement pour valeur d'attribut HTML : esc() ne couvre pas les guillemets,
+// ce qui cassait l'attribut (et donc le clic) sur les clients dont le nom en
+// contient — ex. le client nommé avec des guillemets restait inerte.
+function escAttr(s) { return esc(s).replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function fmt(n) { return Number(n||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €"; }
 function avatarColor(name) {
   let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -713,12 +717,29 @@ function buildClients() {
   const map = {};
   clients.forEach(c => { map[c.id] = {...c, _source:"db", docs:[]}; });
   dossiers.forEach(dos => {
-    const match = clients.find(c => c.email === dos.client || c.nom === dos.client || c.nom === dos.nom);
+    // 1. Lien fort : dossiers.client_id → clients.id (écrit à la création
+    //    depuis app.html). C'est la seule liaison fiable : elle survit au
+    //    renommage du client.
+    let match = dos.client_id ? clients.find(c => c.id === dos.client_id) : null;
+    // 2. Repli pour les dossiers antérieurs à client_id : nom ou email exact.
+    //    On ne compare JAMAIS dos.nom (nom du dossier, pas du client) : cela
+    //    rattachait des dossiers au mauvais client.
+    if (!match && dos.client) {
+      const cible = String(dos.client).trim().toLowerCase();
+      match = clients.find(c =>
+        String(c.nom||"").trim().toLowerCase() === cible ||
+        (c.email && String(c.email).trim().toLowerCase() === cible)
+      );
+    }
     if (match) {
       map[match.id].docs.push(dos);
     } else {
-      const key = "implicit_" + esc(dos.client||dos.nom||"");
-      if (!map[key]) map[key] = {id:key, nom:dos.client||dos.nom||"Client", email:"", tel:"", adresse:"", notes:"", _source:"implicit", docs:[]};
+      // 3. Client implicite : présent dans un dossier mais absent de la table.
+      //    La clé n'est PAS échappée en HTML (esc() servait à tort ici) :
+      //    l'échappement se fait au rendu, pas dans l'identifiant.
+      const raw = dos.client || dos.nom || "Client";
+      const key = "implicit_" + String(raw).trim().toLowerCase();
+      if (!map[key]) map[key] = {id:key, nom:raw, email:"", tel:"", adresse:"", notes:"", _source:"implicit", docs:[]};
       map[key].docs.push(dos);
     }
   });
@@ -745,7 +766,7 @@ function renderList() {
     const ca = (c.docs||[]).reduce((s,d) =>
       (d.documents||[]).filter(doc => doc.type === "facture").reduce((ss,doc) => ss + (doc.ttc||0), s), 0);
     const isSel = c.id === selectedClientId;
-    return `<div class="dcit ${isSel?"sel":""}" onclick="selectClient('${c.id}')">
+    return `<div class="dcit ${isSel?"sel":""}" data-client-id="${escAttr(c.id)}">
       <div class="dciav" style="background:${avatarColor(c.nom)}">${initials(c.nom)}</div>
       <div class="dci-text">
         <div class="dciname">${esc(c.nom)}</div>
@@ -757,6 +778,19 @@ function renderList() {
 }
 
 /* ── SELECT CLIENT ── */
+// Délégation d'événement : le HTML ne porte plus de onclick inline, donc
+// aucun identifiant n'est interpolé dans du code JS. Les noms contenant des
+// guillemets, apostrophes ou antislashs ne peuvent plus casser le handler.
+document.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-client-id]");
+  if (item && document.getElementById("client-list").contains(item)) {
+    selectClient(item.getAttribute("data-client-id"));
+    return;
+  }
+  const reg = e.target.closest("[data-register-client]");
+  if (reg) registerImplicitClient(reg.getAttribute("data-register-client"));
+});
+
 function selectClient(id) {
   selectedClientId = id;
   renderList();
@@ -830,7 +864,23 @@ function renderDetail() {
       </div>
       <div class="field"><label class="field-label">Adresse</label><input id="reg-adresse" class="field-input" type="text"/></div>
       <div class="field"><label class="field-label">Notes</label><textarea id="reg-notes" class="field-input"></textarea></div>
-      <button class="btn-save" onclick="registerImplicitClient('${esc(c.nom).replace(/'/g,"\\'")}')">💾 Enregistrer ce client</button>
+      <div class="field"><label class="check-row"><input id="reg-professionnel" type="checkbox" onchange="document.getElementById('reg-siret-field').style.display=this.checked?'block':'none'"/><span>Client professionnel (B2B)</span></label></div>
+      <div id="reg-siret-field" style="display:none">
+        <div class="field">
+          <label class="field-label">SIRET <span id="reg-siret-status" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;"></span></label>
+          <input id="reg-siret" class="field-input" type="text" placeholder="123 456 789 00012" oninput="lookupSiretClient(this.value,'reg')" autocomplete="off"/>
+        </div>
+        <div class="fields-2">
+          <div class="field"><label class="field-label">Forme juridique</label><input id="reg-forme-juridique" class="field-input" type="text" placeholder="SAS, SARL…"/></div>
+          <div class="field"><label class="field-label">Code APE / NAF</label><input id="reg-code-naf" class="field-input" type="text" placeholder="6201Z"/></div>
+        </div>
+        <div class="field"><label class="field-label">Libellé activité</label><input id="reg-libelle-naf" class="field-input" type="text" placeholder="Programmation informatique"/></div>
+        <div class="fields-2">
+          <div class="field"><label class="field-label">N° TVA intracom</label><input id="reg-tva-intracom" class="field-input" type="text" placeholder="FR12345678901"/></div>
+          <div class="field"><label class="field-label">Date de création</label><input id="reg-date-creation" class="field-input" type="date"/></div>
+        </div>
+      </div>
+      <button class="btn-save" data-register-client="${escAttr(c.nom)}">💾 Enregistrer ce client</button>
     </div>
   `;
 
@@ -871,10 +921,14 @@ function renderDetail() {
 function buildDossiersHtml(c) {
   window._clientDocs = {};
   let gi = 0;
-  const statLabels = {devis_envoye:"Envoyé", devis_accepte:"Accepté", facture:"Facturé", termine:"Clôturé"};
+  const statLabels = {devis_envoye:"Envoyé", devis_accepte:"Accepté", signe:"Signé", facture:"Facturé", termine:"Clôturé"};
   const statColors = {
     devis_envoye:  {bg:"rgba(251,146,60,.13)", text:"#fb923c"},
     devis_accepte: {bg:"rgba(167,139,250,.13)", text:"var(--purple)"},
+    // 'signe' est posé par le trigger on_signature_signed et reste distinct
+    // de 'devis_accepte' (acceptation manuelle). Son absence ici affichait
+    // un dossier signé comme « Envoyé ».
+    signe:         {bg:"var(--green-dim)", text:"var(--green)"},
     facture:       {bg:"var(--green-dim)", text:"var(--green)"},
     termine:       {bg:"rgba(107,116,148,.13)", text:"var(--muted)"},
   };
@@ -904,7 +958,7 @@ function buildDossiersHtml(c) {
           <div class="dcdoc-actions">
             <button class="btn-icon" onclick="generateClientPDF(window._clientDocs[${curIdx}])">⬇ PDF</button>
             <button class="btn-icon" id="btn-${apercuId}" onclick="toggleApercu(this)" data-id="${apercuId}" data-idx="${curIdx}">👁</button>
-            ${doc.accepte ? `<button class="btn-icon purple" onclick="downloadSignedProof('${doc.docNumber}')">📄 Signé</button>` : ""}
+            ${(doc.accepte || d.statut === "signe") ? `<button class="btn-icon purple" onclick="downloadSignedProof('${escAttr(doc.docNumber||"")}')">📄 Signé</button>` : ""}
           </div>
         </div>
         <div id="${apercuId}" style="display:none;width:100%"></div>
@@ -1094,18 +1148,44 @@ window.lookupSiretClient = async function(rawValue, mode) {
 };
 
 window.registerImplicitClient = async function(nom) {
+  const is_professionnel = document.getElementById("reg-professionnel")?.checked || false;
   const { data, error } = await sb.from("clients").insert([{
     user_id: user.id, nom,
     email: document.getElementById("reg-email")?.value.trim()||"",
     tel: document.getElementById("reg-tel")?.value.trim()||"",
     adresse: document.getElementById("reg-adresse")?.value.trim()||"",
     notes: document.getElementById("reg-notes")?.value.trim()||"",
+    // Les champs pro étaient perdus à l'enregistrement d'un client implicite :
+    // le client était créé « particulier » même si le formulaire les portait.
+    is_professionnel,
+    siret:                    is_professionnel ? (document.getElementById("reg-siret")?.value.trim()||"") : "",
+    forme_juridique:          is_professionnel ? (document.getElementById("reg-forme-juridique")?.value.trim()||"") : "",
+    code_naf:                 is_professionnel ? (document.getElementById("reg-code-naf")?.value.trim()||"") : "",
+    libelle_code_naf:         is_professionnel ? (document.getElementById("reg-libelle-naf")?.value.trim()||"") : "",
+    tva_intracom:             is_professionnel ? (document.getElementById("reg-tva-intracom")?.value.trim()||"") : "",
+    date_creation_entreprise: is_professionnel ? (document.getElementById("reg-date-creation")?.value||null) : null,
   }]).select().single();
   if (error) { alert("Erreur : "+error.message); return; }
+
+  // Rattacher les dossiers existants de ce client implicite au client créé,
+  // sinon ils resteraient orphelins et un doublon implicite réapparaîtrait.
+  const cible = String(nom).trim().toLowerCase();
+  const aLier = dossiers.filter(d => !d.client_id && String(d.client||"").trim().toLowerCase() === cible);
+  if (aLier.length) {
+    const ids = aLier.map(d => d.id);
+    const { error: linkErr } = await sb.from("dossiers")
+      .update({ client_id: data.id }).in("id", ids).eq("user_id", user.id);
+    if (linkErr) {
+      console.warn("Liaison des dossiers :", linkErr.message);
+    } else {
+      aLier.forEach(d => { d.client_id = data.id; });
+    }
+  }
+
   clients.push(data);
   selectedClientId = data.id;
   renderList(); renderDetail();
-  showToast("✓ Client enregistré");
+  showToast(aLier.length ? `✓ Client enregistré — ${aLier.length} dossier(s) rattaché(s)` : "✓ Client enregistré");
 };
 
 window.saveClient = async function(id) {
@@ -1136,7 +1216,10 @@ window.saveClient = async function(id) {
 
 window.deleteClient = async function(id) {
   if (!confirm("Supprimer ce client ? Les dossiers associés ne seront pas supprimés.")) return;
-  await sb.from("clients").delete().eq("id",id);
+  // .eq("user_id") : RLS protège déjà, mais le filtre explicite aligne cette
+  // fonction sur saveClient() et évite qu'une erreur passe inaperçue.
+  const { error } = await sb.from("clients").delete().eq("id",id).eq("user_id",user.id);
+  if (error) { alert("Erreur : "+error.message); return; }
   clients = clients.filter(c => c.id !== id);
   selectedClientId = null;
   renderList(); renderDetail();
@@ -1162,11 +1245,14 @@ function generateClientPDF(d) {
   if(d.validUntil)pdf.text("Valable jusqu'au : "+d.validUntil,rX,m+21,{align:"right"});
   let yOff=d.validUntil?27:21;
   if(d.client?.nom){
-    pdf.setFontSize(9).setFillColor(20,24,41);
+    // Le bloc client utilisait un fond sombre (20,24,41) avec un texte clair,
+    // hérité du thème de l'app : illisible dans un PDF par ailleurs blanc.
+    // Fond gris clair + texte foncé, cohérent avec le reste du document.
+    pdf.setFontSize(9).setFillColor(243,244,246);
     pdf.roundedRect(rX-65,m,66,yOff-3,2,2,"F");
-    pdf.setFontSize(8).setTextColor(150).text("CLIENT",rX-62,m+5);
-    pdf.setFontSize(10).setFont(undefined,"bold").setTextColor(226,229,241).text(d.client.nom,rX-62,m+11);
-    if(d.client.adresse)pdf.setFontSize(8).setFont(undefined,"normal").setTextColor(150).text(d.client.adresse,rX-62,m+17);
+    pdf.setFontSize(8).setTextColor(120).text("CLIENT",rX-62,m+5);
+    pdf.setFontSize(10).setFont(undefined,"bold").setTextColor(30).text(d.client.nom,rX-62,m+11);
+    if(d.client.adresse)pdf.setFontSize(8).setFont(undefined,"normal").setTextColor(90).text(d.client.adresse,rX-62,m+17);
   }
   y=Math.max(y,m+yOff)+4;
   pdf.setFont(undefined,"bold").setFontSize(11).setTextColor(0).text(d.type==="devis"?"Description des travaux":"Description",m,y);y+=4;
