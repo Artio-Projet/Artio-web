@@ -1333,11 +1333,20 @@ window.startVoice=()=>{
   S.entryMode="voice";
   voiceCallback=async t=>{
     try{
+      // La reconnaissance vocale déforme régulièrement les noms propres
+      // ("Zemmour" pour "Seymour"). Fournir le répertoire existant permet au
+      // modèle de rétablir l'orthographe exacte au lieu de transcrire
+      // phonétiquement — sans quoi une seconde fiche client est créée.
+      // Liste bornée à 60 noms pour ne pas gonfler le prompt.
+      const knownNames=(S.clients||[]).map(c=>c&&c.nom).filter(Boolean).slice(0,60);
+      const clientsBlock=knownNames.length
+        ?"\n\nClients existants (si le nom dicté ressemble à l'un d'eux, rétablis l'orthographe EXACTE de cette liste ; sinon garde le nom tel qu'il a été dicté) :\n"+knownNames.map(n=>"- "+n).join("\n")
+        :"";
       const raw=await callClaude(
 `Tu es un assistant pour ${S.entreprise.secteur||"un prestataire indépendant"}. L'utilisateur parle en ${({'fr':'français','en':'anglais','es':'espagnol','zh':'chinois'})[S.langue]||'français'}. Analyse cette dictée et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou après, sans balises markdown.
 
 Dictée: "${t}"
-Taux horaire: ${S.entreprise.taux_horaire}€/h
+Taux horaire: ${S.entreprise.taux_horaire}€/h${clientsBlock}
 
 Instructions d'extraction:
 - client_nom: nom complet du client (ex: "M. Dupont", "Madame Martin")
@@ -1440,7 +1449,12 @@ window.startVoiceSuivi=()=>{
       const raw=await callClaude(
 `Tu es un assistant pour un prestataire indépendant français. Analyse ce résumé oral de prestation et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou après.
 
-Dictée: "${t}"
+Dictée: "${t}"${(function(){
+        // Même correction que pour la dictée de devis : le nom sert ici à
+        // rédiger un email au client, une orthographe fautive se voit.
+        const kn=(S.clients||[]).map(c=>c&&c.nom).filter(Boolean).slice(0,60);
+        return kn.length?"\n\nClients existants (si le nom dicté ressemble à l'un d'eux, rétablis l'orthographe EXACTE ; sinon garde le nom dicté) :\n"+kn.map(n=>"- "+n).join("\n"):"";
+      })()}
 
 Instructions:
 - client_nom: nom du client
