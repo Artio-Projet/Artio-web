@@ -299,6 +299,27 @@ body {
   margin-top: 4px;
 }
 
+/* Modèles réutilisables */
+.tpl-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.tpl-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; text-decoration: none; color: inherit;
+  transition: border-color .15s, background .15s;
+}
+.tpl-row:hover { border-color: var(--amber); background: var(--surface-2); }
+.tpl-badge {
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+  letter-spacing: .03em; flex-shrink: 0;
+}
+.tpl-badge.d { background: rgba(251,146,60,.13); color: #fb923c; }
+.tpl-badge.f { background: var(--green-dim); color: var(--green); }
+.tpl-nom { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpl-lie { font-size: 11px; color: var(--purple); flex-shrink: 0; }
+.tpl-go { font-size: 11px; font-weight: 700; color: var(--amber); flex-shrink: 0; }
+.tpl-hint { font-size: 11px; color: var(--muted); margin: 0 0 4px; line-height: 1.5; }
+
 /* Dossier card */
 .dcdos {
   background: var(--surface);
@@ -689,7 +710,7 @@ const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let user = null, dossiers = [], clients = [], search = "", selectedClientId = null;
+let user = null, dossiers = [], clients = [], templates = [], search = "", selectedClientId = null;
 const AVATAR_COLORS = ["#d97706","#0d9488","#7c3aed","#dc2626","#2563eb","#db2777","#059669","#ea580c"];
 
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -896,7 +917,7 @@ function renderDetail() {
         <div class="dcrsub">${c.email ? esc(c.email) : "Pas d'email"}${c.tel ? " · " + esc(c.tel) : ""}</div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
-        <a href="app.html?client_nom=${encodeURIComponent(c.nom)}&client_email=${encodeURIComponent(c.email||"")}&client_tel=${encodeURIComponent(c.tel||"")}&client_adresse=${encodeURIComponent(c.adresse||"")}" class="dcrbtn">+ Nouveau devis</a>
+        <a href="app.html?client_id=${encodeURIComponent(c._source==="db"?c.id:"")}&client_nom=${encodeURIComponent(c.nom)}&client_email=${encodeURIComponent(c.email||"")}&client_tel=${encodeURIComponent(c.tel||"")}&client_adresse=${encodeURIComponent(c.adresse||"")}" class="dcrbtn">+ Nouveau devis</a>
         ${c.email ? `<a href="rediger.html?to=${encodeURIComponent(c.email)}&name=${encodeURIComponent(c.nom)}" class="dcrbtn dcrbtn-mail">✉ Envoyer un email</a>` : ""}
       </div>
     </div>
@@ -913,8 +934,48 @@ function renderDetail() {
       </div>
       <div class="dcrsecl">Dossiers (${dossierCount})</div>
       ${buildDossiersHtml(c)}
+      ${buildTemplatesHtml(c)}
       ${editFields}
     </div>`;
+}
+
+/* ── BUILD TEMPLATES HTML ── */
+// Les modèles vivent dans la table `templates` (créés depuis app.html).
+// Un modèle « lié » est celui dont client_fields.client_nom correspond à ce
+// client ; les autres sont proposés comme modèles génériques, applicables à
+// n'importe qui. Cliquer ouvre app.html avec le modèle ET le client pré-remplis.
+function buildTemplatesHtml(c) {
+  if (!templates.length) return "";
+  const cible = String(c.nom||"").trim().toLowerCase();
+  const lies = templates.filter(t => String(t.client_fields?.client_nom||"").trim().toLowerCase() === cible);
+  const generiques = templates.filter(t => !t.client_fields?.client_nom);
+
+  const lien = (t) => {
+    const p = new URLSearchParams({
+      template_id: t.id,
+      client_id: c._source === "db" ? c.id : "",
+      client_nom: c.nom || "",
+      client_email: c.email || "",
+      client_tel: c.tel || "",
+      client_adresse: c.adresse || "",
+    });
+    return "app.html?" + p.toString();
+  };
+  const carte = (t, lie) => `
+    <a class="tpl-row" href="${escAttr(lien(t))}">
+      <span class="tpl-badge ${t.tab === "facture" ? "f" : "d"}">${t.tab === "facture" ? "Facture" : "Devis"}</span>
+      <span class="tpl-nom">${esc(t.nom)}</span>
+      ${lie ? `<span class="tpl-lie">👤 ce client</span>` : ""}
+      <span class="tpl-go">Utiliser →</span>
+    </a>`;
+
+  const items = [...lies.map(t => carte(t, true)), ...generiques.map(t => carte(t, false))];
+  if (!items.length) return "";
+
+  return `
+    <div class="dcrsecl">Modèles (${items.length})</div>
+    <div class="tpl-list">${items.join("")}</div>
+    <p class="tpl-hint">Créez un modèle depuis un devis : bouton « Sauvegarder comme modèle » dans l'éditeur.</p>`;
 }
 
 /* ── BUILD DOSSIERS HTML ── */
@@ -1342,10 +1403,12 @@ document.getElementById("search-input").addEventListener("input", (e) => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = "index.html"; return; }
   user = session.user;
-  const [{ data: dos }, { data: cli }] = await Promise.all([
+  const [{ data: dos }, { data: cli }, { data: tpl }] = await Promise.all([
     sb.from("dossiers").select("*").eq("user_id", user.id),
     sb.from("clients").select("*").eq("user_id", user.id).order("nom"),
+    sb.from("templates").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
   ]);
+  templates = tpl || [];
   dossiers = (dos||[]).map(d => {
     let docs = [];
     try { docs = typeof d.documents === "string" ? JSON.parse(d.documents) : (d.documents||[]); } catch(e) {}

@@ -746,6 +746,7 @@ async function upsertDossier(dos){
       user_id:S.user.id,
       nom:dos.nom||"",
       client:dos.client||"",
+      client_id:dos.client_id||null,
       statut:dos.statut||"devis_envoye",
       documents:dos.documents||[],
       created_at:new Date().toISOString(),
@@ -1100,6 +1101,20 @@ async function initAuth(){
       S.settingsPage=(sp==="profil"?"profil":sp==="gmail"?"gmail":"main");
       history.replaceState(null,"",window.location.pathname);
     }
+    // Arrivée depuis clients.html "+ Nouveau devis" ou "Utiliser ce modèle" : pré-remplir client / modèle
+    const qp=new URLSearchParams(window.location.search);
+    const qClientNom=qp.get("client_nom"),qTemplateId=qp.get("template_id");
+    if(qClientNom||qp.get("client_email")||qp.get("client_tel")||qp.get("client_adresse")||qTemplateId){
+      if(qTemplateId&&S.templates.some(t=>t.id===qTemplateId)){
+        loadTemplate(qTemplateId);
+      }
+      if(qClientNom)S.fields.client_nom=qClientNom;
+      if(qp.get("client_email"))S.fields.client_email=qp.get("client_email");
+      if(qp.get("client_tel"))S.fields.client_tel=qp.get("client_tel");
+      if(qp.get("client_adresse"))S.fields.client_adresse=qp.get("client_adresse");
+      if(qp.get("client_id"))S.fields.client_id=qp.get("client_id");
+      history.replaceState(null,"",window.location.pathname);
+    }
     checkDevisAConvertir();
     renderApp();
     if(window.ArtioTour) window.ArtioTour.autoStart();
@@ -1353,14 +1368,52 @@ JSON:
       // Détection devis/facture par l'IA
       if(p.type==="facture"||p.type==="devis"){S.tab=p.type;}
       // Détection automatique de modèle par la voix
-      if(p.template_hint&&String(p.template_hint)!=="null"&&S.templates.length>0){
-        const hint=String(p.template_hint).toLowerCase().trim();
-        const match=S.templates.find(t=>{
-          const tn=t.nom.toLowerCase();
-          const cn=(t.client_fields?.client_nom||"").toLowerCase();
-          return tn.includes(hint)||hint.includes(tn)||(cn&&(cn.includes(hint)||hint.includes(cn)));
-        });
-        if(match) loadTemplate(match.id);
+      if(S.templates.length>0){
+        const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+        const hint=(p.template_hint&&String(p.template_hint)!=="null")?norm(p.template_hint):"";
+        let match=null;
+        // 1. Indice explicite donné par l'IA (nom de modèle ou de client).
+        if(hint){
+          match=S.templates.find(t=>{
+            const tn=norm(t.nom);
+            const cn=norm(t.client_fields?.client_nom);
+            return tn.includes(hint)||hint.includes(tn)||(cn&&(cn.includes(hint)||hint.includes(cn)));
+          });
+        }
+        // 2. Sinon : le client dicté a-t-il un modèle attitré ? Permet de dire
+        //    simplement « un devis pour Safia » et de retrouver son modèle
+        //    habituel, sans avoir à nommer le modèle.
+        if(!match){
+          const cli=norm(p.client_nom);
+          if(cli.length>2){
+            match=S.templates.find(t=>{
+              const cn=norm(t.client_fields?.client_nom);
+              return cn&&(cn===cli||cn.includes(cli)||cli.includes(cn));
+            });
+          }
+        }
+        if(match){
+          // Mémoriser ce qui vient d'être dicté : loadTemplate() écrase
+          // S.fields et S.pieces, or la dictée du jour doit primer sur les
+          // valeurs enregistrées dans le modèle.
+          const dicte={};
+          ["client_nom","client_adresse","client_tel","client_email","travaux","nb_heures","tva","date_prestation","heure_prestation","heure_fin_prestation"].forEach(k=>{
+            if(p[k]!==null&&p[k]!==undefined&&String(p[k])!=="null"&&String(p[k]).trim()!=="") dicte[k]=String(p[k]);
+          });
+          const piecesDictees=Array.isArray(p.pieces)?p.pieces.filter(x=>x&&x.description&&String(x.description)!=="null"):[];
+          loadTemplate(match.id);
+          S.fields={...S.fields,...dicte};
+          // Les prestations dictées remplacent celles du modèle ; si rien n'a
+          // été dicté, on garde celles du modèle.
+          if(piecesDictees.length>0){
+            S.pieces=piecesDictees.map(x=>({
+              description:String(x.description),
+              quantite:String(x.quantite||"1"),
+              prix_unitaire:String(x.prix_unitaire||"")
+            }));
+          }
+          showToast('📋 Modèle "'+match.nom+'" appliqué');
+        }
       }
       render();
     }catch(err){
@@ -1427,34 +1480,51 @@ const doc={type:tab,docNumber,date:todayFR(),validUntil:tab==="devis"?addDays(va
 const civStr=f.client_nom?f.client_nom.trim():"Client";
 const travStr=(f.travaux||"").slice(0,35)+((f.travaux||"").length>35?"...":"");
 const nom=civStr+(travStr?" — "+travStr:"");
-    const dos={id:uid(),nom,client:f.client_nom,statut:tab==="devis"?"devis_envoye":"facture",createdAt:todayFR(),documents:[doc]};
-    await upsertDossier(dos);
-    storeDoc(doc);
-    // Sauvegarde silencieuse du catalogue prix (apprentissage automatique)
-    saveCatalogue(pv).catch(e=>console.warn("catalogue:",e.message));
-    // Sauvegarder le client dans la table clients s'il n'existe pas déjà
+    const dos={id:uid(),nom,client:f.client_nom,client_id:f.client_id||null,statut:tab==="devis"?"devis_envoye":"facture",createdAt:todayFR(),documents:[doc]};
+    // Sauvegarder/retrouver le client dans la table clients AVANT de créer le dossier,
+    // pour lier dossier.client_id (évite que le dossier "disparaisse" de la fiche client si celui-ci est renommé plus tard)
     if(f.client_nom&&f.client_nom.trim()){
       const clientNom=f.client_nom.trim();
       const clientEmail=(f.client_email||"").trim();
       const clientTel=(f.client_tel||"").trim();
       const clientAdresse=(doc.client?.adresse||f.client_adresse||"").trim();
-      // Vérifier si le client existe déjà (par nom ou email)
-      const{data:existing}=await sb.from("clients")
-        .select("id")
-        .eq("user_id",S.user.id)
-        .or(clientEmail?`nom.eq.${clientNom},email.eq.${clientEmail}`:`nom.eq.${clientNom}`)
-        .maybeSingle();
-      if(!existing){
-        await sb.from("clients").insert({
-          user_id:S.user.id,
-          nom:clientNom,
-          email:clientEmail,
-          tel:clientTel,
-          adresse:clientAdresse,
-          notes:""
-        });
+      if(f.client_id){
+        dos.client_id=f.client_id;
+      } else {
+        // Vérifier si le client existe déjà (par nom, puis par email).
+        // Anciennement fait via .or() avec interpolation directe du nom : en
+        // syntaxe PostgREST la virgule sépare les conditions, donc un nom
+        // contenant une virgule, une parenthèse ou un point cassait le filtre
+        // et créait un doublon. Ici les valeurs passent en paramètres.
+        let existing = null;
+        const{data:byNom}=await sb.from("clients")
+          .select("id").eq("user_id",S.user.id).eq("nom",clientNom).limit(1).maybeSingle();
+        if(byNom){
+          existing=byNom;
+        } else if(clientEmail){
+          const{data:byEmail}=await sb.from("clients")
+            .select("id").eq("user_id",S.user.id).eq("email",clientEmail).limit(1).maybeSingle();
+          if(byEmail) existing=byEmail;
+        }
+        if(existing){
+          dos.client_id=existing.id;
+        } else {
+          const{data:created}=await sb.from("clients").insert({
+            user_id:S.user.id,
+            nom:clientNom,
+            email:clientEmail,
+            tel:clientTel,
+            adresse:clientAdresse,
+            notes:""
+          }).select("id").single();
+          if(created) dos.client_id=created.id;
+        }
       }
     }
+    await upsertDossier(dos);
+    storeDoc(doc);
+    // Sauvegarde silencieuse du catalogue prix (apprentissage automatique)
+    saveCatalogue(pv).catch(e=>console.warn("catalogue:",e.message));
     S.dossiers=[dos,...S.dossiers];
     // entryMode conservé pour pouvoir "Convertir" depuis le formulaire — réinitialisé à la fermeture
     set({loading:false,generatedDoc:doc,openDossier:dos.id});
@@ -2215,6 +2285,7 @@ window.selectClient = function(idx){
   S.fields.client_email   = c.email   || "";
   S.fields.client_tel     = c.tel     || "";
   S.fields.client_adresse = c.adresse || "";
+  S.fields.client_id      = c.id      || null;
   S._showClientPicker = false;
   S._clientFilter = "";
   set({});
@@ -2259,7 +2330,7 @@ function renderClientPicker(){
     + '<label class="label">Nom du client</label>'
     + '<div style="display:flex;gap:6px;align-items:center;">'
     + '<input type="text" value="' + nomVal + '" placeholder="' + nomPh + '" data-fid="client_nom"'
-    + ' oninput="S.fields.client_nom=this.value;var f=this.value.toLowerCase().trim();S._clientFilter=f;S._showClientPicker=f.length>0&&S.clients.some(function(c){return c.nom.toLowerCase().includes(f);});window.updatePickerDOM&&window.updatePickerDOM()" style="flex:1;" />';
+    + ' oninput="S.fields.client_nom=this.value;S.fields.client_id=null;var f=this.value.toLowerCase().trim();S._clientFilter=f;S._showClientPicker=f.length>0&&S.clients.some(function(c){return c.nom.toLowerCase().includes(f);});window.updatePickerDOM&&window.updatePickerDOM()" style="flex:1;" />';
 
   if(hasClients){
     var btnStyle = "flex-shrink:0;padding:0 10px;height:38px;background:var(--surface-3);"
