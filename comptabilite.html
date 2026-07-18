@@ -114,7 +114,7 @@
     .empty-sub{color:var(--muted);font-size:13px;line-height:1.55;max-width:480px;margin:0 auto}
 
     .list{display:flex;flex-direction:column;gap:8px}
-    .row{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
+    .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
     .row:hover{border-color:var(--border-hi)}
     .row.unread{border-left:3px solid var(--amber)}
     .row.impaye{border-left:3px solid var(--amber)}
@@ -131,7 +131,10 @@
     .badge-pending{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
     .badge-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
     .badge-info{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,167,66,0.25)}
-    .row-actions{display:flex;gap:6px}
+    .row-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:nowrap}
+    .row-main{min-width:0}
+    .row-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .icon-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:all 0.15s;text-decoration:none}
     .icon-btn:hover{background:var(--surface-3);border-color:var(--amber);color:var(--amber)}
     .icon-btn svg{width:16px;height:16px}
@@ -245,7 +248,7 @@
       <span>📥</span> Reçues (PDP) <span class="count" id="count-recues">0</span>
     </button>
     <button class="tab tab-ajoutees" id="tab-ajoutees" onclick="switchTab('ajoutees')">
-      <span>🗂</span> Ajoutées <span class="count" id="count-ajoutees">0</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Ajoutées <span class="count" id="count-ajoutees">0</span>
     </button>
   </div>
 
@@ -407,8 +410,10 @@ async function loadFacturesRecues(){
     return [];
   }
   superpdpConnected = !!data.connected;
-  // L'Edge Function renvoie tout factures_recues : on ne garde ici que le flux PDP.
-  return (data.factures || []).filter(f => (f.source || 'pdp') !== 'manuel');
+  // L'Edge Function ne renvoie pas la colonne `source` dans son select ;
+  // on distingue donc le flux PDP par la présence d'un flow_id (NULL sur
+  // les factures déposées manuellement).
+  return (data.factures || []).filter(f => !!f.flow_id);
 }
 
 // Les factures déposées manuellement sont lues directement (RLS par user_id).
@@ -583,7 +588,7 @@ function renderList(){
     if(list.length === 0){
       el.innerHTML = `
         <div class="empty">
-          <div class="empty-icon">🗂</div>
+          <div class="empty-icon"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
           <div class="empty-title">${facturesAjoutees.length === 0 ? 'Aucune facture ajoutée' : 'Aucun résultat'}</div>
           <div class="empty-sub">${facturesAjoutees.length === 0 ? 'Déposez vos factures fournisseurs en PDF dans la zone ci-dessus pour les conserver et les retrouver ici.' : 'Essayez un autre terme de recherche.'}</div>
         </div>`;
@@ -591,11 +596,16 @@ function renderList(){
     }
     const html = list.map(f => {
       const titre = f.fournisseur || f.nom_fichier || 'Facture';
-      const meta = [f.numero_facture, f.nom_fichier].filter(Boolean).map(esc).join(' · ');
+      // Ne pas répéter le nom de fichier s'il sert déjà de titre.
+      const metaParts = [];
+      if(f.numero_facture) metaParts.push(esc(f.numero_facture));
+      if(f.nom_fichier && f.fournisseur) metaParts.push(esc(f.nom_fichier));
+      if(!f.fournisseur && !f.numero_facture) metaParts.push('<span style="opacity:.75">Détails à compléter</span>');
+      const meta = metaParts.join(' · ');
       const safeTitre = esc(titre).replace(/'/g, "\\'");
       return `
         <div class="row">
-          <div class="row-icon">🗂</div>
+          <div class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
           <div class="row-main">
             <div class="row-title">${esc(titre)}</div>
             <div class="row-meta">${meta || '—'}</div>
