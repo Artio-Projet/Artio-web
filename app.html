@@ -763,7 +763,18 @@ async function upsertDossier(dos){
 }
 
 async function deleteDossierDB(id){
-  await sb.from("dossiers").delete().eq("id",id).eq("user_id",S.user.id);
+  // Le résultat était ignoré : en cas de refus (RLS, contrainte, réseau) la
+  // promesse se résolvait quand même et l'appelant retirait le dossier de
+  // l'affichage alors qu'il restait en base. On remonte désormais l'échec.
+  const{data,error}=await sb.from("dossiers").delete().eq("id",id).eq("user_id",S.user.id).select("id");
+  if(error){
+    console.error("deleteDossierDB:",error);
+    throw new Error(error.message);
+  }
+  if(!data||data.length===0){
+    throw new Error("Le dossier n'a pas été supprimé (aucune ligne concernée). Vérifiez que vous êtes connecté au bon compte.");
+  }
+  return true;
 }
 
 // ——— AUTH ———
@@ -1842,7 +1853,13 @@ window.renameDossier=async function(id){
   set({renamingDossierId:null,renamingDossierVal:""});
 };
 window.confirmDeleteDossier=async id=>{
-  await deleteDossierDB(id);
+  try{
+    await deleteDossierDB(id);
+  }catch(e){
+    alert("Suppression impossible : "+e.message);
+    set({deleteConfirm:null});
+    return;
+  }
   S.dossiers=S.dossiers.filter(d=>d.id!==id);
   const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
@@ -1850,9 +1867,21 @@ window.confirmDeleteDossier=async id=>{
 };
 window.confirmDeleteDoc=async(dosId,docNum)=>{
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
-  dos.documents=dos.documents.filter(d=>d.docNumber!==docNum);
-  if(dos.documents.length===0){await deleteDossierDB(dosId);S.dossiers=S.dossiers.filter(d=>d.id!==dosId)}
-  else{await upsertDossier(dos)}
+  const restants=dos.documents.filter(d=>d.docNumber!==docNum);
+  if(restants.length===0){
+    // Dernier document : l'état local n'est modifié qu'après confirmation.
+    try{
+      await deleteDossierDB(dosId);
+    }catch(e){
+      alert("Suppression impossible : "+e.message);
+      set({deleteConfirm:null});
+      return;
+    }
+    S.dossiers=S.dossiers.filter(d=>d.id!==dosId);
+  }else{
+    dos.documents=restants;
+    await upsertDossier(dos);
+  }
   const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
   set({deleteConfirm:null,previewDocNum:null});
