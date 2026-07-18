@@ -869,13 +869,25 @@ async function signedUrlFor(id){
 }
 
 async function previewManual(id, name){
-  toast('⏳ Chargement…');
+  // L'onglet doit être ouvert de façon synchrone (dans le geste de clic),
+  // sinon le bloqueur de pop-ups l'intercepte : on l'ouvre vide puis on
+  // y injecte l'URL signée une fois récupérée.
+  const win = window.open('', '_blank');
   try {
     const url = await signedUrlFor(id);
-    document.getElementById('pdf-modal-title').textContent = name;
-    document.getElementById('pdf-modal-frame').src = url;
-    document.getElementById('pdf-modal').classList.add('open');
-  } catch(e){ toast('❌ ' + e.message); }
+    if(win && !win.closed){
+      win.location.href = url;
+    } else {
+      // Pop-up bloquée : repli sur le modal intégré.
+      document.getElementById('pdf-modal-title').textContent = name;
+      document.getElementById('pdf-modal-frame').src = url;
+      document.getElementById('pdf-modal').classList.add('open');
+      toast('ℹ️ Ouverture bloquée par le navigateur — affichage intégré');
+    }
+  } catch(e){
+    if(win && !win.closed) win.close();
+    toast('❌ ' + e.message);
+  }
 }
 
 async function downloadManual(id, name){
