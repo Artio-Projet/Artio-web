@@ -114,12 +114,16 @@
     .empty-sub{color:var(--muted);font-size:13px;line-height:1.55;max-width:480px;margin:0 auto}
 
     .list{display:flex;flex-direction:column;gap:8px}
-    .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
+    /* Flex plutôt que grid : le nombre de colonnes varie selon l'onglet,
+       le mode lecture seule et la présence de la case de sélection —
+       un grid-template figé finissait par déborder. */
+    .row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:border-color 0.15s}
     .row:hover{border-color:var(--border-hi)}
     .row.unread{border-left:3px solid var(--amber)}
     .row.impaye{border-left:3px solid var(--amber)}
     .row-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:10px}
-    .row-main{min-width:0}
+    .row-main{min-width:0;flex:1}
+    .row-icon,.row-amount,.row-date,.badge{flex-shrink:0}
     .row-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .row-meta{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .row-amount{font-family:var(--fh);font-size:15px;font-weight:700;white-space:nowrap}
@@ -165,6 +169,13 @@
     .upload-item.error{color:var(--red)}
     .icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
     .icon-btn.ok{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+    .row.sel{border-color:var(--amber);background:var(--amber-dim)}
+    .row-check{width:18px;height:18px;flex-shrink:0;cursor:pointer;accent-color:var(--amber)}
+    .selbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:12px;margin-bottom:14px;flex-wrap:wrap}
+    .selbar-count{font-weight:700;font-size:13px;flex:1;min-width:140px}
+    .selbar .btn{padding:8px 14px;font-size:12px}
+    .link-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;font-family:var(--fb);padding:0}
+    .link-btn:hover{color:var(--text)}
     .modal-content.small{max-width:430px}
     .modal-body.pad{padding:18px 20px 20px}
     .field{margin-bottom:12px}
@@ -276,6 +287,13 @@
     <button class="fpill" data-tfilter="transmises" onclick="setTransmissionFilter('transmises')">Transmises <span class="n" id="fn-t">0</span></button>
   </div>
 
+  <div class="selbar" id="selbar" style="display:none">
+    <span class="selbar-count" id="selbar-count">0 sélectionnée(s)</span>
+    <button class="btn" onclick="exportZip()">📦 Télécharger (ZIP)</button>
+    <button class="btn" id="btn-export-mail" onclick="openMailModal()">✉️ Envoyer au comptable</button>
+    <button class="link-btn" onclick="clearSelection()">Annuler</button>
+  </div>
+
   <div class="toolbar">
     <input type="text" class="search" id="search" placeholder="Rechercher par numéro, client, fournisseur…" oninput="renderList()"/>
     <button class="btn btn-primary" id="btn-action"></button>
@@ -294,6 +312,22 @@
     </div>
     <div class="modal-body">
       <iframe id="pdf-modal-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mail-modal" onclick="if(event.target===this)closeMailModal()">
+  <div class="modal-content small">
+    <div class="modal-head">
+      <div class="modal-title">Envoyer au comptable</div>
+      <button class="modal-close" onclick="closeMailModal()">✕</button>
+    </div>
+    <div class="modal-body pad">
+      <div class="field"><label class="field-label">Destinataire</label><input id="mail-to" class="field-input" type="email" placeholder="comptable@cabinet.fr"/></div>
+      <div class="field"><label class="field-label">Objet</label><input id="mail-subject" class="field-input" type="text"/></div>
+      <div class="field"><label class="field-label">Message</label><textarea id="mail-body" class="field-input" style="min-height:96px"></textarea></div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px" id="mail-info"></p>
+      <button class="btn btn-primary" id="mail-send-btn" style="width:100%;justify-content:center;" onclick="sendToComptable()">Envoyer</button>
     </div>
   </div>
 </div>
@@ -321,6 +355,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- JSZip : export groupé des pièces de dépense pour le comptable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <!-- Pas de PAGE_PLAN_REQUIRED : la consultation des factures reste ouverte à
      tous, y compris aux comptes résiliés (obligation de conservation).
      plan-guard.js n'est chargé que pour distinguer lecture seule / écriture. -->
@@ -563,6 +599,9 @@ function switchTab(tab){
   // déclencherait un renderList() prématuré — l'onglet n'est pas encore
   // entièrement configuré à ce stade.
   transmissionFilter = 'tous';
+  // Vider la sélection : garder des éléments cochés d'un autre onglet
+  // afficherait un compteur sans rapport avec ce qui est visible.
+  selection.clear();
   document.querySelectorAll('#filter-transmission .fpill').forEach(b => {
     b.classList.toggle('active', b.dataset.tfilter === 'tous');
   });
@@ -603,6 +642,7 @@ function renderList(){
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
   const el = document.getElementById('content');
   renderTransmissionCounts();
+  renderSelbar();
 
   if(currentTab === 'emises'){
     let list = facturesEmises;
@@ -677,7 +717,8 @@ function renderList(){
       const meta = metaParts.join(' · ');
       const safeTitre = esc(titre).replace(/'/g, "\\'");
       return `
-        <div class="row">
+        <div class="row ${selection.has(f.id) ? 'sel' : ''}">
+          ${readOnly ? '' : `<input type="checkbox" class="row-check" ${selection.has(f.id) ? 'checked' : ''} onclick="toggleSelect('${f.id}', event)"/>`}
           <div class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
           <div class="row-main">
             <div class="row-title">${esc(titre)}</div>
@@ -749,7 +790,8 @@ function renderList(){
       else ackBadge = '<span class="badge badge-info">' + esc(ack) + '</span>';
     }
     return `
-      <div class="row ${f.lu ? '' : 'unread'}">
+      <div class="row ${f.lu ? '' : 'unread'} ${selection.has(f.id) ? 'sel' : ''}">
+        ${readOnly ? '' : `<input type="checkbox" class="row-check" ${selection.has(f.id) ? 'checked' : ''} onclick="toggleSelect('${f.id}', event)"/>`}
         <div class="row-icon">📥</div>
         <div class="row-main">
           <div class="row-title">${esc(name)}</div>
@@ -1139,6 +1181,182 @@ async function toggleTransmise(id){
     renderKPIs(); renderList();
     toast(nouveau ? '✅ Marquée comme transmise' : '↩️ Remise à transmettre');
   } catch(e){ toast('❌ ' + e.message); }
+}
+
+/* ═══ EXPORT GROUPÉ POUR LE COMPTABLE ═══ */
+
+let selection = new Set();
+
+function toggleSelect(id, ev){
+  if(ev) ev.stopPropagation();
+  if(selection.has(id)) selection.delete(id); else selection.add(id);
+  renderList();
+}
+function clearSelection(){ selection.clear(); renderList(); }
+
+function selectedItems(){
+  // La sélection peut porter sur les deux flux à la fois si l'utilisateur
+  // change d'onglet sans vider : on cherche donc dans les deux listes.
+  const all = [...facturesRecues, ...facturesAjoutees];
+  return [...selection].map(id => all.find(f => f.id === id)).filter(Boolean);
+}
+
+function renderSelbar(){
+  const bar = document.getElementById('selbar');
+  const n = selection.size;
+  bar.style.display = n ? 'flex' : 'none';
+  if(!n) return;
+  document.getElementById('selbar-count').textContent =
+    n + ' pièce' + (n > 1 ? 's' : '') + ' sélectionnée' + (n > 1 ? 's' : '');
+  // L'envoi par email passe par Gmail : réservé aux comptes ayant connecté
+  // leur compte Google (plan Pro). Le ZIP reste ouvert à tous.
+  const btn = document.getElementById('btn-export-mail');
+  const isPro = !!(window.PlanGuard && window.PlanGuard.isPro());
+  btn.style.display = isPro ? '' : 'none';
+}
+
+// Nom de fichier lisible par le comptable : date + fournisseur + numéro.
+function exportFilename(f){
+  const bits = [];
+  if(f.date_facture) bits.push(String(f.date_facture).slice(0, 10));
+  const nom = f.fournisseur || f.flow_name || f.nom_fichier || 'facture';
+  bits.push(String(nom).replace(/\.pdf$/i, ''));
+  if(f.numero_facture) bits.push(String(f.numero_facture));
+  return sanitizeFilename(bits.join('_')) + '.pdf';
+}
+
+// Récupère le PDF d'une facture, quel que soit son flux d'origine.
+async function fetchPdfBlob(f){
+  if(f.storage_path){
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(f.storage_path, 300);
+    if(error || !data?.signedUrl) throw new Error(error?.message || 'Lien indisponible');
+    const res = await fetch(data.signedUrl);
+    if(!res.ok) throw new Error('Téléchargement impossible');
+    return await res.blob();
+  }
+  if(f.flow_id){
+    const r = await callInbox('download', { flow_id: f.flow_id });
+    if(!r.success || !r.pdf_b64) throw new Error(r.error || 'Téléchargement impossible');
+    return b64ToBlob(r.pdf_b64, 'application/pdf');
+  }
+  throw new Error('Aucun fichier associé');
+}
+
+async function exportZip(){
+  const items = selectedItems();
+  if(!items.length) return;
+  if(typeof JSZip === 'undefined'){ toast('❌ Module ZIP indisponible'); return; }
+
+  toast('⏳ Préparation de l\'archive…');
+  const zip = new JSZip();
+  const echecs = [];
+  const noms = new Set();
+
+  for(const f of items){
+    try {
+      const blob = await fetchPdfBlob(f);
+      // Deux factures peuvent produire le même nom : on suffixe pour
+      // éviter qu'une entrée n'écrase la précédente dans l'archive.
+      let nom = exportFilename(f), i = 2;
+      while(noms.has(nom)){ nom = exportFilename(f).replace(/\.pdf$/, '') + '_' + (i++) + '.pdf'; }
+      noms.add(nom);
+      zip.file(nom, blob);
+    } catch(e){
+      echecs.push((f.fournisseur || f.nom_fichier || f.flow_id || 'facture') + ' : ' + e.message);
+    }
+  }
+
+  if(!noms.size){ toast('❌ Aucun fichier récupéré'); return; }
+
+  try {
+    const out = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(out);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'factures-depenses_' + new Date().toISOString().slice(0, 10) + '.zip';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast(echecs.length ? `✅ ${noms.size} fichier(s) — ${echecs.length} échec(s)` : `✅ ${noms.size} fichier(s) exporté(s)`);
+    if(echecs.length) console.warn('Échecs export ZIP:', echecs);
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
+function openMailModal(){
+  const items = selectedItems();
+  if(!items.length) return;
+  const mois = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  document.getElementById('mail-subject').value = `Pièces justificatives — ${mois}`;
+  document.getElementById('mail-body').value =
+    `Bonjour,\n\nVeuillez trouver ci-joint ${items.length} facture${items.length > 1 ? 's' : ''} d'achat.\n\nCordialement`;
+  document.getElementById('mail-info').textContent =
+    `${items.length} pièce(s) en pièces jointes. Limite : environ 11 Mo au total.`;
+  document.getElementById('mail-modal').classList.add('open');
+  setTimeout(() => document.getElementById('mail-to').focus(), 80);
+}
+function closeMailModal(){ document.getElementById('mail-modal').classList.remove('open'); }
+
+async function sendToComptable(){
+  const to = document.getElementById('mail-to').value.trim();
+  if(!to){ toast('❌ Destinataire requis'); return; }
+  const items = selectedItems();
+  if(!items.length) return;
+
+  const btn = document.getElementById('mail-send-btn');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+
+  try {
+    const attachments = [];
+    let total = 0;
+    for(const f of items){
+      const blob = await fetchPdfBlob(f);
+      const b64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result).split(',')[1]);
+        r.onerror = () => rej(new Error('Lecture impossible'));
+        r.readAsDataURL(blob);
+      });
+      total += b64.length;
+      // Garde-fou côté client : gmail-send rejette au-delà de 15 Mo de
+      // base64. Mieux vaut le dire avant d'avoir tout téléchargé.
+      if(total > 14 * 1024 * 1024){
+        throw new Error('Pièces jointes trop volumineuses — sélectionnez moins de factures ou utilisez le ZIP.');
+      }
+      attachments.push({ filename: exportFilename(f), contentType: 'application/pdf', data: b64 });
+    }
+
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(FUNCTIONS_URL + '/gmail-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({
+        to,
+        subject: document.getElementById('mail-subject').value.trim(),
+        text: document.getElementById('mail-body').value,
+        attachments,
+      }),
+    });
+    const out = await res.json();
+    if(!res.ok || out.error) throw new Error(out.error || 'Envoi impossible');
+
+    // Marquer transmises : c'est tout l'intérêt de l'envoi groupé, ne pas
+    // avoir à repasser une par une derrière.
+    const now = new Date().toISOString();
+    const ids = items.map(f => f.id);
+    const { error } = await sb.from('factures_recues')
+      .update({ transmise_at: now, transmise_a: to })
+      .in('id', ids).eq('user_id', user.id);
+    if(error) console.warn('Marquage transmises:', error.message);
+    else items.forEach(f => { f.transmise_at = now; f.transmise_a = to; });
+
+    closeMailModal();
+    clearSelection();
+    renderKPIs(); renderList();
+    toast(`✅ ${items.length} pièce(s) envoyée(s) à ${to}`);
+  } catch(e){
+    toast('❌ ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Envoyer';
+  }
 }
 
 async function doLogout(){
