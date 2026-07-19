@@ -107,6 +107,24 @@
       target:null, pos:"center"
     },
     {
+      page:"comptabilite",
+      title:"\ud83e\uddfe Comptabilit\u00e9 \u2014 tes 3 flux de factures",
+      desc:"Cette page rassemble <strong>toutes</strong> tes factures, en trois onglets :<br><br>\u2022 <strong>\u00c9mises</strong> \u2014 celles que tu envoies \u00e0 tes clients<br>\u2022 <strong>Re\u00e7ues (PDP)</strong> \u2014 celles que tes fournisseurs t'envoient par voie \u00e9lectronique, r\u00e9cup\u00e9r\u00e9es automatiquement<br>\u2022 <strong>Ajout\u00e9es</strong> \u2014 celles que tu d\u00e9poses toi-m\u00eame : tickets de caisse, factures papier, PDF re\u00e7us par email<br><br>Les deux derniers onglets sont tes <strong>pi\u00e8ces de d\u00e9pense</strong> \u2014 les justificatifs que ton comptable r\u00e9clame.",
+      target:null, pos:"center"
+    },
+    {
+      page:"comptabilite",
+      title:"\ud83d\udce4 Ne plus chercher ce qui a d\u00e9j\u00e0 \u00e9t\u00e9 envoy\u00e9",
+      desc:"Chaque pi\u00e8ce de d\u00e9pense porte un statut : <strong>\u00c0 transmettre</strong> ou <strong>\u2713 Transmise</strong>.<br><br>Coche-les au fur et \u00e0 mesure, ou laisse Artio le faire : quand tu envoies un lot \u00e0 ton comptable, elles basculent automatiquement.<br><br>Les <strong>filtres</strong> en haut te montrent d'un coup d'\u0153il ce qu'il te reste \u00e0 envoyer \u2014 fini les relances pour des pi\u00e8ces d\u00e9j\u00e0 fournies.<br><br><small style=\"color:var(--muted)\">\u26a0 \u00ab Transmise \u00bb ne veut pas dire \u00ab supprimable \u00bb : la loi impose de conserver tes justificatifs <strong>10 ans</strong>.</small>",
+      target:"#filter-transmission", pos:"bottom"
+    },
+    {
+      page:"comptabilite",
+      title:"\ud83d\udce6 Envoyer un lot \u00e0 ton comptable",
+      desc:"Coche les pi\u00e8ces avec les <strong>cases \u00e0 gauche</strong>, puis choisis :<br><br>\u2022 <strong>\ud83d\udce6 T\u00e9l\u00e9charger (ZIP)</strong> \u2014 une archive avec des noms de fichiers lisibles (date, commer\u00e7ant, num\u00e9ro). Disponible sur toutes les offres.<br>\u2022 <strong>\u2709\ufe0f Envoyer au comptable</strong> \u2014 un email avec les PDF en pi\u00e8ces jointes, envoy\u00e9 depuis ton adresse Gmail (offre <strong>Pro</strong>). Les pi\u00e8ces sont marqu\u00e9es transmises automatiquement.<br><br>Tu peux m\u00e9langer factures PDP et pi\u00e8ces ajout\u00e9es dans un m\u00eame envoi.",
+      target:null, pos:"center"
+    },
+    {
       page:"calendar",
       title:"📅 Calendrier",
       desc:"Vue jour à grand confort avec :<br>• <strong>Mini-calendrier</strong> mensuel à gauche, avec heat mapping (les jours chargés se distinguent)<br>• <strong>Panneau 7 jours</strong> des prochains rendez-vous<br>• Affichage automatique des <strong>jours fériés</strong><br><br>Connecte <strong>Google Calendar</strong> (offre Pro) pour synchroniser dans les deux sens : un événement créé dans Artio apparaît dans Google, et inversement.",
@@ -121,7 +139,7 @@
     {
       page:"settings",
       title:"🏛️ Facturation électronique",
-      desc:"Artio est <strong>Solution Compatible DGFiP</strong> via <strong>FactPulse</strong>, une plateforme agréée. Active-la ici pour émettre tes factures au format électronique (offre <strong>Pro</strong>).<br><br><strong>⚠ Démarche obligatoire :</strong> tu dois <strong>déclarer FactPulse comme ta plateforme</strong> dans l'annuaire du <strong>Portail Public de Facturation</strong> sur <strong>impots.gouv.fr</strong>. Cette déclaration se fait entreprise par entreprise, avec ton SIRET — Artio ne peut pas la faire à ta place.<br><br>Retrouve la démarche complète dans <strong>Aide → Réforme facturation électronique 2026</strong>.",
+      desc:"Artio est <strong>Solution Compatible DGFiP</strong> via <strong>FactPulse</strong>, une plateforme agréée. Active-la ici pour émettre tes factures au format électronique.<br><br><strong>⚠ Démarche obligatoire :</strong> tu dois <strong>déclarer FactPulse comme ta plateforme</strong> dans l'annuaire du <strong>Portail Public de Facturation</strong> sur <strong>impots.gouv.fr</strong>. Cette déclaration se fait entreprise par entreprise, avec ton SIRET — Artio ne peut pas la faire à ta place.<br><br>Retrouve la démarche complète dans <strong>Aide → Réforme facturation électronique 2026</strong>.",
       target:null, pos:"center"
     },
     {

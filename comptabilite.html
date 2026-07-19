@@ -361,6 +361,8 @@
      tous, y compris aux comptes résiliés (obligation de conservation).
      plan-guard.js n'est chargé que pour distinguer lecture seule / écriture. -->
 <script src="plan-guard.js"></script>
+<!-- Tutoriel guidé : cette page fait partie du parcours (3 étapes). -->
+<script src="tour.js?v=3"></script>
 <script>
 const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
@@ -1407,6 +1409,10 @@ async function init(){
 
   renderKPIs();
   switchTab(tab);
+
+  // Tutoriel guidé : démarré après le rendu, sinon les cibles CSS
+  // (#filter-transmission notamment) n'existent pas encore dans le DOM.
+  if (window.ArtioTour) window.ArtioTour.autoStart();
 }
 
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closePdfModal(); });
