@@ -143,6 +143,13 @@
 
     /* ── Onglet "Ajoutées" : dépôt de PDF ── */
     .badge-manual{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.25)}
+    .badge-transmise{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,0.25)}
+    .badge-a-transmettre{background:rgba(251,146,60,.13);color:#fb923c;border:1px solid rgba(251,146,60,0.25)}
+    .filter-pills{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+    .fpill{padding:7px 13px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;font-family:var(--fb)}
+    .fpill:hover{border-color:var(--border-hi);color:var(--text)}
+    .fpill.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+    .fpill .n{opacity:.65;margin-left:4px}
     .kpi-purple .kpi-value{color:var(--purple)}
     .dropzone{border:2px dashed var(--border-hi);border-radius:14px;padding:28px 20px;text-align:center;margin-bottom:18px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
     .dropzone:hover,.dropzone.drag{border-color:var(--purple);background:var(--purple-dim)}
@@ -157,6 +164,7 @@
     .upload-item.ok{color:var(--green)}
     .upload-item.error{color:var(--red)}
     .icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+    .icon-btn.ok{border-color:var(--green);color:var(--green);background:var(--green-dim)}
     .modal-content.small{max-width:430px}
     .modal-body.pad{padding:18px 20px 20px}
     .field{margin-bottom:12px}
@@ -262,6 +270,12 @@
     <div class="upload-queue" id="upload-queue"></div>
   </div>
 
+  <div class="filter-pills" id="filter-transmission" style="display:none">
+    <button class="fpill active" data-tfilter="tous" onclick="setTransmissionFilter('tous')">Toutes <span class="n" id="fn-tous">0</span></button>
+    <button class="fpill" data-tfilter="a_transmettre" onclick="setTransmissionFilter('a_transmettre')">À transmettre <span class="n" id="fn-a">0</span></button>
+    <button class="fpill" data-tfilter="transmises" onclick="setTransmissionFilter('transmises')">Transmises <span class="n" id="fn-t">0</span></button>
+  </div>
+
   <div class="toolbar">
     <input type="text" class="search" id="search" placeholder="Rechercher par numéro, client, fournisseur…" oninput="renderList()"/>
     <button class="btn btn-primary" id="btn-action"></button>
@@ -327,6 +341,7 @@ let superpdpConnected = false;
 let syncing = false;
 let metaEditId = null;
 let readOnly = false;   // compte résilié : consultation autorisée, écriture non
+let transmissionFilter = 'tous';   // 'tous' | 'a_transmettre' | 'transmises'
 
 const BUCKET = 'factures-recues';
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
@@ -417,14 +432,34 @@ async function loadFacturesRecues(){
   // L'Edge Function ne renvoie pas la colonne `source` dans son select ;
   // on distingue donc le flux PDP par la présence d'un flow_id (NULL sur
   // les factures déposées manuellement).
-  return (data.factures || []).filter(f => !!f.flow_id);
+  const pdp = (data.factures || []).filter(f => !!f.flow_id);
+  if(!pdp.length) return pdp;
+
+  // Le select de l'Edge Function ne remonte pas non plus transmise_at :
+  // on complète depuis la table, sinon le statut de transmission serait
+  // toujours vide sur l'onglet PDP.
+  try {
+    const { data: tr } = await sb
+      .from('factures_recues')
+      .select('id,transmise_at,transmise_a')
+      .eq('user_id', user.id)
+      .in('id', pdp.map(f => f.id));
+    if(tr){
+      const byId = Object.fromEntries(tr.map(r => [r.id, r]));
+      pdp.forEach(f => {
+        const r = byId[f.id];
+        if(r){ f.transmise_at = r.transmise_at; f.transmise_a = r.transmise_a; }
+      });
+    }
+  } catch(e){ console.warn('Statut de transmission indisponible:', e); }
+  return pdp;
 }
 
 // Les factures déposées manuellement sont lues directement (RLS par user_id).
 async function loadFacturesAjoutees(){
   const { data, error } = await sb
     .from('factures_recues')
-    .select('id,source,storage_path,nom_fichier,fournisseur,numero_facture,date_facture,montant_ht,montant_ttc,notes,lu,created_at')
+    .select('id,source,storage_path,nom_fichier,fournisseur,numero_facture,date_facture,montant_ht,montant_ttc,notes,lu,created_at,transmise_at,transmise_a')
     .eq('user_id', user.id)
     .eq('source', 'manuel')
     .order('date_facture', { ascending: false, nullsFirst: false })
@@ -452,13 +487,16 @@ function computeKPIs(){
 
   const recuesMois = facturesRecues.length;
   const recuesNonLues = facturesRecues.filter(f => !f.lu).length;
+  // Pièces de dépense non encore transmises au comptable, tous flux
+  // confondus : c'est l'indicateur qui déclenche une action.
+  const aTransmettre = [...facturesRecues, ...facturesAjoutees].filter(f => !f.transmise_at).length;
 
   // Dépenses connues : uniquement les manuelles renseignées (le flux PDP ne
   // remonte pas de montant exploitable côté liste).
   const depenses = facturesAjoutees.reduce((s, f) => s + (parseFloat(f.montant_ttc) || 0), 0);
   const sansMontant = facturesAjoutees.filter(f => f.montant_ttc === null || f.montant_ttc === undefined).length;
 
-  return { caMois, impayes, recuesMois, recuesNonLues, depenses, sansMontant };
+  return { caMois, impayes, recuesMois, recuesNonLues, depenses, sansMontant, aTransmettre };
 }
 
 function renderKPIs(){
@@ -483,6 +521,11 @@ function renderKPIs(){
       <div class="kpi-label">Dépenses ajoutées</div>
       <div class="kpi-value">${fmtEUR(k.depenses)}</div>
       <div class="kpi-sub">${facturesAjoutees.length} facture(s)${k.sansMontant ? ' · ' + k.sansMontant + ' sans montant' : ''}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">À transmettre</div>
+      <div class="kpi-value" style="color:${k.aTransmettre ? '#fb923c' : 'var(--green)'}">${k.aTransmettre}</div>
+      <div class="kpi-sub">${k.aTransmettre ? 'pièce(s) en attente d\'envoi au comptable' : 'tout est transmis'}</div>
     </div>`;
   document.getElementById('count-emises').textContent = facturesEmises.length;
   document.getElementById('count-recues').textContent = facturesRecues.length;
@@ -514,6 +557,15 @@ function renderBanner(){
 
 function switchTab(tab){
   currentTab = tab;
+  // Réinitialiser le filtre : arriver sur un onglet avec un filtre hérité
+  // donnerait une liste vide sans raison apparente. On modifie l'état
+  // directement plutôt que d'appeler setTransmissionFilter(), qui
+  // déclencherait un renderList() prématuré — l'onglet n'est pas encore
+  // entièrement configuré à ce stade.
+  transmissionFilter = 'tous';
+  document.querySelectorAll('#filter-transmission .fpill').forEach(b => {
+    b.classList.toggle('active', b.dataset.tfilter === 'tous');
+  });
   document.getElementById('tab-emises').classList.toggle('active', tab === 'emises');
   document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
   document.getElementById('tab-ajoutees').classList.toggle('active', tab === 'ajoutees');
@@ -550,6 +602,7 @@ function switchTab(tab){
 function renderList(){
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
   const el = document.getElementById('content');
+  renderTransmissionCounts();
 
   if(currentTab === 'emises'){
     let list = facturesEmises;
@@ -596,7 +649,7 @@ function renderList(){
   }
 
   if(currentTab === 'ajoutees'){
-    let list = facturesAjoutees;
+    let list = applyTransmissionFilter(facturesAjoutees);
     if(q){
       list = list.filter(f =>
         (f.fournisseur||'').toLowerCase().includes(q) ||
@@ -609,7 +662,7 @@ function renderList(){
       el.innerHTML = `
         <div class="empty">
           <div class="empty-icon"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
-          <div class="empty-title">${facturesAjoutees.length === 0 ? 'Aucune facture ajoutée' : 'Aucun résultat'}</div>
+          <div class="empty-title">${facturesAjoutees.length === 0 ? 'Aucune facture ajoutée' : (transmissionFilter === 'a_transmettre' ? 'Tout est transmis' : transmissionFilter === 'transmises' ? 'Aucune facture transmise' : 'Aucun résultat')}</div>
           <div class="empty-sub">${facturesAjoutees.length === 0 ? (readOnly ? "Vous n'avez aucune facture déposée. L'ajout nécessite un abonnement actif." : 'Déposez vos factures fournisseurs en PDF dans la zone ci-dessus pour les conserver et les retrouver ici.') : 'Essayez un autre terme de recherche.'}</div>
         </div>`;
       return;
@@ -633,7 +686,11 @@ function renderList(){
           <div class="row-amount out">${f.montant_ttc !== null && f.montant_ttc !== undefined ? fmtEUR(f.montant_ttc) : '—'}</div>
           <div class="row-date">${fmtDate(f.date_facture)}</div>
           <span class="badge badge-manual">Ajoutée</span>
+          ${transmissionBadge(f)}
           <div class="row-actions">
+            ${readOnly ? '' : `<button class="icon-btn ${f.transmise_at ? 'ok' : ''}" title="${f.transmise_at ? 'Marquer comme non transmise' : 'Marquer comme transmise au comptable'}" onclick="toggleTransmise('${f.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>`}
             ${readOnly ? '' : `<button class="icon-btn" title="Modifier les détails" onclick="openMetaModal('${f.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             </button>`}
@@ -663,7 +720,7 @@ function renderList(){
       </div>`;
     return;
   }
-  let list = facturesRecues;
+  let list = applyTransmissionFilter(facturesRecues);
   if(q){
     list = list.filter(f =>
       (f.flow_name||'').toLowerCase().includes(q) ||
@@ -701,7 +758,11 @@ function renderList(){
         <div class="row-amount out">—</div>
         <div class="row-date">${fmtDate(f.submitted_at)}</div>
         ${ackBadge}
+        ${transmissionBadge(f)}
         <div class="row-actions">
+          ${readOnly ? '' : `<button class="icon-btn ${f.transmise_at ? 'ok' : ''}" title="${f.transmise_at ? 'Marquer comme non transmise' : 'Marquer comme transmise au comptable'}" onclick="toggleTransmise('${f.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>`}
           <button class="icon-btn" title="Aperçu" onclick="previewFacture('${esc(f.flow_id)}', '${esc(name).replace(/'/g,"\\'")}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
@@ -1009,6 +1070,75 @@ function initDropzone(){
   ['dragleave','drop'].forEach(ev =>
     dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag'); }));
   dz.addEventListener('drop', e => handleFiles(e.dataTransfer?.files));
+}
+
+/* ═══ TRANSMISSION AU COMPTABLE ═══ */
+
+// Le statut vaut pour les DEUX flux : une facture arrivée par PDP doit être
+// transmise au comptable au même titre qu'un PDF déposé à la main.
+function currentList(){
+  return currentTab === 'recues' ? facturesRecues
+       : currentTab === 'ajoutees' ? facturesAjoutees
+       : [];
+}
+
+function applyTransmissionFilter(list){
+  if(transmissionFilter === 'a_transmettre') return list.filter(f => !f.transmise_at);
+  if(transmissionFilter === 'transmises')    return list.filter(f => !!f.transmise_at);
+  return list;
+}
+
+function setTransmissionFilter(v){
+  transmissionFilter = v;
+  document.querySelectorAll('#filter-transmission .fpill').forEach(b => {
+    b.classList.toggle('active', b.dataset.tfilter === v);
+  });
+  renderList();
+}
+
+function renderTransmissionCounts(){
+  const el = document.getElementById('filter-transmission');
+  // Pas de filtre sur l'onglet « Émises » : ce sont les factures que
+  // l'utilisateur envoie à ses clients, pas des pièces de dépense.
+  if(currentTab === 'emises'){ el.style.display = 'none'; return; }
+  const list = currentList();
+  el.style.display = list.length ? 'flex' : 'none';
+  document.getElementById('fn-tous').textContent = list.length;
+  document.getElementById('fn-a').textContent    = list.filter(f => !f.transmise_at).length;
+  document.getElementById('fn-t').textContent    = list.filter(f => !!f.transmise_at).length;
+}
+
+function transmissionBadge(f){
+  if(f.transmise_at){
+    const d = fmtDate(f.transmise_at);
+    const a = f.transmise_a ? ' à ' + esc(f.transmise_a) : '';
+    return `<span class="badge badge-transmise" title="Transmise le ${d}${a}">✓ Transmise</span>`;
+  }
+  return `<span class="badge badge-a-transmettre">À transmettre</span>`;
+}
+
+async function toggleTransmise(id){
+  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  const list = currentList();
+  const f = list.find(x => x.id === id);
+  if(!f) return;
+
+  const nouveau = f.transmise_at ? null : new Date().toISOString();
+  const patch = { transmise_at: nouveau };
+  // On efface le destinataire en même temps que la date : conserver un
+  // « transmise à » sur une facture repassée en « à transmettre » serait
+  // trompeur lors du prochain envoi.
+  if(!nouveau) patch.transmise_a = null;
+
+  try {
+    const { error } = await sb.from('factures_recues')
+      .update(patch).eq('id', id).eq('user_id', user.id);
+    if(error) throw new Error(error.message);
+    f.transmise_at = nouveau;
+    if(!nouveau) f.transmise_a = null;
+    renderKPIs(); renderList();
+    toast(nouveau ? '✅ Marquée comme transmise' : '↩️ Remise à transmettre');
+  } catch(e){ toast('❌ ' + e.message); }
 }
 
 async function doLogout(){
