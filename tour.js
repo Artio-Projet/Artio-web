@@ -116,13 +116,15 @@
       page:"comptabilite",
       title:"\ud83d\udce4 Ne plus chercher ce qui a d\u00e9j\u00e0 \u00e9t\u00e9 envoy\u00e9",
       desc:"Chaque pi\u00e8ce de d\u00e9pense porte un statut : <strong>\u00c0 transmettre</strong> ou <strong>\u2713 Transmise</strong>.<br><br>Coche-les au fur et \u00e0 mesure, ou laisse Artio le faire : quand tu envoies un lot \u00e0 ton comptable, elles basculent automatiquement.<br><br>Les <strong>filtres</strong> en haut te montrent d'un coup d'\u0153il ce qu'il te reste \u00e0 envoyer \u2014 fini les relances pour des pi\u00e8ces d\u00e9j\u00e0 fournies.<br><br><small style=\"color:var(--muted)\">\u26a0 \u00ab Transmise \u00bb ne veut pas dire \u00ab supprimable \u00bb : la loi impose de conserver tes justificatifs <strong>10 ans</strong>.</small>",
-      target:"#filter-transmission", pos:"bottom"
+      target:"#filter-transmission", pos:"bottom",
+      onEnter:"_tourShowAjoutees"
     },
     {
       page:"comptabilite",
       title:"\ud83d\udce6 Envoyer un lot \u00e0 ton comptable",
       desc:"Coche les pi\u00e8ces avec les <strong>cases \u00e0 gauche</strong>, puis choisis :<br><br>\u2022 <strong>\ud83d\udce6 T\u00e9l\u00e9charger (ZIP)</strong> \u2014 une archive avec des noms de fichiers lisibles (date, commer\u00e7ant, num\u00e9ro). Disponible sur toutes les offres.<br>\u2022 <strong>\u2709\ufe0f Envoyer au comptable</strong> \u2014 un email avec les PDF en pi\u00e8ces jointes, envoy\u00e9 depuis ton adresse Gmail (offre <strong>Pro</strong>). Les pi\u00e8ces sont marqu\u00e9es transmises automatiquement.<br><br>Tu peux m\u00e9langer factures PDP et pi\u00e8ces ajout\u00e9es dans un m\u00eame envoi.",
-      target:null, pos:"center"
+      target:null, pos:"center",
+      onEnter:"_tourShowAjoutees"
     },
     {
       page:"calendar",

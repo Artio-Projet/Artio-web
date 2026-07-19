@@ -1415,6 +1415,14 @@ async function init(){
   if (window.ArtioTour) window.ArtioTour.autoStart();
 }
 
+// Hook appelé par tour.js : les étapes qui parlent des pièces de dépense
+// ciblent #filter-transmission, masqué tant qu'on est sur l'onglet
+// « Émises ». Sans cette bascule, le tour cherche une cible invisible et
+// se recale au centre de l'écran.
+window._tourShowAjoutees = function(){
+  if (currentTab !== 'ajoutees') switchTab('ajoutees');
+};
+
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closePdfModal(); });
 document.addEventListener('DOMContentLoaded', init);
 </script>
