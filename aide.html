@@ -502,6 +502,15 @@
 [data-theme="dark"] .sidebar-theme-btn .icon-moon{display:none}
 [data-theme="dark"] .sidebar-theme-btn .icon-sun{display:inline-block}
 @media(max-width:767px){.sidebar.open{width:100%}}
+
+/* ── Sidebar réservée aux utilisateurs connectés ──
+   Masquée par défaut ; révélée par JS si une session Supabase existe. */
+.sidebar-trigger,
+.sidebar,
+.sidebar-overlay { display:none; }
+body.is-authed .sidebar-trigger { display:flex; }
+body.is-authed .sidebar { display:flex; }
+body.is-authed .sidebar-overlay { display:block; }
 </style>
 <script>
   /* ── THEME INIT (head) ── */
@@ -805,6 +814,8 @@ let currentUser = null;
     if (session) {
       currentUser = session.user;
       userToken = session.access_token;
+      // Révèle la sidebar applicative uniquement aux utilisateurs connectés
+      document.body.classList.add('is-authed');
       {
       }
     }
@@ -1285,10 +1296,18 @@ function closeArticle() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticle(); });
 // ── Ouverture directe d'un article via URL (#suppression-compte, etc.) ──
 (function(){
-  const hash = (location.hash || '').replace('#', '');
-  if (hash && typeof ARTICLE_CONTENT !== 'undefined' && ARTICLE_CONTENT[hash]) {
-    openArticle(hash);
+  function openFromHash(){
+    const hash = (location.hash || '').replace('#', '');
+    if (hash && typeof ARTICLE_CONTENT !== 'undefined' && ARTICLE_CONTENT[hash]) {
+      openArticle(hash);
+    }
   }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', openFromHash);
+  } else {
+    openFromHash();
+  }
+  window.addEventListener('hashchange', openFromHash);
 })();
 </script>
 
