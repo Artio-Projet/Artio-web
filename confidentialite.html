@@ -106,7 +106,7 @@
       <div class="doc-title">Politique de Confidentialité</div>
       <div class="doc-meta">
         <span>Service Artio — monartio.fr</span>
-        <span>Version 2.3 — 29 juin 2026</span>
+        <span>Version 2.4 — 20 juillet 2026</span>
       </div>
     </div>
 
@@ -162,6 +162,17 @@
         <li>Tokens d'accès OAuth 2.0 (stockés de manière sécurisée, révocables à tout moment)</li>
       </ul>
 
+      <h3>2.6 bis Données issues de l'intégration Google Calendar (si activée)</h3>
+      <ul>
+        <li>Lecture et écriture des événements de votre calendrier principal (calendrier <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">primary</code>), uniquement après consentement explicite OAuth 2.0</li>
+        <li>Scopes utilisés : <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.events</code> (lecture/écriture des événements) et <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.readonly</code> (métadonnées du calendrier)</li>
+        <li>Import initial des événements des 90 jours à venir puis synchronisation bidirectionnelle des rendez-vous professionnels créés dans Artio</li>
+        <li>Webhook push Google → Artio (canal expirant tous les 7 jours, renouvelé automatiquement) pour la synchronisation temps réel</li>
+        <li>Données stockées côté Artio : identifiant Google de l'événement, titre, horaires, participants (uniquement si vous les ajoutez dans un événement Artio), sync token</li>
+        <li>Aucune lecture des calendriers secondaires ou partagés par des tiers</li>
+        <li>Tokens d'accès et refresh OAuth 2.0 stockés de manière sécurisée, révocables à tout moment</li>
+      </ul>
+
       <h3>2.7 Données de la liste d'attente (waitlist)</h3>
       <p>Avant la souscription à un Abonnement, vous pouvez vous inscrire à la liste d'attente. Nous collectons alors uniquement votre adresse email, votre éventuel statut Fondateur et la date d'inscription.</p>
       <ul>
@@ -185,6 +196,7 @@
           <tr><td>Statistiques d'amélioration du Service</td><td>Intérêt légitime</td><td>2 ans (données anonymisées)</td></tr>
           <tr><td>Communication sur mises à jour et offres</td><td>Consentement</td><td>Jusqu'au désabonnement</td></tr>
           <tr><td>Intégration Gmail (envoi uniquement)</td><td>Consentement explicite OAuth</td><td>Révocable à tout moment</td></tr>
+          <tr><td>Intégration Google Calendar (synchronisation RDV)</td><td>Consentement explicite OAuth</td><td>Révocable à tout moment</td></tr>
         </tbody>
       </table>
 
@@ -199,6 +211,7 @@
           <tr><td>Resend</td><td>Emails transactionnels</td><td>USA</td><td>SCCs RGPD + DPA</td></tr>
           <tr><td>Anthropic</td><td>IA générative (Claude)</td><td>USA</td><td>SCCs RGPD + DPA + pas d'entraînement</td></tr>
           <tr><td>Google (Gmail API)</td><td>Intégration messagerie (opt.)</td><td>USA / UE</td><td>SCCs + Data Privacy Framework (DPF) 2023, ou tout mécanisme équivalent reconnu par la Commission européenne</td></tr>
+          <tr><td>Google (Calendar API)</td><td>Synchronisation des rendez-vous (opt.)</td><td>USA / UE</td><td>SCCs + Data Privacy Framework (DPF) 2023, ou tout mécanisme équivalent reconnu par la Commission européenne</td></tr>
           <tr><td>FactPulse</td><td>Facturation électronique (PDP agréée DGFiP)</td><td>France / UE</td><td>Conformité RGPD, données hébergées en France</td></tr>
           <tr><td>Pappers</td><td>Lookup SIRET / annuaire entreprises</td><td>France</td><td>Conformité RGPD, requête ponctuelle</td></tr>
           <tr><td>Expo (push notifications)</td><td>Notifications mobiles (app mobile)</td><td>USA</td><td>SCCs RGPD, token d'appareil uniquement</td></tr>
@@ -221,7 +234,7 @@
         <div class="right-card"><div class="right-card-title">Droit à la portabilité</div><div class="right-card-desc">Recevoir vos données en CSV ou JSON</div></div>
         <div class="right-card"><div class="right-card-title">Droit d'opposition</div><div class="right-card-desc">S'opposer aux traitements sur intérêt légitime</div></div>
         <div class="right-card"><div class="right-card-title">Droit à la limitation</div><div class="right-card-desc">Restreindre temporairement l'utilisation</div></div>
-        <div class="right-card"><div class="right-card-title">Retrait du consentement</div><div class="right-card-desc">Révoquer Gmail depuis les paramètres ou myaccount.google.com</div></div>
+        <div class="right-card"><div class="right-card-title">Retrait du consentement</div><div class="right-card-desc">Révoquer Gmail et/ou Google Calendar depuis les paramètres ou myaccount.google.com</div></div>
         <div class="right-card"><div class="right-card-title">Recours CNIL</div><div class="right-card-desc">Déposer une réclamation sur cnil.fr</div></div>
       </div>
       <p>Pour exercer vos droits : <a href="mailto:artio.contact.dev@gmail.com" style="color:var(--teal)">artio.contact.dev@gmail.com</a>. Réponse sous 30 jours.</p>
@@ -231,7 +244,7 @@
         <li>Chiffrement en transit (HTTPS/TLS) et au repos</li>
         <li>Authentification par code OTP — aucun mot de passe stocké</li>
         <li>Row Level Security (RLS) Supabase : chaque utilisateur n'accède qu'à ses propres données</li>
-        <li>Tokens OAuth Gmail stockés de manière sécurisée, jamais exposés côté client</li>
+        <li>Tokens OAuth Google (Gmail et Calendar) stockés de manière sécurisée, jamais exposés côté client</li>
         <li>Journaux : 1 an (courant), 3 ans (incidents de sécurité)</li>
       </ul>
       <p>En cas de violation de données, nous notifions la <strong>CNIL sous 72 heures</strong> (article 33 RGPD) et vous informons dans les meilleurs délais si le risque est élevé.</p>
@@ -244,24 +257,42 @@
       <h3>7.3 Conformité Google</h3>
       <p>L'utilisation de l'API Gmail est conforme à la <strong>Google API Services User Data Policy</strong>, notamment la politique d'utilisation limitée (Limited Use Policy). Le scope <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">gmail.send</code> est classifié comme sensible (non restreint) par Google et ne requiert pas d'évaluation de sécurité CASA.</p>
 
-      <h2>8. IA — traitement spécifique</h2>
-      <h3>8.1 Données transmises à Anthropic</h3>
+      <h2>8. Intégration Google Calendar — traitement spécifique</h2>
+      <h3>8.1 Données accédées</h3>
+      <p>L'intégration Google Calendar d'Artio permet la synchronisation bidirectionnelle des rendez-vous professionnels entre Artio et votre calendrier Google principal. Les scopes OAuth utilisés sont <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.events</code> (lecture et écriture des événements) et <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.readonly</code> (lecture des métadonnées du calendrier). L'accès est limité au calendrier <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">primary</code> de l'Utilisateur. Aucun calendrier secondaire, partagé ou tiers n'est lu ni modifié.</p>
+      <h3>8.2 Utilisation des données Calendar</h3>
+      <p>La connexion Calendar est utilisée exclusivement pour :</p>
+      <ul>
+        <li>Importer les événements existants des 90 prochains jours dans l'interface Artio lors de la première connexion, afin d'éviter les conflits d'agenda</li>
+        <li>Créer, modifier ou supprimer sur Google Calendar les rendez-vous saisis dans Artio</li>
+        <li>Recevoir les modifications faites côté Google Calendar via un webhook push (canal de 7 jours, renouvelé automatiquement) pour maintenir la cohérence entre les deux calendriers</li>
+      </ul>
+      <p>Les données de calendrier ne sont pas utilisées à des fins publicitaires, partagées avec des tiers, ni utilisées pour entraîner des modèles d'IA.</p>
+      <h3>8.3 Données stockées côté Artio</h3>
+      <p>Pour chaque événement synchronisé, Artio conserve : l'identifiant Google de l'événement, le titre, les horaires de début et de fin, et un jeton de synchronisation (<em>sync token</em>). Les participants ne sont conservés que si vous les ajoutez explicitement à un événement créé dans Artio.</p>
+      <h3>8.4 Conformité Google</h3>
+      <p>L'utilisation de l'API Google Calendar est conforme à la <strong>Google API Services User Data Policy</strong>, notamment la politique d'utilisation limitée (Limited Use Policy). Les scopes <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.events</code> et <code style="font-family:monospace;font-size:12px;padding:1px 5px;background:var(--surface-2);border-radius:4px">calendar.readonly</code> sont classifiés comme sensibles (non restreints) par Google et ne requièrent pas d'évaluation de sécurité CASA.</p>
+      <h3>8.5 Révocation</h3>
+      <p>Vous pouvez révoquer l'accès à Google Calendar à tout moment depuis les paramètres d'Artio ou depuis <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener" style="color:var(--teal)">myaccount.google.com/permissions</a>. Après révocation, les tokens sont supprimés côté Artio et la synchronisation cesse immédiatement. Les événements déjà importés dans Artio peuvent être conservés (ils sont considérés comme vos données propres) ou supprimés sur demande.</p>
+
+      <h2>9. IA — traitement spécifique</h2>
+      <h3>9.1 Données transmises à Anthropic</h3>
       <p>Le contenu dicté ou saisi est transmis à l'API Anthropic pour générer le document demandé. Ces transmissions sont limitées au strict minimum nécessaire.</p>
-      <h3>8.2 Absence d'entraînement</h3>
+      <h3>9.2 Absence d'entraînement</h3>
       <p>Les données transmises via l'API ne sont pas utilisées pour entraîner les modèles d'Anthropic. Artio n'a pas activé de programme d'opt-in d'entraînement.</p>
-      <h3>8.3 Données sensibles</h3>
+      <h3>9.3 Données sensibles</h3>
       <p>L'Utilisateur est invité à ne pas transmettre de données personnelles sensibles au sens de l'article 9 du RGPD (santé, origine ethnique, religion, etc.) via les fonctionnalités IA.</p>
 
-      <h2>9. Cookies et traceurs</h2>
+      <h2>10. Cookies et traceurs</h2>
       <p>Artio utilise uniquement des cookies strictement nécessaires au fonctionnement du Service (session, authentification). Aucun cookie publicitaire ou de pistage tiers. Si des outils d'analyse étaient ajoutés à l'avenir, cette politique serait mise à jour et un bandeau de consentement proposé.</p>
 
-      <h2>10. Mineurs</h2>
+      <h2>11. Mineurs</h2>
       <p>Le Service est exclusivement destiné aux professionnels majeurs. Nous ne collectons pas sciemment de données de personnes de moins de 18 ans.</p>
 
-      <h2>11. Modifications</h2>
+      <h2>12. Modifications</h2>
       <p>Cette politique peut être modifiée à tout moment. En cas de modification substantielle, vous serez notifié par email au moins 15 jours avant l'entrée en vigueur. La version en vigueur est toujours accessible sur <a href="https://monartio.fr/confidentialite.html" style="color:var(--teal)">monartio.fr/confidentialite</a>.</p>
 
-      <h2>12. Contact</h2>
+      <h2>13. Contact</h2>
       <ul>
         <li>Email : <a href="mailto:artio.contact.dev@gmail.com" style="color:var(--teal)">artio.contact.dev@gmail.com</a></li>
         <li>Adresse : Curtys Personnat-Seymour, 5 rue de Chaage, 77100 Meaux</li>
@@ -272,7 +303,7 @@
   </main>
 
   <footer>
-    <span>Politique de Confidentialité — Artio — Version 2.3 — 29 juin 2026</span>
+    <span>Politique de Confidentialité — Artio — Version 2.4 — 20 juillet 2026</span>
   </footer>
   <script src="legal-footer.js"></script>
 <script>
