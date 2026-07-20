@@ -1274,13 +1274,22 @@ function openArticle(id) {
   document.getElementById('article-overlay').classList.add('open');
   document.getElementById('article-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
+  try { history.replaceState(null, '', '#' + resolvedId); } catch(e) {}
 }
 function closeArticle() {
   document.getElementById('article-overlay').classList.remove('open');
   document.getElementById('article-panel').classList.remove('open');
   document.body.style.overflow = '';
+  try { history.replaceState(null, '', location.pathname + location.search); } catch(e) {}
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticle(); });
+// ── Ouverture directe d'un article via URL (#suppression-compte, etc.) ──
+(function(){
+  const hash = (location.hash || '').replace('#', '');
+  if (hash && typeof ARTICLE_CONTENT !== 'undefined' && ARTICLE_CONTENT[hash]) {
+    openArticle(hash);
+  }
+})();
 </script>
 
 <script src="chat-widget.js?v=2"></script>
