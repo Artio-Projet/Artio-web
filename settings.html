@@ -2240,7 +2240,7 @@ async function reactivateSubscription() {
     }
     cancellationRequested = false;
     pdpGraceUntil = null;
-    await sb.from('profils').update({ cancellation_requested: false, pdp_grace_until: null }).eq('user_id', session.user.id);
+    await sb.from('profils').update({ cancellation_requested: false, pdp_grace_until: null, pdp_reminders_sent: null }).eq('user_id', session.user.id);
     toast(`✅ Abonnement ${_planName} réactivé ! Votre accès continue normalement.`);
   } catch(e) { toast('Erreur : ' + e.message); }
   checkoutLoading = false; paintAbonnement();
