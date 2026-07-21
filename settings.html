@@ -796,6 +796,7 @@ let inboxLoading = false;
 let factures = [];
 let billingPeriod = "monthly";
 let cancellationRequested = false;
+let pdpGraceUntil = null;
 let syncing = false;
 let logoBase64 = null;
 let siretVerifie = false;
@@ -909,6 +910,7 @@ async function loadAll() {
   isAdmin = !!profil.is_admin;
   isFounder = !!profil.is_founder;
   cancellationRequested = !!profil.cancellation_requested;
+  pdpGraceUntil = profil.pdp_grace_until || null;
 
   // Google OAuth state (depuis profil)
   gmailEmail = profil.google_email || profil.gmail_email || null;
@@ -1322,6 +1324,10 @@ function renderCompteHTML() {
           <p style="font-size:13px;color:var(--red);font-weight:700;margin-bottom:10px;">⚠️ Confirmer la suppression définitive ?</p>
           <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:8px;">Toutes vos données seront <strong style="color:var(--text)">définitivement supprimées</strong> : dossiers, devis, factures clients, agenda, carnet de contacts.</p>
           <p style="font-size:12px;color:var(--muted);line-height:1.7;">Assurez-vous d'avoir <strong style="color:var(--text)">sauvegardé vos documents importants</strong> avant de continuer.</p>
+          ${(superpdpConnected || facturationElectroniqueActive) ? `
+          <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:10px;padding-top:10px;border-top:1px solid rgba(248,113,113,0.15);">
+            <strong style="color:var(--red)">Facturation électronique :</strong> la réception de vos factures fournisseurs sera maintenue <strong style="color:var(--text)">un mois</strong> après la suppression, puis votre SIRET sera retiré de l'annuaire de facturation. Vous devez d'ici là vous référencer sur une autre plateforme conforme et prévenir vos fournisseurs (<a href="cgv.html" style="color:var(--red)">art. 7ter des CGV</a>).
+          </p>` : ''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <button class="btn btn-secondary" onclick="setDeleteConfirm(false)">Annuler</button>
@@ -1739,6 +1745,35 @@ function renderFacturationHTML() {
       </button>
     </div>`;
 
+  // Bandeau de fin de réception : visible dès qu'une résiliation est
+  // enregistrée et que la réception est active (CGV art. 7ter).
+  const _graceDate = pdpGraceUntil ? new Date(pdpGraceUntil) : null;
+  const _graceStr = _graceDate
+    ? _graceDate.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    : null;
+  const _daysLeft = _graceDate
+    ? Math.max(0, Math.ceil((_graceDate - new Date()) / 86400000))
+    : null;
+
+  const card5GraceBanner = (cancellationRequested && (superpdpConnected || facturationElectroniqueActive)) ? `
+    <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:14px;margin:14px 0;">
+      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;">
+        ⚠️ Fin de réception programmée${_daysLeft !== null ? ` — ${_daysLeft} jour${_daysLeft > 1 ? 's' : ''} restant${_daysLeft > 1 ? 's' : ''}` : ''}
+      </div>
+      <div style="font-size:12px;line-height:1.6;color:var(--muted);">
+        ${_graceStr
+          ? `Votre résiliation est enregistrée. La réception de vos factures fournisseurs via Artio cessera le <strong style="color:var(--text);">${_graceStr}</strong>, et votre SIRET sera retiré de l'annuaire de facturation.`
+          : `Votre résiliation est enregistrée. La réception de vos factures fournisseurs via Artio cessera à l'issue de la période de grâce d'un mois.`}
+        <br><br>
+        <strong style="color:var(--text);">Avant cette date, vous devez :</strong><br>
+        → souscrire à une autre plateforme conforme et vous y référencer<br>
+        → informer vos fournisseurs de vos nouvelles coordonnées de facturation<br>
+        → exporter vos factures reçues depuis la page Comptabilité<br>
+        <br>
+        Détail des conditions : <a href="cgv.html#" style="color:var(--red);">article 7ter des CGV</a>.
+      </div>
+    </div>` : '';
+
   const card5 = `
     <div class="card" style="${card5BorderStyle}">
       <div class="card-title-row">
@@ -1746,6 +1781,7 @@ function renderFacturationHTML() {
         ${card5BadgeHtml}
       </div>
       <div class="card-sub">À partir du <strong>1ᵉʳ septembre 2026</strong>, toute entreprise assujettie à la TVA doit être capable de <strong>recevoir</strong> des factures électroniques de ses fournisseurs via une PDP. Connectez votre compte FactPulse SuperPDP pour centraliser vos factures reçues directement dans Artio.</div>
+      ${card5GraceBanner}
       ${superpdpConnected ? card5BodyConnected : card5BodyDisconnected}
     </div>
   `;
@@ -2128,7 +2164,33 @@ async function requestCancellation() {
   const planName = subscriptionStatus === 'solo' ? 'Solo' : 'Pro';
   const _endRaw = subscriptionEndDate ? new Date(subscriptionEndDate) : (() => { const d = new Date(); d.setMonth(d.getMonth()+1,0); return d; })();
   const _endStr = _endRaw.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
-  if (!confirm(`Confirmer la résiliation du plan ${planName} ?\n\nVotre accès reste actif jusqu'au ${_endStr}, puis sera automatiquement désactivé.`)) return;
+
+  // Si la réception de factures électroniques est active, l'utilisateur
+  // doit être averti de la période de grâce et de la désinscription de
+  // l'annuaire PDP (CGV art. 7ter). Double confirmation dans ce cas.
+  const receptionActive = superpdpConnected || facturationElectroniqueActive;
+
+  let msg = `Confirmer la résiliation du plan ${planName} ?\n\nVotre accès reste actif jusqu'au ${_endStr}, puis sera automatiquement désactivé.`;
+
+  if (receptionActive) {
+    const _graceRaw = new Date(_endRaw);
+    _graceRaw.setMonth(_graceRaw.getMonth() + 1);
+    const _graceStr = _graceRaw.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+    msg += `\n\n⚠️ FACTURATION ÉLECTRONIQUE\n\n`
+         + `Vous recevez actuellement vos factures fournisseurs via Artio.\n\n`
+         + `• La réception restera assurée jusqu'au ${_graceStr} (période de grâce d'un mois).\n`
+         + `• Passé cette date, votre SIRET sera retiré de l'annuaire de facturation au titre d'Artio.\n`
+         + `• Vous devez, avant cette échéance, souscrire à une autre plateforme conforme, vous y référencer, et prévenir vos fournisseurs.\n`
+         + `• Pensez à exporter vos factures reçues avant la coupure.\n\n`
+         + `Sans ces démarches, vous risquez de ne plus recevoir vos factures. Voir l'article 7ter des CGV.`;
+  }
+
+  if (!confirm(msg)) return;
+
+  if (receptionActive) {
+    if (!confirm(`Dernière confirmation.\n\nVous confirmez avoir pris connaissance des conséquences sur la réception de vos factures électroniques et vous engagez à effectuer les démarches nécessaires avant la fin de la période de grâce.`)) return;
+  }
+
   cancelLoading = true; paintAbonnement();
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -2141,7 +2203,16 @@ async function requestCancellation() {
     const data = await res.json();
     if (data?.success) {
       cancellationRequested = true;
+      // pdp_grace_until est posé côté Edge Function (source de vérité).
+      // On le relit pour rafraîchir l'affichage immédiatement.
       await sb.from('profils').update({ cancellation_requested: true }).eq('user_id', session.user.id);
+      try {
+        const { data: p } = await sb.from('profils')
+          .select('pdp_grace_until')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        if (p) pdpGraceUntil = p.pdp_grace_until || null;
+      } catch(_) {}
       toast('✓ Résiliation enregistrée. Votre accès reste actif jusqu’à la fin de la période.');
     } else {
       toast('Erreur : ' + (data?.error || 'inconnu'));
@@ -2168,7 +2239,8 @@ async function reactivateSubscription() {
       checkoutLoading = false; paintAbonnement(); return;
     }
     cancellationRequested = false;
-    await sb.from('profils').update({ cancellation_requested: false }).eq('user_id', session.user.id);
+    pdpGraceUntil = null;
+    await sb.from('profils').update({ cancellation_requested: false, pdp_grace_until: null }).eq('user_id', session.user.id);
     toast(`✅ Abonnement ${_planName} réactivé ! Votre accès continue normalement.`);
   } catch(e) { toast('Erreur : ' + e.message); }
   checkoutLoading = false; paintAbonnement();

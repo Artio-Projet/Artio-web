@@ -187,6 +187,64 @@
     }
     .link-btn:hover { opacity: .75; }
 
+    /* ── PASSWORD CHECKLIST ── */
+    .pwd-rules {
+      list-style: none; margin: 10px 0 0; padding: 0;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px;
+    }
+    .pwd-rule {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11.5px; color: var(--muted); line-height: 1.4;
+      transition: color .2s;
+    }
+    .pwd-rule .tick {
+      width: 13px; height: 13px; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; line-height: 1; transition: all .2s;
+    }
+    .pwd-rule.ok { color: var(--success); }
+    .pwd-rule.ok .tick {
+      background: var(--success); border-color: var(--success); color: #080b14;
+    }
+    [data-theme="light"] .pwd-rule.ok { color: var(--green); }
+    [data-theme="light"] .pwd-rule.ok .tick { background: var(--green); border-color: var(--green); color: #fff; }
+
+    .pwd-match {
+      font-size: 11.5px; margin-top: 7px; line-height: 1.4;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pwd-match.ko { color: var(--error); }
+    .pwd-match.ok { color: var(--success); }
+    [data-theme="light"] .pwd-match.ok { color: var(--green); }
+    [data-theme="light"] .pwd-match.ko { color: var(--red); }
+
+    /* ── ACCEPTATION LÉGALE ── */
+    .legal-accept {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin: 4px 0 16px;
+      padding: 12px 13px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .legal-accept:hover { border-color: var(--border-hi); }
+    .legal-accept input[type="checkbox"] {
+      width: 16px; height: 16px; margin: 1px 0 0;
+      flex-shrink: 0; cursor: pointer;
+      accent-color: var(--amber);
+    }
+    .legal-accept-txt {
+      font-size: 12px; color: var(--muted); line-height: 1.55;
+    }
+    .legal-accept-txt a {
+      color: var(--amber); text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .legal-accept-txt a:hover { opacity: .8; }
+
     /* ── FORGOT SENT ── */
     .sent-box {
       text-align: center; padding: 32px 16px;
@@ -253,12 +311,24 @@ const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* Version du corpus contractuel (CGV + CGU + Confidentialité).
+   À incrémenter à chaque révision substantielle : les comptes dont
+   profils.cgv_version diffère devront réaccepter. */
+const CGV_VERSION = "2.4";
+
 let S = {
   tab: (new URLSearchParams(location.search).get('tab') === 'register') ? 'register' : 'login',          // 'login' | 'register'
   view: 'auth',          // 'auth' | 'forgot' | 'forgot_sent'
   loading: false,
   error: '',
   success: '',
+  // Valeurs persistées : render() reconstruit tout le DOM, sans ça
+  // les champs saisis sont effacés à chaque set().
+  email: '',
+  pass: '',
+  pass2: '',
+  legalOk: false,
+  forgotEmail: '',
 };
 
 const LABELS = {
@@ -285,6 +355,15 @@ const LABELS = {
   err_pass_lower:   { fr:"Au moins une minuscule requise.", en:"At least one lowercase letter required.", es:"Se requiere al menos una minúscula.", zh:"需要至少一个小写字母。" },
   err_pass_digit:   { fr:"Au moins un chiffre requis.", en:"At least one number required.", es:"Se requiere al menos un número.", zh:"需要至少一个数字。" },
   err_pass_special: { fr:"Au moins un caractère spécial requis (!@#$…).", en:"At least one special character required (!@#$…).", es:"Se requiere al menos un carácter especial (!@#$…).", zh:"需要至少一个特殊字符。" },
+  err_pass_mismatch:{ fr:"Les mots de passe ne correspondent pas.", en:"Passwords do not match.", es:"Las contraseñas no coinciden.", zh:"两次输入的密码不一致。" },
+  err_legal:      { fr:"Vous devez accepter les CGV, CGU et la Politique de confidentialité.", en:"You must accept the Terms and Privacy Policy.", es:"Debes aceptar los términos y la política de privacidad.", zh:"您必须接受条款和隐私政策。" },
+  pwd_confirm_lbl:{ fr:"Confirmer le mot de passe", en:"Confirm password", es:"Confirmar contraseña", zh:"确认密码" },
+  pwd_match_ok:   { fr:"Les mots de passe correspondent.", en:"Passwords match.", es:"Las contraseñas coinciden.", zh:"密码一致。" },
+  rule_length:    { fr:"8 caractères min.",   en:"8 characters min.",  es:"8 caracteres mín.",  zh:"至少8个字符" },
+  rule_upper:     { fr:"Une majuscule",       en:"One uppercase",      es:"Una mayúscula",      zh:"一个大写字母" },
+  rule_lower:     { fr:"Une minuscule",       en:"One lowercase",      es:"Una minúscula",      zh:"一个小写字母" },
+  rule_digit:     { fr:"Un chiffre",          en:"One number",         es:"Un número",          zh:"一个数字" },
+  rule_special:   { fr:"Un caractère spécial",en:"One special char.",  es:"Un carácter especial", zh:"一个特殊字符" },
   err_credentials:{ fr:"Identifiants incorrects.",      en:"Incorrect credentials.",        es:"Credenciales incorrectas.",     zh:"账号或密码错误。" },
   suc_register:   { fr:"Compte créé ! Vérifiez votre email pour confirmer.", en:"Account created! Check your email.", es:"¡Cuenta creada! Verifica tu email.", zh:"账户已创建！请验证您的邮箱。" },
 };
@@ -297,38 +376,134 @@ function L(key) {
 
 function set(patch) { Object.assign(S, patch); render(); }
 
+/* Échappement pour injection dans un attribut HTML. */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 /* ── PASSWORD VALIDATION ── */
+/* Règles unitaires : servent à la fois à la checklist visuelle
+   et au blocage à la soumission. Une seule source de vérité. */
+const PWD_RULES = [
+  { key: 'rule_length',  test: p => p.length >= 8,           err: 'err_pass_length'  },
+  { key: 'rule_upper',   test: p => /[A-Z]/.test(p),          err: 'err_pass_upper'   },
+  { key: 'rule_lower',   test: p => /[a-z]/.test(p),          err: 'err_pass_lower'   },
+  { key: 'rule_digit',   test: p => /[0-9]/.test(p),          err: 'err_pass_digit'   },
+  { key: 'rule_special', test: p => /[^A-Za-z0-9]/.test(p),   err: 'err_pass_special' },
+];
+
 function validatePassword(pass) {
-  if (pass.length < 8)           return L('err_pass_length');
-  if (!/[A-Z]/.test(pass))       return L('err_pass_upper');
-  if (!/[a-z]/.test(pass))       return L('err_pass_lower');
-  if (!/[0-9]/.test(pass))       return L('err_pass_digit');
-  if (!/[^A-Za-z0-9]/.test(pass))return L('err_pass_special');
+  for (const r of PWD_RULES) {
+    if (!r.test(pass)) return L(r.err);
+  }
   return null;
+}
+
+/* Mise à jour live de la checklist sans re-render complet
+   (évite de perdre le focus / la position du curseur). */
+function onPassInput(el) {
+  S.pass = el.value;
+  const list = document.getElementById('pwd-rules');
+  if (list) {
+    PWD_RULES.forEach(r => {
+      const li = list.querySelector('[data-rule="' + r.key + '"]');
+      if (li) li.classList.toggle('ok', r.test(S.pass));
+    });
+  }
+  refreshMatch();
+}
+
+function onPass2Input(el) {
+  S.pass2 = el.value;
+  refreshMatch();
+}
+
+function refreshMatch() {
+  const box = document.getElementById('pwd-match');
+  if (!box) return;
+  if (!S.pass2) { box.className = 'pwd-match'; box.textContent = ''; return; }
+  const ok = S.pass === S.pass2;
+  box.className = 'pwd-match ' + (ok ? 'ok' : 'ko');
+  box.textContent = ok ? L('pwd_match_ok') : L('err_pass_mismatch');
+}
+
+/* ── ACCEPTATION LÉGALE ── */
+/* Enregistre la preuve d'acceptation sur profils. Idempotent :
+   upsert sur user_id, ne touche à rien d'autre.
+   IMPORTANT : filtrer par user_id, jamais par email. */
+async function recordLegalAcceptance(userId) {
+  if (!userId) return;
+  try {
+    const { data: existing } = await sb
+      .from('profils')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const payload = {
+      cgv_accepted_at: new Date().toISOString(),
+      cgv_version: CGV_VERSION,
+    };
+
+    if (existing?.id) {
+      await sb.from('profils').update(payload).eq('user_id', userId);
+    } else {
+      await sb.from('profils').insert({ user_id: userId, ...payload });
+    }
+  } catch (e) {
+    // Ne bloque pas l'inscription : le rattrapage se fait à
+    // l'onboarding, qui vérifie cgv_accepted_at.
+    console.warn('recordLegalAcceptance', e);
+  }
 }
 
 /* ── AUTH HANDLERS ── */
 async function handleAuth() {
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pass  = document.getElementById('auth-pass')?.value;
+  const email = (document.getElementById('auth-email')?.value || '').trim();
+  const pass  = document.getElementById('auth-pass')?.value || '';
+  const pass2 = document.getElementById('auth-pass2')?.value || '';
+  const legalOk = !!document.getElementById('legal-accept')?.checked;
+
+  // On persiste la saisie AVANT toute sortie en erreur : sans ça
+  // le re-render efface les champs déjà remplis.
+  S.email = email; S.pass = pass; S.pass2 = pass2; S.legalOk = legalOk;
+
   if (!email || !pass) { set({ error: L('err_required') }); return; }
-  set({ loading: true, error: '', success: '' });
+
   if (S.tab === 'login') {
+    set({ loading: true, error: '', success: '' });
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
     if (error) set({ loading: false, error: L('err_credentials') });
     else window.location.href = 'home.html';
   } else {
     const passErr = validatePassword(pass);
-    if (passErr) { set({ loading: false, error: passErr }); return; }
+    if (passErr) { set({ error: passErr }); return; }
+    if (pass !== pass2) { set({ error: L('err_pass_mismatch') }); return; }
+    if (!legalOk) { set({ error: L('err_legal') }); return; }
+
+    set({ loading: true, error: '', success: '' });
     const { data, error } = await sb.auth.signUp({ email, password: pass });
-    if (error) set({ loading: false, error: error.message });
-    else if (data.user && !data.session) set({ loading: false, success: L('suc_register') });
-    else if (data.user) window.location.href = 'home.html';
+    if (error) { set({ loading: false, error: error.message }); return; }
+
+    if (data.user) await recordLegalAcceptance(data.user.id);
+
+    if (data.user && !data.session) {
+      // Compte créé, confirmation email en attente : on vide les
+      // mots de passe mais on garde l'email affiché.
+      set({ loading: false, success: L('suc_register'), pass: '', pass2: '' });
+    } else if (data.user) {
+      window.location.href = 'home.html';
+    } else {
+      set({ loading: false });
+    }
   }
 }
 
 async function handleForgot() {
-  const email = document.getElementById('forgot-email')?.value.trim();
+  const email = (document.getElementById('forgot-email')?.value || '').trim();
+  S.forgotEmail = email;
   if (!email) { document.getElementById('forgot-email')?.focus(); return; }
   set({ loading: true, error: '' });
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/index.html' });
@@ -355,7 +530,10 @@ function render() {
         ${S.error ? `<div class="msg error">${S.error}</div>` : ''}
         <div class="field">
           <label class="field-label">Email</label>
-          <input id="forgot-email" class="field-input" type="email" placeholder="contact@email.com" onkeydown="if(event.key==='Enter')handleForgot()"/>
+          <input id="forgot-email" class="field-input" type="email" placeholder="contact@email.com"
+            value="${esc(S.forgotEmail)}"
+            oninput="S.forgotEmail=this.value"
+            onkeydown="if(event.key==='Enter')handleForgot()"/>
         </div>
         <button class="btn-primary" ${S.loading ? 'disabled' : ''} onclick="handleForgot()">
           ${S.loading ? L('forgot_sending') : L('forgot_btn')}
@@ -398,21 +576,56 @@ function render() {
     <div class="auth-card">
 
       <div class="auth-tabs">
-        <button class="auth-tab ${S.tab === 'login' ? 'active' : ''}" onclick="set({tab:'login',error:'',success:''})">${L('tab_login')}</button>
-        <button class="auth-tab ${S.tab === 'register' ? 'active' : ''}" onclick="set({tab:'register',error:'',success:''})">${L('tab_register')}</button>
+        <button class="auth-tab ${S.tab === 'login' ? 'active' : ''}" onclick="set({tab:'login',error:'',success:'',pass:'',pass2:''})">${L('tab_login')}</button>
+        <button class="auth-tab ${S.tab === 'register' ? 'active' : ''}" onclick="set({tab:'register',error:'',success:'',pass:'',pass2:''})">${L('tab_register')}</button>
       </div>
       ${S.error   ? `<div class="msg error">${S.error}</div>`   : ''}
       ${S.success ? `<div class="msg success">${S.success}</div>` : ''}
       <div class="field">
         <label class="field-label">${L('email_lbl')}</label>
         <input id="auth-email" class="field-input" type="email" placeholder="contact@email.com"
+          autocomplete="email"
+          value="${esc(S.email)}"
+          oninput="S.email=this.value"
           onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"/>
       </div>
       <div class="field">
         <label class="field-label">${L('pwd_lbl')}</label>
         <input id="auth-pass" class="field-input" type="password" placeholder="••••••••"
-          onkeydown="if(event.key==='Enter')handleAuth()"/>
+          autocomplete="${S.tab === 'login' ? 'current-password' : 'new-password'}"
+          value="${esc(S.pass)}"
+          oninput="${S.tab === 'register' ? 'onPassInput(this)' : 'S.pass=this.value'}"
+          onkeydown="if(event.key==='Enter'){${S.tab === 'register' ? "document.getElementById('auth-pass2').focus()" : 'handleAuth()'}}"/>
+        ${S.tab === 'register' ? `
+        <ul class="pwd-rules" id="pwd-rules">
+          ${PWD_RULES.map(r => `
+          <li class="pwd-rule ${r.test(S.pass) ? 'ok' : ''}" data-rule="${r.key}">
+            <span class="tick">✓</span><span>${L(r.key)}</span>
+          </li>`).join('')}
+        </ul>` : ''}
       </div>
+      ${S.tab === 'register' ? `
+      <div class="field">
+        <label class="field-label">${L('pwd_confirm_lbl')}</label>
+        <input id="auth-pass2" class="field-input" type="password" placeholder="••••••••"
+          autocomplete="new-password"
+          value="${esc(S.pass2)}"
+          oninput="onPass2Input(this)"
+          onkeydown="if(event.key==='Enter')handleAuth()"/>
+        <div class="pwd-match${S.pass2 ? (S.pass === S.pass2 ? ' ok' : ' ko') : ''}" id="pwd-match">${
+          S.pass2 ? (S.pass === S.pass2 ? L('pwd_match_ok') : L('err_pass_mismatch')) : ''
+        }</div>
+      </div>
+      <label class="legal-accept" for="legal-accept">
+        <input type="checkbox" id="legal-accept" ${S.legalOk ? 'checked' : ''}
+          oninput="S.legalOk=this.checked"/>
+        <span class="legal-accept-txt">
+          J'ai lu et j'accepte les
+          <a href="cgv.html" target="_blank" rel="noopener">Conditions Générales de Vente</a>,
+          les <a href="cgu.html" target="_blank" rel="noopener">Conditions Générales d'Utilisation</a>
+          et la <a href="confidentialite.html" target="_blank" rel="noopener">Politique de confidentialité</a>.
+        </span>
+      </label>` : ''}
       <button class="btn-primary" ${S.loading ? 'disabled' : ''} onclick="handleAuth()">
         ${S.loading ? L('btn_loading') : (S.tab === 'login' ? L('btn_login') : L('btn_register'))}
       </button>

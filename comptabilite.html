@@ -94,6 +94,13 @@
     .tab:hover{color:var(--text)}
     .tab.active{background:var(--surface-2);color:var(--text)}
     .tab .count{background:var(--surface-3);color:var(--muted);font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700}
+    .tab-pro{background:rgba(167,139,250,.16);color:#a78bfa;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.04em}
+    /* Bannière de fin de réception PDP (CGV art. 7ter) */
+    .grace-banner{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.24);border-radius:11px;padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.6}
+    .grace-banner .gb-title{font-weight:700;color:#f87171;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    .grace-banner .gb-body{color:var(--muted)}
+    .grace-banner .gb-body strong{color:var(--text)}
+    .grace-banner a{color:#f87171}
     .tab.active .count{background:var(--amber);color:#000}
     [data-theme="light"] .tab.active .count{color:#fff}
 
@@ -267,7 +274,7 @@
       <span>📥</span> Reçues (PDP) <span class="count" id="count-recues">0</span>
     </button>
     <button class="tab tab-ajoutees" id="tab-ajoutees" onclick="switchTab('ajoutees')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Ajoutées <span class="count" id="count-ajoutees">0</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Ajoutées <span class="count" id="count-ajoutees">0</span><span class="tab-pro" id="tab-ajoutees-pro" style="display:none">Pro</span>
     </button>
   </div>
 
@@ -379,6 +386,8 @@ let superpdpConnected = false;
 let syncing = false;
 let metaEditId = null;
 let readOnly = false;   // compte résilié : consultation autorisée, écriture non
+let isProPlan = false;  // registre des achats (onglet "Ajoutées") : Pro uniquement
+let pdpGraceUntil = null;   // fin de réception PDP après résiliation (CGV art. 7ter)
 let transmissionFilter = 'tous';   // 'tous' | 'a_transmettre' | 'transmises'
 
 const BUCKET = 'factures-recues';
@@ -572,6 +581,25 @@ function renderKPIs(){
 
 function renderBanner(){
   const el = document.getElementById('banner-superpdp');
+
+  // Priorité absolue : fin de réception programmée. Un utilisateur qui
+  // résilie doit voir l'échéance avant toute autre information.
+  if(pdpGraceUntil){
+    const g = new Date(pdpGraceUntil);
+    const days = Math.max(0, Math.ceil((g - new Date()) / 86400000));
+    const gStr = g.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+    el.innerHTML = `
+      <div class="grace-banner">
+        <div class="gb-title">⚠️ Fin de réception de vos factures fournisseurs — ${days} jour${days > 1 ? 's' : ''} restant${days > 1 ? 's' : ''}</div>
+        <div class="gb-body">
+          La réception via Artio cessera le <strong>${gStr}</strong>, et votre SIRET sera retiré de l'annuaire de facturation.
+          <strong>Exportez vos factures reçues dès maintenant</strong> (sélectionnez-les puis « Télécharger ZIP »), souscrivez à une autre plateforme conforme et informez vos fournisseurs.
+          <a href="cgv.html">Article 7ter des CGV →</a>
+        </div>
+      </div>`;
+    return;
+  }
+
   if(readOnly){
     el.innerHTML = `
       <div class="banner">
@@ -594,6 +622,16 @@ function renderBanner(){
 }
 
 function switchTab(tab){
+  // Registre des achats : réservé au plan Pro. L'émission et la réception
+  // PDP restent Solo+Pro (obligation légale, non gatée).
+  if(tab === 'ajoutees' && !isProPlan){
+    if(window.PlanGuard && window.PlanGuard.gate){
+      window.PlanGuard.gate('pro', () => {}, 'Registre des achats')();
+    } else {
+      toast('🔒 Le registre des achats est réservé au plan Pro.');
+    }
+    return;
+  }
   currentTab = tab;
   // Réinitialiser le filtre : arriver sur un onglet avec un filtre hérité
   // donnerait une liste vide sans raison apparente. On modifie l'état
@@ -610,7 +648,7 @@ function switchTab(tab){
   document.getElementById('tab-emises').classList.toggle('active', tab === 'emises');
   document.getElementById('tab-recues').classList.toggle('active', tab === 'recues');
   document.getElementById('tab-ajoutees').classList.toggle('active', tab === 'ajoutees');
-  document.getElementById('dropzone').style.display = (tab === 'ajoutees' && !readOnly) ? 'block' : 'none';
+  document.getElementById('dropzone').style.display = (tab === 'ajoutees' && !readOnly && isProPlan) ? 'block' : 'none';
 
   const btn = document.getElementById('btn-action');
   if(readOnly){
@@ -942,6 +980,7 @@ function renderUploadQueue(items){
 
 async function handleFiles(fileList){
   if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const files = Array.from(fileList || []);
   if(!files.length) return;
 
@@ -1048,6 +1087,7 @@ async function downloadManual(id, name){
 
 async function deleteManual(id){
   if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
   const label = f.fournisseur || f.nom_fichier || 'cette facture';
@@ -1064,6 +1104,7 @@ async function deleteManual(id){
 
 function openMetaModal(id){
   if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
   metaEditId = id;
@@ -1084,6 +1125,7 @@ function closeMetaModal(){
 
 async function saveMeta(){
   if(!metaEditId) return;
+  if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const num = v => v === '' || v === null ? null : (isNaN(parseFloat(v)) ? null : parseFloat(v));
   const patch = {
     fournisseur:    document.getElementById('meta-fournisseur').value.trim() || null,
@@ -1402,10 +1444,27 @@ async function init(){
     window.PlanGuard.onReady(() => { clearTimeout(timeout); resolve(); });
   });
   readOnly = !!(window.PlanGuard && window.PlanGuard.isFree());
+  isProPlan = !!(window.PlanGuard && window.PlanGuard.isPro());
+
+  // Période de grâce PDP : affichée en bannière si une résiliation est en cours.
+  try {
+    const { data: p } = await sb.from('profils')
+      .select('pdp_grace_until')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if(p) pdpGraceUntil = p.pdp_grace_until || null;
+  } catch(e){ console.warn('pdp_grace_until indisponible:', e); }
 
   const params = new URLSearchParams(location.search);
   const asked = params.get('tab');
-  const tab = ['recues','ajoutees'].includes(asked) ? asked : 'emises';
+  let tab = ['recues','ajoutees'].includes(asked) ? asked : 'emises';
+  // switchTab('ajoutees') sort sans rendre si le plan n'est pas Pro :
+  // on retombe sur "emises" pour ne pas laisser la page vide.
+  if(tab === 'ajoutees' && !isProPlan) tab = 'emises';
+
+  // Badge Pro sur l'onglet verrouillé.
+  const _proBadge = document.getElementById('tab-ajoutees-pro');
+  if(_proBadge) _proBadge.style.display = isProPlan ? 'none' : '';
 
   renderKPIs();
   switchTab(tab);

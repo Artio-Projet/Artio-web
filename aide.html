@@ -770,6 +770,12 @@ body.is-authed .sidebar-overlay { display:block; }
           <span class="doc-item-title">Générer une facture en PDF</span>
           <span class="doc-arrow">›</span>
         </a>
+        <a class="doc-item" href="#" onclick="openArticle('registre-achats');return false;">
+          <span class="doc-item-icon">🧾</span>
+          <span class="doc-item-title">Registre des achats</span>
+          <span class="doc-item-badge new">Pro</span>
+          <span class="doc-arrow">›</span>
+        </a>
       </div>
 
       <div class="docs-col">
@@ -778,6 +784,11 @@ body.is-authed .sidebar-overlay { display:block; }
           <span class="doc-item-icon">📋</span>
           <span class="doc-item-title">Réforme facturation électronique 2026</span>
           <span class="doc-item-badge new">DGFiP</span>
+          <span class="doc-arrow">›</span>
+        </a>
+        <a class="doc-item" href="#" onclick="openArticle('fin-reception');return false;">
+          <span class="doc-item-icon">⚠️</span>
+          <span class="doc-item-title">Résiliation et réception de vos factures</span>
           <span class="doc-arrow">›</span>
         </a>
         <a class="doc-item" href="#" onclick="openArticle('securite');return false;">
@@ -835,7 +846,9 @@ const ARTICLES = [
   { icon: '💶', title: 'Marquer une facture payée & rappels', cat: 'Fonctionnalités', id: 'paiement' },
   { icon: '🎙️', title: 'Utiliser la dictée vocale', cat: 'Fonctionnalités', id: 'dictee-vocale' },
   { icon: '📄', title: 'Générer une facture en PDF', cat: 'Fonctionnalités', id: 'pdf-facture' },
+  { icon: '🧾', title: 'Registre des achats', cat: 'Fonctionnalités', id: 'registre-achats' },
   { icon: '🏛️', title: 'Réforme facturation électronique 2026', cat: 'Légal & Conformité', id: 'facturation-epro' },
+  { icon: '⚠️', title: 'Résiliation et réception de vos factures', cat: 'Légal & Conformité', id: 'fin-reception' },
   { icon: '🔒', title: 'Sécurité & données personnelles', cat: 'Légal & Conformité', id: 'securite' },
   { icon: '🗑️', title: 'Supprimer mon compte', cat: 'Légal & Conformité', id: 'suppression-compte' },
 ];
@@ -1077,8 +1090,9 @@ const ARTICLE_CONTENT = {
     title: '💳 Abonnement Solo & Pro',
     body: `
       <h2>Les deux plans</h2>
-      <p><strong>Solo — 19 €/mois ou 190 €/an</strong><br>Accès complet à la plateforme : devis, factures, dictée vocale IA, agenda, carnet clients, signature électronique, tableau de bord.</p>
-      <p><strong>Pro — 39 €/mois ou 390 €/an</strong><br>Tout Solo, plus la connexion Gmail, le branding PDF personnalisé et les fonctionnalités avancées à venir.</p>
+      <p><strong>Solo — 19 €/mois ou 190 €/an</strong><br>Accès complet à la plateforme : devis, factures, dictée vocale IA, agenda, carnet clients, signature électronique, tableau de bord, ainsi que l'<strong>émission et la réception de factures électroniques</strong> via notre plateforme partenaire.</p>
+      <p><strong>Pro — 39 €/mois ou 390 €/an</strong><br>Tout Solo, plus la connexion Gmail, le branding PDF personnalisé et le <strong>registre des achats</strong> (dépôt manuel de vos factures fournisseurs papier ou reçues par email).</p>
+      <div class="article-tip"><strong>💡 À noter :</strong> l'émission et la réception de factures électroniques sont incluses dès le plan Solo — c'est une obligation légale, elle n'est réservée à aucun plan supérieur.</div>
       <h2>Essai gratuit</h2>
       <p>Les plans mensuels bénéficient d'un <strong>essai gratuit de 30 jours</strong> pour les nouveaux abonnés. Aucun prélèvement pendant la période d'essai.</p>
       <h2>Souscrire</h2>
@@ -1089,6 +1103,7 @@ const ARTICLE_CONTENT = {
       <p>Cliquez sur "Demander l'annulation" dans l'onglet Abonnement. Votre accès reste actif jusqu'à la fin de la période payée. Aucun remboursement au prorata.</p>
       <h2>Après résiliation</h2>
       <p>Vous conservez un accès <strong>lecture seule</strong> à tout votre historique (dossiers, factures) sans pouvoir créer de nouveaux documents.</p>
+      <div class="article-warn"><strong>⚠ Si vous receviez vos factures fournisseurs via Artio :</strong> la réception est maintenue <strong>un mois</strong> après la fin de votre abonnement, puis elle s'arrête définitivement et votre SIRET est retiré de l'annuaire de facturation. Avant cette échéance, vous devez souscrire à une autre plateforme conforme, vous y référencer et prévenir vos fournisseurs — sans quoi vous ne recevrez plus leurs factures. Voir l'article <a href="#" onclick="openArticle('fin-reception');return false;" style="color:var(--amber);text-decoration:underline;">Résiliation et réception de vos factures</a>.</div>
       <div class="article-tip"><strong>💡 Facturation :</strong> Une facture Artio est automatiquement générée et envoyée par email à chaque renouvellement.</div>`
   },
   'signature': {
@@ -1217,8 +1232,8 @@ const ARTICLE_CONTENT = {
       </ul>
 
       <h2>Artio & FactPulse</h2>
-      <p>Artio est <strong>Solution Compatible DGFiP</strong> via <strong>FactPulse</strong>, une plateforme agréée. Vous n'avez pas besoin de créer de compte FactPulse : la connexion est intégrée à votre abonnement Artio Pro.</p>
-      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Souscrivez au plan Pro</strong><span>La facturation électronique est incluse dans l'abonnement Artio Pro.</span></div></div>
+      <p>Artio est <strong>Solution Compatible DGFiP</strong> via <strong>FactPulse</strong>, une plateforme agréée. La facturation électronique est incluse <strong>dès le plan Solo</strong> — émission comme réception.</p>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Souscrivez au plan Solo ou Pro</strong><span>La facturation électronique est incluse dans les deux formules.</span></div></div>
       <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Activez FactPulse dans Paramètres</strong><span>Paramètres → Facturation électronique → Activer FactPulse.</span></div></div>
       <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Émettez vos factures</strong><span>Le bouton "⚡ Émettre" devient disponible sur chaque facture dans vos dossiers.</span></div></div>
 
@@ -1231,6 +1246,59 @@ const ARTICLE_CONTENT = {
 
       <div class="article-warn"><strong>⚠ À faire dès que possible :</strong> La déclaration dans l'annuaire PPF doit être effectuée avant le 1er septembre 2026 pour être opérationnel à l'entrée en vigueur de l'obligation de réception.</div>
       <div class="article-tip"><strong>💡 Besoin d'aide ?</strong> En cas de doute sur la démarche, contactez votre expert-comptable ou consultez la documentation officielle sur <a href="https://www.impots.gouv.fr/professionnel/je-passe-la-facturation-electronique" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:underline;">impots.gouv.fr</a>.</div>`
+  },
+  'registre-achats': {
+    title: '🧾 Registre des achats',
+    body: `
+      <div class="article-tip"><strong>⚡ Plan Pro :</strong> le registre des achats est réservé au plan Pro. L'émission et la réception de factures électroniques restent incluses dès le plan Solo.</div>
+
+      <h2>À quoi ça sert</h2>
+      <p>Tous vos fournisseurs ne vous enverront pas leurs factures par voie électronique : certaines arrivent par email en PDF, d'autres sur papier. Le registre des achats vous permet de les déposer dans Artio pour les conserver au même endroit que celles reçues via la plateforme de dématérialisation.</p>
+
+      <h2>Déposer une facture</h2>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Ouvrez Comptabilité → onglet "Ajoutées"</strong><span>Depuis le menu principal, cliquez sur "Comptabilité".</span></div></div>
+      <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Déposez vos PDF</strong><span>Glissez-déposez vos fichiers dans la zone prévue, ou cliquez pour parcourir. PDF uniquement, 15 Mo maximum par fichier.</span></div></div>
+      <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Complétez les informations</strong><span>Fournisseur, numéro, date, montant HT et TTC. Ces champs sont facultatifs mais facilitent vos recherches et le travail de votre comptable.</span></div></div>
+
+      <h2>Suivi de transmission</h2>
+      <p>Chaque facture peut être marquée comme <strong>transmise à votre comptable</strong>. Les filtres "À transmettre" et "Transmises" vous permettent de repérer d'un coup d'œil ce qui reste à envoyer.</p>
+
+      <h2>Envoyer à votre comptable</h2>
+      <p>Sélectionnez plusieurs factures, puis choisissez <strong>"Télécharger (ZIP)"</strong> pour récupérer l'ensemble en une archive, ou <strong>"Envoyer au comptable"</strong> pour les transmettre par email directement depuis Artio.</p>
+
+      <div class="article-tip"><strong>💡 Rappel :</strong> une notification mensuelle vous alerte si vous avez au moins trois pièces non transmises.</div>`
+  },
+  'fin-reception': {
+    title: '⚠️ Résiliation et réception de vos factures',
+    body: `
+      <div class="article-warn"><strong>⚠ À lire avant de résilier</strong> si vous recevez vos factures fournisseurs via Artio. Ne pas effectuer les démarches décrites ci-dessous peut vous faire manquer des factures.</div>
+
+      <h2>Pourquoi c'est important</h2>
+      <p>Quand vous activez la réception de factures électroniques, votre numéro SIRET est déclaré dans l'<strong>annuaire de facturation</strong>. C'est ce qui permet à vos fournisseurs de savoir où vous adresser leurs factures. Si vous résiliez sans vous référencer ailleurs, l'annuaire ne pointe plus vers aucune plateforme active pour vous.</p>
+
+      <h2>Ce qui se passe après votre résiliation</h2>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Fin de votre abonnement</strong><span>Votre accès en écriture s'arrête, mais vous consultez toujours votre historique.</span></div></div>
+      <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Période de grâce d'un mois</strong><span>La réception de vos factures fournisseurs continue de fonctionner. Vous pouvez les consulter, les télécharger et les exporter.</span></div></div>
+      <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Fin de la période de grâce</strong><span>La réception s'arrête définitivement et votre SIRET est retiré de l'annuaire au titre d'Artio.</span></div></div>
+      <p>Des rappels par email vous sont envoyés avant l'échéance. Veillez à ce que l'adresse associée à votre compte reste valide et consultée.</p>
+
+      <h2>Les trois démarches à effectuer</h2>
+      <ul>
+        <li><strong>Souscrire à une autre plateforme conforme</strong> — toute entreprise assujettie doit pouvoir recevoir des factures électroniques ; ce n'est pas optionnel.</li>
+        <li><strong>Vous référencer dans l'annuaire</strong> avec votre nouvelle plateforme, sur impots.gouv.fr.</li>
+        <li><strong>Informer vos fournisseurs</strong> de vos nouvelles coordonnées de facturation.</li>
+      </ul>
+
+      <h2>Exporter vos factures avant la coupure</h2>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Ouvrez Comptabilité</strong><span>Rendez-vous sur l'onglet contenant les factures à récupérer.</span></div></div>
+      <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Sélectionnez les factures</strong><span>Cochez celles à conserver, ou toutes.</span></div></div>
+      <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Cliquez sur "Télécharger (ZIP)"</strong><span>Vous récupérez l'ensemble des PDF en une archive.</span></div></div>
+
+      <h2>Obligations de conservation</h2>
+      <p>La résiliation ne vous décharge pas de vos obligations légales de conservation des documents comptables et fiscaux. Assurez-vous d'avoir tout exporté avant la fin de la période de grâce.</p>
+
+      <div class="article-tip"><strong>💡 Vous changez d'avis ?</strong> Tant que la période de grâce n'est pas écoulée, réactiver votre abonnement depuis Paramètres → Abonnement rétablit la réception sans démarche supplémentaire.</div>
+      <p style="color:var(--muted);font-size:13px;">Conditions détaillées : article 7ter des <a href="cgv.html" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:underline;">Conditions Générales de Vente</a>.</p>`
   },
   'securite': {
     title: '🔒 Sécurité & données personnelles',
