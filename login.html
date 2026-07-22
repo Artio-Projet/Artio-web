@@ -366,7 +366,7 @@ const LABELS = {
   rule_special:   { fr:"Un caractère spécial",en:"One special char.",  es:"Un carácter especial", zh:"一个特殊字符" },
   err_credentials:{ fr:"Identifiants incorrects.",      en:"Incorrect credentials.",        es:"Credenciales incorrectas.",     zh:"账号或密码错误。" },
   suc_register:   { fr:"Compte créé ! Vérifiez votre email pour confirmer.", en:"Account created! Check your email.", es:"¡Cuenta creada! Verifica tu email.", zh:"账户已创建！请验证您的邮箱。" },
-  info_maybe_exists:{ fr:"Si un compte existe déjà avec cet email, connectez-vous ou réinitialisez votre mot de passe. Sinon, vérifiez votre boîte mail pour confirmer votre inscription.", en:"If an account already exists with this email, sign in or reset your password. Otherwise, check your inbox to confirm your registration.", es:"Si ya existe una cuenta con este email, inicia sesión o restablece tu contraseña. Si no, revisa tu correo para confirmar tu registro.", zh:"如果此邮箱已注册，请登录或重置密码。否则，请查收邮件以确认注册。" },
+  info_maybe_exists:{ fr:"Un compte existe déjà avec cette adresse email. Connectez-vous ou réinitialisez votre mot de passe.", en:"An account already exists with this email. Sign in or reset your password.", es:"Ya existe una cuenta con este email. Inicia sesión o restablece tu contraseña.", zh:"该邮箱已注册。请登录或重置密码。" },
 };
 
 function L(key) {
@@ -498,7 +498,7 @@ async function handleAuth() {
       && data.user.identities.length === 0;
 
     if (alreadyExists) {
-      set({ loading: false, success: L('info_maybe_exists'), pass: '', pass2: '' });
+      set({ loading: false, error: L('info_maybe_exists'), pass: '', pass2: '' });
       return;
     }
 
