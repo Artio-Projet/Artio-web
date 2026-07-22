@@ -1745,8 +1745,10 @@ function renderFacturationHTML() {
       </button>
     </div>`;
 
-  // Bandeau de fin de réception : visible dès qu'une résiliation est
-  // enregistrée et que la réception est active (CGV art. 7ter).
+  // Bandeau de fin de réception : déclenché par la présence de
+  // pdp_grace_until (posé par l'Edge Function de résiliation, source de
+  // vérité). Aligné sur comptabilite.html — ne dépend pas de
+  // cancellation_requested, pour éviter toute désynchro entre les deux pages.
   const _graceDate = pdpGraceUntil ? new Date(pdpGraceUntil) : null;
   const _graceStr = _graceDate
     ? _graceDate.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
@@ -1755,7 +1757,7 @@ function renderFacturationHTML() {
     ? Math.max(0, Math.ceil((_graceDate - new Date()) / 86400000))
     : null;
 
-  const card5GraceBanner = (cancellationRequested && (superpdpConnected || facturationElectroniqueActive)) ? `
+  const card5GraceBanner = pdpGraceUntil ? `
     <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:14px;margin:14px 0;">
       <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;">
         ⚠️ Fin de réception programmée${_daysLeft !== null ? ` — ${_daysLeft} jour${_daysLeft > 1 ? 's' : ''} restant${_daysLeft > 1 ? 's' : ''}` : ''}

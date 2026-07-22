@@ -36,56 +36,68 @@ window.PlanGuard = (() => {
     const style = document.createElement("style");
     style.id = "pg-styles";
     style.textContent = `
+      /* Fallbacks si la page ne définit pas les variables de thème */
+      :root {
+        --pg-surface: var(--surface, #0e1220);
+        --pg-bg:      var(--bg, #080b14);
+        --pg-text:    var(--text, #e2e5f1);
+        --pg-muted:   var(--muted, #6b7494);
+        --pg-amber:   var(--amber, #f5a742);
+        --pg-amber-dim: var(--amber-dim, rgba(245,167,66,0.12));
+        --pg-purple:  var(--purple, #a78bfa);
+        --pg-purple-dim: var(--purple-dim, rgba(167,139,250,0.12));
+        --pg-border:  var(--border-hi, rgba(255,255,255,0.13));
+      }
       /* Overlay Free (jamais abonné) */
       #pg-overlay {
         position:fixed;inset:0;z-index:9000;
         display:flex;align-items:center;justify-content:center;
-        background:rgba(8,11,20,0.85);
+        background:color-mix(in srgb, var(--pg-bg) 85%, transparent);
         backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
         animation:pg-fade .25s ease;
       }
       @keyframes pg-fade { from{opacity:0} to{opacity:1} }
       #pg-overlay-box {
-        background:#0e1220;
-        border:1px solid rgba(245,167,66,0.25);
+        background:var(--pg-surface);
+        border:1px solid var(--pg-amber-dim);
         border-radius:22px;padding:36px 32px 32px;
         max-width:400px;width:90%;text-align:center;
-        box-shadow:0 0 80px rgba(245,167,66,0.08);
+        box-shadow:0 0 80px rgba(0,0,0,0.25);
         font-family:'Plus Jakarta Sans',sans-serif;
       }
       #pg-overlay-icon { font-size:42px;margin-bottom:12px; }
       #pg-overlay-title {
         font-family:'Space Grotesk',sans-serif;
-        font-size:20px;font-weight:700;color:#e2e5f1;
+        font-size:20px;font-weight:700;color:var(--pg-text);
         margin-bottom:8px;letter-spacing:-0.02em;
       }
       #pg-overlay-sub {
-        font-size:13px;color:#6b7494;
+        font-size:13px;color:var(--pg-muted);
         line-height:1.65;margin-bottom:24px;
       }
       #pg-overlay-cta {
         display:block;width:100%;padding:13px;
-        background:#f5a742;border:none;border-radius:12px;
-        color:#080b14;font-size:14px;font-weight:700;
+        background:var(--pg-amber);border:none;border-radius:12px;
+        color:var(--pg-bg);font-size:14px;font-weight:700;
         font-family:'Space Grotesk',sans-serif;
         cursor:pointer;text-decoration:none;
-        box-shadow:0 0 24px rgba(245,167,66,0.28);
+        box-shadow:0 0 24px var(--pg-amber-dim);
         transition:transform .15s,opacity .2s;
       }
       #pg-overlay-cta:hover { transform:translateY(-1px); }
       #pg-overlay-back {
         display:block;margin-top:12px;
-        font-size:12px;color:#6b7494;
+        font-size:12px;color:var(--pg-muted);
         cursor:pointer;background:none;border:none;
         font-family:'Plus Jakarta Sans',sans-serif;
       }
-      #pg-overlay-back:hover { color:#e2e5f1; }
+      #pg-overlay-back:hover { color:var(--pg-text); }
 
       /* Bannière lecture seule (ex-abonné) */
       #pg-readonly-banner {
         position:sticky;top:60px;z-index:800;
-        background:rgba(245,167,66,0.08);
-        border-bottom:1px solid rgba(245,167,66,0.18);
+        background:var(--pg-amber-dim);
+        border-bottom:1px solid var(--pg-amber-dim);
         padding:10px 20px;
         display:flex;align-items:center;justify-content:space-between;
         gap:12px;flex-wrap:wrap;
@@ -94,13 +106,13 @@ window.PlanGuard = (() => {
       }
       #pg-readonly-banner .pg-rb-left {
         display:flex;align-items:center;gap:8px;
-        color:#e2e5f1;
+        color:var(--pg-text);
       }
       #pg-readonly-banner .pg-rb-icon { font-size:16px; }
-      #pg-readonly-banner strong { color:#f5a742; }
+      #pg-readonly-banner strong { color:var(--pg-amber); }
       #pg-readonly-banner a {
         padding:6px 16px;border-radius:8px;
-        background:#f5a742;color:#080b14;
+        background:var(--pg-amber);color:var(--pg-bg);
         font-size:12px;font-weight:700;
         font-family:'Space Grotesk',sans-serif;
         text-decoration:none;white-space:nowrap;
@@ -111,15 +123,15 @@ window.PlanGuard = (() => {
       /* Badge Pro lock */
       .pg-lock {
         display:inline-flex;align-items:center;gap:5px;
-        background:rgba(167,139,250,0.12);
-        border:1px solid rgba(167,139,250,0.28);
+        background:var(--pg-purple-dim);
+        border:1px solid var(--pg-purple-dim);
         border-radius:100px;padding:3px 10px 3px 7px;
-        font-size:11px;font-weight:700;color:#a78bfa;
+        font-size:11px;font-weight:700;color:var(--pg-purple);
         cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
         transition:background .2s;vertical-align:middle;
         margin-left:6px;white-space:nowrap;
       }
-      .pg-lock:hover { background:rgba(167,139,250,0.2); }
+      .pg-lock:hover { background:var(--pg-purple-dim); }
 
       /* Wrapper éléments floutés */
       .pg-gated-wrap {
@@ -135,38 +147,38 @@ window.PlanGuard = (() => {
       #pg-modal-overlay {
         position:fixed;inset:0;z-index:9100;
         display:flex;align-items:center;justify-content:center;
-        background:rgba(8,11,20,0.75);
+        background:color-mix(in srgb, var(--pg-bg) 75%, transparent);
         backdrop-filter:blur(8px);
         animation:pg-fade .2s ease;
       }
       #pg-modal-box {
-        background:#0e1220;
-        border:1px solid rgba(167,139,250,0.3);
+        background:var(--pg-surface);
+        border:1px solid var(--pg-purple-dim);
         border-radius:22px;padding:32px 28px 28px;
         max-width:380px;width:90%;text-align:center;
-        box-shadow:0 0 60px rgba(167,139,250,0.08);
+        box-shadow:0 0 60px rgba(0,0,0,0.25);
         font-family:'Plus Jakarta Sans',sans-serif;
       }
       #pg-modal-badge {
         display:inline-flex;align-items:center;gap:6px;
-        background:rgba(167,139,250,0.12);
-        border:1px solid rgba(167,139,250,0.3);
+        background:var(--pg-purple-dim);
+        border:1px solid var(--pg-purple-dim);
         border-radius:100px;padding:4px 14px;
-        font-size:11px;font-weight:800;color:#a78bfa;
+        font-size:11px;font-weight:800;color:var(--pg-purple);
         letter-spacing:.06em;margin-bottom:16px;
       }
       #pg-modal-title {
         font-family:'Space Grotesk',sans-serif;
-        font-size:18px;font-weight:700;color:#e2e5f1;
+        font-size:18px;font-weight:700;color:var(--pg-text);
         margin-bottom:8px;letter-spacing:-0.02em;
       }
       #pg-modal-sub {
-        font-size:13px;color:#6b7494;
+        font-size:13px;color:var(--pg-muted);
         line-height:1.65;margin-bottom:22px;
       }
       #pg-modal-cta {
         display:block;width:100%;padding:12px;
-        background:#a78bfa;border:none;border-radius:12px;
+        background:var(--pg-purple);border:none;border-radius:12px;
         color:#fff;font-size:14px;font-weight:700;
         font-family:'Space Grotesk',sans-serif;
         cursor:pointer;text-decoration:none;
@@ -175,11 +187,11 @@ window.PlanGuard = (() => {
       #pg-modal-cta:hover { transform:translateY(-1px); }
       #pg-modal-close {
         display:block;margin-top:10px;
-        font-size:12px;color:#6b7494;
+        font-size:12px;color:var(--pg-muted);
         cursor:pointer;background:none;border:none;
         font-family:'Plus Jakarta Sans',sans-serif;
       }
-      #pg-modal-close:hover { color:#e2e5f1; }
+      #pg-modal-close:hover { color:var(--pg-text); }
     `;
     document.head.appendChild(style);
   }
@@ -195,7 +207,7 @@ window.PlanGuard = (() => {
         <div id="pg-overlay-icon">🚀</div>
         <div id="pg-overlay-title">Abonnement requis</div>
         <div id="pg-overlay-sub">
-          Cette page nécessite un abonnement <strong style="color:#f5a742">Solo</strong> ou <strong style="color:#a78bfa">Pro</strong>.<br>
+          Cette page nécessite un abonnement <strong style="color:var(--pg-amber)">Solo</strong> ou <strong style="color:var(--pg-purple)">Pro</strong>.<br>
           Choisissez votre plan pour commencer.
         </div>
         <a id="pg-overlay-cta" href="settings.html?tab=abonnement">🚀 Voir les abonnements</a>
@@ -237,7 +249,7 @@ window.PlanGuard = (() => {
         <div id="pg-modal-badge">⚡ PRO</div>
         <div id="pg-modal-title">${featureLabel || "Fonctionnalité Pro"}</div>
         <div id="pg-modal-sub">
-          Cette fonctionnalité est disponible avec le plan <strong style="color:#a78bfa">Pro</strong> à 39 €/mois.
+          Cette fonctionnalité est disponible avec le plan <strong style="color:var(--pg-purple)">Pro</strong> à 39 €/mois.
           Passez au Pro pour débloquer Gmail, la signature électronique, les exports et bien plus.
         </div>
         <a id="pg-modal-cta" href="settings.html?tab=abonnement">⚡ Passer au Pro — 39 €/mois</a>
