@@ -1492,9 +1492,29 @@ function paintGoogle() {
 }
 
 function doGoogleConnect() {
+  // ⚠️ MESSAGERIE GMAIL EN PAUSE — scopes restreints retirés temporairement.
+  //
+  // La fonctionnalité de traitement des mails Google (lecture boîte +
+  // archivage/marquage lu) est désactivée pour éviter le coût de l'audit
+  // de sécurité Google exigé sur les scopes RESTREINTS. Elle doit revenir
+  // une fois les fonds disponibles pour financer l'audit.
+  //
+  // Scopes à REMETTRE ici le jour de la réactivation (après audit approuvé) :
+  //   'https://www.googleapis.com/auth/gmail.readonly',  → lecture (gmail-fetch)
+  //   'https://www.googleapis.com/auth/gmail.modify',    → archive/markRead (gmail-modify)
+  //
+  // Edge Functions concernées, déjà écrites, à redéployer/réactiver :
+  //   - gmail-fetch  (list/thread/attachment)
+  //   - gmail-modify (archive/trash/markRead/markUnread/untrash)
+  // Front concerné : rediger_complet.html (actuellement orphelin/non lié).
+  //
+  // ⚠️ NE PAS remettre ces scopes sans audit : leur simple présence dans le
+  // flux OAuth ré-affiche l'écran « application non vérifiée » à tous les
+  // utilisateurs non-testeurs, même app publiée en production.
+  //
+  // Scopes actuels = uniquement ceux VÉRIFIÉS par Google (envoi + calendrier).
   const scope = encodeURIComponent([
     'https://www.googleapis.com/auth/gmail.send',
-    'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar.readonly',
     'https://www.googleapis.com/auth/userinfo.email'
