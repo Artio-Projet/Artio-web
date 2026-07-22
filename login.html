@@ -431,34 +431,11 @@ function refreshMatch() {
 }
 
 /* ── ACCEPTATION LÉGALE ── */
-/* Enregistre la preuve d'acceptation sur profils. Idempotent :
-   upsert sur user_id, ne touche à rien d'autre.
-   IMPORTANT : filtrer par user_id, jamais par email. */
-async function recordLegalAcceptance(userId) {
-  if (!userId) return;
-  try {
-    const { data: existing } = await sb
-      .from('profils')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    const payload = {
-      cgv_accepted_at: new Date().toISOString(),
-      cgv_version: CGV_VERSION,
-    };
-
-    if (existing?.id) {
-      await sb.from('profils').update(payload).eq('user_id', userId);
-    } else {
-      await sb.from('profils').insert({ user_id: userId, ...payload });
-    }
-  } catch (e) {
-    // Ne bloque pas l'inscription : le rattrapage se fait à
-    // l'onboarding, qui vérifie cgv_accepted_at.
-    console.warn('recordLegalAcceptance', e);
-  }
-}
+/* L'acceptation CGV est posee cote serveur par le trigger
+   on_auth_user_created_cgv, a la creation du compte. La version est
+   transmise via options.data.cgv_version au signUp (voir handleAuth).
+   Aucune ecriture cliente : au moment du signUp il n'y a pas de
+   session, la RLS refuserait l'insert/update. */
 
 /* ── AUTH HANDLERS ── */
 async function handleAuth() {
@@ -485,7 +462,16 @@ async function handleAuth() {
     if (!legalOk) { set({ error: L('err_legal') }); return; }
 
     set({ loading: true, error: '', success: '' });
-    const { data, error } = await sb.auth.signUp({ email, password: pass });
+    // La version des CGV est transmise dans les metadonnees du signup.
+    // Le trigger serveur on_auth_user_created_cgv la recopie dans
+    // profils avec cgv_accepted_at. On ne tente PLUS d'ecrire cote
+    // client : au moment du signUp il n'y a pas de session, la RLS
+    // refuserait l'ecriture.
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password: pass,
+      options: { data: { cgv_version: CGV_VERSION } },
+    });
     if (error) { set({ loading: false, error: error.message }); return; }
 
     // Supabase ne renvoie pas d'erreur pour un email déjà enregistré
@@ -502,7 +488,7 @@ async function handleAuth() {
       return;
     }
 
-    if (data.user) await recordLegalAcceptance(data.user.id);
+    // L'acceptation CGV est posee par le trigger serveur, pas ici.
 
     if (data.user && !data.session) {
       // Compte créé, confirmation email en attente : on vide les
