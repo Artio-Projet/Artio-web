@@ -26,6 +26,12 @@ function _buildPDF(doc){
   const pdf=new jsPDF({unit:"mm",format:"a4"});
   const W=210,m=18,cW=W-2*m,rX=W-m;let y=m;
 
+  // Format monétaire français : virgule décimale, séparateur de milliers espace insécable
+  function fmtEur(n){
+    const v=Number(n)||0;
+    return v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" \u20ac";
+  }
+
   // ── En-tête : logo ou nom + couleur personnalisée ─────────────
   const pdfColor=doc.entreprise.couleur_pdf||"#378ADD";
   const rgb=(pdfColor.match(/[0-9a-f]{2}/gi)||["37","8a","dd"]).map(h=>parseInt(h,16));
@@ -102,15 +108,15 @@ function _buildPDF(doc){
   pdf.text(dl,m,y);y+=dl.length*4.5+6;
 
   const moRow=doc.nb_heures&&parseFloat(doc.nb_heures)>0
-    ?["Temps de travail ("+doc.nb_heures+"h \u00d7 "+doc.entreprise.taux_horaire+"\u20ac/h)",doc.nb_heures,parseFloat(doc.entreprise.taux_horaire).toFixed(2)+" \u20ac",doc.moHT.toFixed(2)+" \u20ac"]
+    ?["Temps de travail ("+doc.nb_heures+"h \u00d7 "+fmtEur(doc.entreprise.taux_horaire)+"/h)",doc.nb_heures,fmtEur(doc.entreprise.taux_horaire),fmtEur(doc.moHT)]
     :null;
   const tb=[
     ...(moRow?[moRow]:[]),
     ...(doc.pieces||[]).filter(p=>p.description&&p.quantite&&p.prix_unitaire).map(p=>[
       stripMd(p.description),
       p.quantite,
-      parseFloat(p.prix_unitaire).toFixed(2)+" \u20ac",
-      (parseFloat(p.quantite)*parseFloat(p.prix_unitaire)).toFixed(2)+" \u20ac"
+      fmtEur(p.prix_unitaire),
+      fmtEur(parseFloat(p.quantite)*parseFloat(p.prix_unitaire))
     ])
   ];
   pdf.autoTable({
@@ -125,15 +131,15 @@ function _buildPDF(doc){
   y=pdf.lastAutoTable.finalY+6;
 
   pdf.setFontSize(9).setFont(undefined,"normal");
-  pdf.text("Total HT :",135,y);pdf.text(doc.totalHT.toFixed(2)+" €",rX,y,{align:"right"});y+=5;
+  pdf.text("Total HT :",135,y);pdf.text(fmtEur(doc.totalHT),rX,y,{align:"right"});y+=5;
   if(doc.entreprise.assujetti_tva){
     pdf.text("TVA ("+doc.tvaRate+"%) :",135,y);
-    pdf.text(doc.tva.toFixed(2)+" €",rX,y,{align:"right"});
+    pdf.text(fmtEur(doc.tva),rX,y,{align:"right"});
     y+=5;
   }
   pdf.setFont(undefined,"bold").setFontSize(11)
     .text(doc.entreprise.assujetti_tva?"TOTAL TTC :":"TOTAL :",145,y);
-  pdf.text(doc.ttc.toFixed(2)+" €",rX,y,{align:"right"});y+=10;
+  pdf.text(fmtEur(doc.ttc),rX,y,{align:"right"});y+=10;
   if(!doc.entreprise.assujetti_tva){
     pdf.setFont(undefined,"italic").setFontSize(8).setTextColor(100);
     pdf.text("TVA non applicable, art. 293 B du CGI",m,y);y+=5;
@@ -154,12 +160,10 @@ function _buildPDF(doc){
     };
     const condTxt=condMap[doc.entreprise.conditions_paiement||""]||"Paiement à réception de facture.";
     const validiteLabel=doc.validite_jours?doc.validite_jours+" jour"+(doc.validite_jours>1?"s":""):"";
-    const fullCondTxt="Conditions : "+condTxt+(validiteLabel?" Devis valable "+validiteLabel+".":" ");
+    const validitePart=validiteLabel?(doc.validUntil?" Devis valable "+validiteLabel+", jusqu'au "+doc.validUntil+".":" Devis valable "+validiteLabel+"."):"";
+    const fullCondTxt="Conditions : "+condTxt+validitePart;
     const condLines=pdf.splitTextToSize(fullCondTxt,cW);
     pdf.text(condLines,m,y);y+=condLines.length*4+2;
-    if(doc.validite_jours){
-      pdf.text("Devis valable "+doc.validite_jours+" jour"+(doc.validite_jours>1?"s":"")+", jusqu'au "+doc.validUntil+".",m,y);
-    }
     y+=12;
     pdf.setTextColor(0).setFontSize(9).text("Bon pour accord — Date et signature :",m,y);y+=14;
     pdf.setDrawColor(180).line(m,y,m+80,y);
