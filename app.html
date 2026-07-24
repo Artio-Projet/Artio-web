@@ -629,6 +629,8 @@ async function loadUserData(userId){
       S.entreprise={
         nom:profil.nom||"",adresse:profil.adresse||"",tel:profil.tel||"",
         email:profil.email||"",siret:profil.siret||"",taux_horaire:profil.taux_horaire||"",
+        forme_juridique:profil.forme_juridique||"",
+        tva_intracom:profil.tva_intracom||"",
         assujetti_tva:profil.assujetti_tva||false,
         secteur:profil.secteur||"",
         conditions_paiement:profil.conditions_paiement||"",
@@ -657,7 +659,7 @@ async function loadUserData(userId){
     const{data:tpls}=await sb.from("templates").select("*").eq("user_id",userId).order("created_at",{ascending:false});
     if(tpls) S.templates=tpls;
     // Charger les clients (pour autocomplete)
-    const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",userId).order("nom",{ascending:true});
+    const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",userId).order("nom",{ascending:true});
     if(cls) S.clients=cls;
     // Charger les dossiers
     const{data:dossiers,error:de}=await sb.from("dossiers").select("*").eq("user_id",userId).order("updated_at",{ascending:false});
@@ -1500,7 +1502,16 @@ window.handleGenerate=async()=>{
     const {text:desc,usage:ud}=await callClaude(`Tu es un assistant administratif pour ${S.entreprise.secteur||"un prestataire indépendant"}. Rédige en 2-3 phrases professionnelles la description de cette prestation : ${f.travaux}. Adapte le vocabulaire au secteur. IMPORTANT: Réponds obligatoirement en ${({'fr':'français','en':'English','es':'español','zh':'中文'})[S.langue]||'français'}. Paragraphe fluide, pas de liste.`,300);
     logTokens("description", ud);
     const validiteJours=tab==="devis"?parseInt(S.fields.validite_jours||S.entreprise.validite_devis||3):null;
-const doc={type:tab,docNumber,date:todayFR(),validUntil:tab==="devis"?addDays(validiteJours):null,accepte:false,validite_jours:validiteJours,entreprise:{...e},client:{nom:f.client_nom,adresse:f.client_adresse,tel:f.client_tel||"",email:f.client_email||""},adresse_travaux:f.client_adresse||"",date_prestation:f.date_prestation||"",heure_prestation:f.heure_prestation||"",heure_fin_prestation:f.heure_fin_prestation||"",description:desc,nb_heures:f.nb_heures,pieces:pv,...totaux};
+// Enrichissement client : si lié à un client existant, on récupère is_professionnel/siret/tva_intracom
+// pour que le PDF puisse afficher les mentions légales B2B (SIRET client, TVA intracom).
+const cliRef=f.client_id?(S.clients||[]).find(c=>c.id===f.client_id):null;
+const clientDoc={
+  nom:f.client_nom,adresse:f.client_adresse,tel:f.client_tel||"",email:f.client_email||"",
+  is_professionnel:cliRef?!!cliRef.is_professionnel:false,
+  siret:cliRef?.siret||"",
+  tva_intracom:cliRef?.tva_intracom||""
+};
+const doc={type:tab,docNumber,date:todayFR(),validUntil:tab==="devis"?addDays(validiteJours):null,accepte:false,validite_jours:validiteJours,entreprise:{...e},client:clientDoc,adresse_travaux:f.client_adresse||"",date_prestation:f.date_prestation||"",heure_prestation:f.heure_prestation||"",heure_fin_prestation:f.heure_fin_prestation||"",description:desc,nb_heures:f.nb_heures,pieces:pv,...totaux};
     // Nom du dossier = Civilité + Nom client + aperçu prestation
 const civStr=f.client_nom?f.client_nom.trim():"Client";
 const travStr=(f.travaux||"").slice(0,35)+((f.travaux||"").length>35?"...":"");
@@ -1875,7 +1886,7 @@ window.confirmDeleteDossier=async id=>{
     return;
   }
   S.dossiers=S.dossiers.filter(d=>d.id!==id);
-  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
+  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
   set({deleteConfirm:null,openDossier:null,previewDocNum:null});
 };
@@ -1896,7 +1907,7 @@ window.confirmDeleteDoc=async(dosId,docNum)=>{
     dos.documents=restants;
     await upsertDossier(dos);
   }
-  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
+  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
   set({deleteConfirm:null,previewDocNum:null});
 };
@@ -2067,7 +2078,6 @@ function renderApp(){
       <a href="rediger.html" class="sidebar-link">✉️ Rédiger</a>
       <a href="clients.html" class="sidebar-link">👥 Clients</a>
       <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
-      <a href="comptabilite.html" class="sidebar-link">🧾 Comptabilité</a>
       <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>
     </nav>
     <div class="sidebar-foot">

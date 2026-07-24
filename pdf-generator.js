@@ -50,6 +50,7 @@ function _buildPDF(doc){
   pdf.text("Tél : "+doc.entreprise.tel,m,y);y+=4;
   pdf.text("Email : "+doc.entreprise.email,m,y);y+=4;
   pdf.text("SIRET : "+doc.entreprise.siret,m,y);y+=4;
+  if(doc.entreprise?.tva_intracom){pdf.text("TVA intracom. : "+doc.entreprise.tva_intracom,m,y);y+=4;}
   if(doc.entreprise?.iban){pdf.text("IBAN : "+doc.entreprise.iban,m,y);y+=4;}
   if(doc.entreprise?.rc_pro_assureur){
     pdf.text("RC Pro : "+doc.entreprise.rc_pro_assureur+(doc.entreprise.rc_pro_police?" — Pol. "+doc.entreprise.rc_pro_police:""),m,y);
@@ -60,8 +61,14 @@ function _buildPDF(doc){
   pdf.setFontSize(10).setFont(undefined,"normal");
   pdf.text("N° "+doc.docNumber,rX,m+9,{align:"right"});
   pdf.text("Date : "+doc.date,rX,m+15,{align:"right"});
-  if(doc.validUntil)pdf.text("Valable jusqu'au : "+doc.validUntil,rX,m+21,{align:"right"});
-  let yOff=doc.validUntil?27:21;
+  let yOff=21;
+  if(doc.validUntil){pdf.text("Valable jusqu'au : "+doc.validUntil,rX,m+yOff,{align:"right"});yOff+=6;}
+  if(doc.type==="facture"&&doc.devis_source_num){
+    pdf.setFont(undefined,"italic").setTextColor(120)
+      .text("Facture issue du devis "+doc.devis_source_num,rX,m+yOff,{align:"right"});
+    pdf.setFont(undefined,"normal").setTextColor(0);
+    yOff+=6;
+  }
   if(doc.date_prestation){
     const dp=new Date(doc.date_prestation).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
     const hp=doc.heure_prestation?" à "+doc.heure_prestation+(doc.heure_fin_prestation?" → "+doc.heure_fin_prestation:""):"";
@@ -76,6 +83,8 @@ function _buildPDF(doc){
   pdf.setFont(undefined,"normal").text(doc.client.nom,m,y);y+=4;
   pdf.text(doc.client.adresse,m,y);y+=4;
   if(doc.client.tel){pdf.text("Tél : "+doc.client.tel,m,y);y+=4;}
+  if(doc.client.is_professionnel&&doc.client.siret){pdf.text("SIRET : "+doc.client.siret,m,y);y+=4;}
+  if(doc.client.is_professionnel&&doc.client.tva_intracom){pdf.text("TVA intracom. : "+doc.client.tva_intracom,m,y);y+=4;}
   y+=3;
   pdf.setFont(undefined,"bold").text("DESCRIPTION DE LA PRESTATION",m,y);y+=5;
   pdf.setFont(undefined,"normal");
@@ -157,17 +166,29 @@ function _buildPDF(doc){
   }else{
     // Délai de paiement dynamique (depuis le profil, défaut 30 jours)
     const delai = doc.entreprise.delai_paiement || "30";
-    pdf.text("Paiement à " + delai + " jours. Pas d'escompte pour paiement anticipé. Pénalités de retard : 3× le taux légal. Indemnité forfaitaire de recouvrement : 40 €.", m, y);
+    const estPro = !!doc.client.is_professionnel;
+    // Formulation légale : indemnité 40€ et taux majoré = obligation B2B (art. L441-10 C. com.).
+    // En B2C, taux légal simple, pas d'indemnité forfaitaire automatique.
+    const mentionPenalites = estPro
+      ? "Paiement à "+delai+" jours. Aucun escompte n'est accordé pour paiement anticipé. En cas de retard de paiement, une pénalité de 3 fois le taux d'intérêt légal sera appliquée, à laquelle s'ajoutera une indemnité forfaitaire pour frais de recouvrement de 40 €."
+      : "Paiement à "+delai+" jours. Aucun escompte n'est accordé pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal en vigueur seront appliquées.";
+    const penLines = pdf.splitTextToSize(mentionPenalites, cW);
+    pdf.text(penLines, m, y);
   }
 
   // Filigrane bas de page (optionnel)
   if(window.ARTIO_LOGO_WHITE){
     try{pdf.addImage("data:image/png;base64,"+window.ARTIO_LOGO_WHITE,"PNG",m,280,22,7);}catch(e){}
   }
-  // Pied de page : nom, forme juridique, SIRET (mentions légales L441-9)
+  // Pied de page : nom, forme juridique, SIRET, SIREN, TVA intracom (mentions légales L441-9)
   const fjurid = doc.entreprise.forme_juridique ? " — " + doc.entreprise.forme_juridique : "";
-  pdf.setFontSize(7).setTextColor(150)
-    .text(doc.entreprise.nom + fjurid + " — SIRET : " + doc.entreprise.siret, W/2, 287, {align:"center"});
+  const siretStr = doc.entreprise.siret || "";
+  const siren = siretStr.replace(/\s/g,"").slice(0,9);
+  const line1 = doc.entreprise.nom + fjurid + " — SIRET : " + siretStr + (siren?" — SIREN : "+siren:"");
+  pdf.setFontSize(7).setTextColor(150).text(line1, W/2, 284, {align:"center"});
+  if(doc.entreprise.tva_intracom){
+    pdf.text("TVA intracommunautaire : "+doc.entreprise.tva_intracom, W/2, 287, {align:"center"});
+  }
 
   return pdf;
 }
