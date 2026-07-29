@@ -603,7 +603,7 @@ async function _doConvert(dosId,docNum,dateFacture){
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const devis=dos.documents.find(d=>d.docNumber===docNum);if(!devis)return;
   const factNum=await getNextNum("facture",S.user);
-  const factDoc={...devis,type:"facture",docNumber:factNum,date:dateFacture,validUntil:null,accepte:false,devis_source_num:devis.docNumber};
+  const factDoc={...devis,type:"facture",docNumber:factNum,date:dateFacture,validUntil:null,accepte:false};
   dos.statut="facture";
   dos.documents=dos.documents.map(d=>d.docNumber===docNum?{...d,accepte:true}:d).concat([factDoc]);
   storeDoc(factDoc);
@@ -635,7 +635,7 @@ window.confirmDeleteDossier=async id=>{
     return;
   }
   S.dossiers=S.dossiers.filter(d=>d.id!==id);
-  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",S.user.id).order("nom",{ascending:true});
+  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
   set({deleteConfirm:null,openDossier:null,previewDocNum:null});
 };
@@ -657,12 +657,12 @@ window.confirmDeleteDoc=async(dosId,docNum)=>{
     dos.documents=restants;
     await upsertDossier(dos);
   }
-  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",S.user.id).order("nom",{ascending:true});
+  const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",S.user.id).order("nom",{ascending:true});
   if(cls)S.clients=cls;
   set({deleteConfirm:null,previewDocNum:null});
 };
 
-window.downloadPDF=function(key){const doc=getDoc(key);if(!doc){alert("Document introuvable.");return;}try{generatePDF(doc);}catch(e){alert("Erreur PDF : "+e.message);}}
+window.downloadPDF=function(key){const doc=getDoc(key);if(!doc){alert("Document introuvable.");return;}try{generatePDF({...doc,entreprise:doc.entreprise||S.entreprise});}catch(e){alert("Erreur PDF : "+e.message);}}
 
 window.downloadSignedProof=async function(docNumber){
   try{
@@ -1229,11 +1229,11 @@ async function loadUserData(userId){
   try{
     const{data:profil,error:pe}=await sb.from("profils").select("*").eq("user_id",userId).single();
     if(pe&&pe.code!=="PGRST116")console.error("Erreur profil:",pe.message);
-    if(profil){S.entreprise={nom:profil.nom||"",adresse:profil.adresse||"",tel:profil.tel||"",email:profil.email||"",siret:profil.siret||"",forme_juridique:profil.forme_juridique||"",tva_intracom:profil.tva_intracom||"",taux_horaire:profil.taux_horaire||"",assujetti_tva:profil.assujetti_tva||false,secteur:profil.secteur||"",conditions_paiement:profil.conditions_paiement||"",delai_paiement:profil.delai_paiement||"30",validite_devis:profil.validite_devis||3,rc_pro_assureur:profil.rc_pro_assureur||"",rc_pro_police:profil.rc_pro_police||"",decennale_assureur:profil.decennale_assureur||"",decennale_police:profil.decennale_police||"",certifications:profil.certifications||"",nature_operation:profil.nature_operation||"",contexte_ia:profil.contexte_ia||"",iban:profil.iban||"",onboarding_done:profil.onboarding_done||false,logo_base64:profil.logo_base64||null,couleur_pdf:profil.couleur_pdf||null,facturation_electronique_active:profil.facturation_electronique_active===true};}
+    if(profil){S.entreprise={nom:profil.nom||"",adresse:profil.adresse||"",tel:profil.tel||"",email:profil.email||"",siret:profil.siret||"",taux_horaire:profil.taux_horaire||"",assujetti_tva:profil.assujetti_tva||false,secteur:profil.secteur||"",conditions_paiement:profil.conditions_paiement||"",delai_paiement:profil.delai_paiement||"30",validite_devis:profil.validite_devis||3,rc_pro_assureur:profil.rc_pro_assureur||"",rc_pro_police:profil.rc_pro_police||"",decennale_assureur:profil.decennale_assureur||"",decennale_police:profil.decennale_police||"",certifications:profil.certifications||"",nature_operation:profil.nature_operation||"",contexte_ia:profil.contexte_ia||"",iban:profil.iban||"",onboarding_done:profil.onboarding_done||false,logo_base64:profil.logo_base64||null,couleur_pdf:profil.couleur_pdf||null,facturation_electronique_active:profil.facturation_electronique_active===true};}
     const{data:dossiers,error:de}=await sb.from("dossiers").select("*").eq("user_id",userId).order("updated_at",{ascending:false});
     if(de)console.error("Erreur dossiers:",de.message);
     if(dossiers&&dossiers.length>0){S.dossiers=dossiers.map(d=>{let docs=[];try{docs=typeof d.documents==="string"?JSON.parse(d.documents):(d.documents||[]);}catch(e){docs=[];}return{...d,documents:docs};});S.dossiers.forEach(d=>(d.documents||[]).forEach(doc=>{if(doc.docNumber)storeDoc(doc);}));}
-    const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse,siret,is_professionnel,tva_intracom").eq("user_id",userId).order("nom",{ascending:true});
+    const{data:cls}=await sb.from("clients").select("id,nom,email,tel,adresse").eq("user_id",userId).order("nom",{ascending:true});
     if(cls)S.clients=cls;
   }catch(e){console.error("loadUserData exception:",e);}
   await loadViewedSigs(userId);
