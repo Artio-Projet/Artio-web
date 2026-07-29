@@ -1788,10 +1788,27 @@ function renderFacturationHTML() {
     </div>
   `;
 
+  // Sous-titres de regroupement visuel (fusion émission / réception).
+  // N'affecte AUCUNE logique : simple enrobage HTML autour des cartes.
+  const sectionTitle = `
+    <div style="margin:0 0 4px;">
+      <div class="card-title" style="font-size:17px;">Facturation électronique</div>
+      <div class="card-sub" style="margin-top:2px;">Émission et réception de vos factures via votre plateforme partenaire FactPulse (PDP).</div>
+    </div>`;
+  const labelEmission = `
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:18px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="color:var(--teal);">↗</span> Émission — mes factures sortantes
+    </div>`;
+  const labelReception = `
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:22px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="color:var(--teal);">↙</span> Réception — factures de mes fournisseurs
+    </div>`;
+
   // Si déjà activé : pas besoin d'afficher le mandat/vérif SIRET
-  return isActive
-    ? card1 + card2 + card4 + card5
-    : card1 + card2 + card3 + card4 + card5;
+  const emissionCards = isActive
+    ? card1 + card2 + card4
+    : card1 + card2 + card3 + card4;
+  return sectionTitle + labelEmission + emissionCards + labelReception + card5;
 }
 
 function paintFacturation() {
