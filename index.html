@@ -393,6 +393,8 @@
     .f-app-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid var(--border-hi); border-radius:9px; text-decoration:none; color:var(--text); transition:border-color .2s,background .2s; background:var(--surface); }
     .f-app-badge:hover { border-color:var(--amber); background:var(--amber-dim); }
     .f-app-badge svg { flex-shrink:0; }
+    .f-app-badge--soon { opacity:.5; cursor:default; pointer-events:none; }
+    .f-app-badge--soon:hover { border-color:var(--border-hi); background:var(--surface); }
     .f-app-badge-text { display:flex; flex-direction:column; }
     .f-app-badge-text span:first-child { font-size:9px; color:var(--muted); line-height:1; }
     .f-app-badge-text span:last-child { font-size:12px; font-weight:600; line-height:1.4; }
@@ -828,6 +830,58 @@
   </div>
 </section>
 
+<!-- MOBILE APP -->
+<section id="mobile-app" class="reveal" style="padding:80px 24px;">
+  <div style="max-width:1000px;margin:0 auto;display:flex;gap:56px;align-items:center;flex-wrap:wrap;justify-content:center;">
+
+    <div style="display:flex;gap:20px;flex-shrink:0;">
+      <div style="width:184px;border-radius:30px;background:var(--surface-2);border:1px solid var(--border-hi);padding:9px;box-shadow:0 20px 50px rgba(0,0,0,.18);">
+        <div style="border-radius:22px;overflow:hidden;background:var(--bg);">
+          <img src="/01_accueil.jpg" alt="Écran d'accueil de l'application Artio" width="166" style="width:100%;display:block;" loading="lazy">
+        </div>
+      </div>
+      <div style="width:184px;border-radius:30px;background:var(--surface-2);border:1px solid var(--border-hi);padding:9px;box-shadow:0 20px 50px rgba(0,0,0,.18);margin-top:32px;">
+        <div style="border-radius:22px;overflow:hidden;background:var(--bg);">
+          <img src="/02_dictee.jpg" alt="Création d'un devis à la voix dans l'application Artio" width="166" style="width:100%;display:block;" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;max-width:420px;">
+      <div class="section-tag">Application mobile</div>
+      <div class="section-title" style="font-size:clamp(26px,3vw,38px);">Votre activité, même en déplacement</div>
+      <p class="section-sub" style="margin:0 0 28px;">L'application Artio vous suit sur le terrain : créez, signez et suivez vos documents sans ordinateur.</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:32px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <span style="flex-shrink:0;width:34px;height:34px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></span>
+          <div><div style="font-weight:600;color:var(--text);font-size:15px;">Dictez vos devis à la voix</div><div style="color:var(--muted);font-size:13px;margin-top:2px;">L'IA reconnaît client, prestation, heures et articles automatiquement.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <span style="flex-shrink:0;width:34px;height:34px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3-1 5-3 8-8 1.5-2.5 3-4 5-4a2 2 0 0 1 0 4c-2 0-3.5 1.5-5 4-3 5-5 7-8 8z"/><path d="M14 5l3 3"/></svg></span>
+          <div><div style="font-weight:600;color:var(--text);font-size:15px;">Faites signer sur place</div><div style="color:var(--muted);font-size:13px;margin-top:2px;">Signature électronique directement depuis le téléphone de votre client.</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <span style="flex-shrink:0;width:34px;height:34px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <div><div style="font-weight:600;color:var(--text);font-size:15px;">Suivez tout en temps réel</div><div style="color:var(--muted);font-size:13px;margin-top:2px;">Notifications dès qu'un devis est vu, accepté ou signé.</div></div>
+        </div>
+      </div>
+
+      <div class="f-app-badges">
+        <a href="https://play.google.com/store/apps/details?id=fr.monartio.app" target="_blank" rel="noopener" class="f-app-badge">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76a2.5 2.5 0 0 1-.93-.87V1.11A2.5 2.5 0 0 1 3.18.24l11.9 11.76-11.9 11.76zm14.27-8.43-2.84-2.81 2.84-2.81 3.21 1.83a1.75 1.75 0 0 1 0 2.96l-3.21 1.83zm-3.99-3.95L2.08.35A1.75 1.75 0 0 1 3.73.1l13.59 7.74-3.86 3.54zm0 2.34 3.86 3.54L3.73 23.9a1.75 1.75 0 0 1-1.65-.25l11.38-10.93z"/></svg>
+          <div class="f-app-badge-text"><span>Disponible sur</span><span>Google Play</span></div>
+        </a>
+        <span class="f-app-badge f-app-badge--soon" aria-disabled="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <div class="f-app-badge-text"><span>Bientôt sur</span><span>App Store</span></div>
+        </span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- PRICING -->
 <section id="pricing" class="reveal">
   <div class="section-tag">Tarifs</div>
@@ -944,14 +998,14 @@
 
         <!-- App badges -->
         <div class="f-app-badges">
-          <a href="https://apps.apple.com" target="_blank" rel="noopener" class="f-app-badge">
+          <span class="f-app-badge f-app-badge--soon" aria-disabled="true">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             <div class="f-app-badge-text">
-              <span>Disponible sur</span>
+              <span>Bientôt sur</span>
               <span>App Store</span>
             </div>
-          </a>
-          <a href="https://play.google.com" target="_blank" rel="noopener" class="f-app-badge">
+          </span>
+          <a href="https://play.google.com/store/apps/details?id=fr.monartio.app" target="_blank" rel="noopener" class="f-app-badge">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76a2.5 2.5 0 0 1-.93-.87V1.11A2.5 2.5 0 0 1 3.18.24l11.9 11.76-11.9 11.76zm14.27-8.43-2.84-2.81 2.84-2.81 3.21 1.83a1.75 1.75 0 0 1 0 2.96l-3.21 1.83zm-3.99-3.95L2.08.35A1.75 1.75 0 0 1 3.73.1l13.59 7.74-3.86 3.54zm0 2.34 3.86 3.54L3.73 23.9a1.75 1.75 0 0 1-1.65-.25l11.38-10.93z"/></svg>
             <div class="f-app-badge-text">
               <span>Disponible sur</span>
