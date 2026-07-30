@@ -540,7 +540,6 @@ body.is-authed .sidebar-overlay { display:block; }
     <a href="rediger.html" class="sidebar-link">✉️ Rediger</a>
     <a href="clients.html" class="sidebar-link">👥 Clients</a>
     <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
-    <a href="comptabilite.html" class="sidebar-link">🧾 Comptabilité</a>
     <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>  </nav>
   <div class="sidebar-foot">
     <a href="aide.html" class="sidebar-link active">❔ Aide</a>
@@ -1238,15 +1237,15 @@ const ARTICLE_CONTENT = {
       <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Activez FactPulse dans Paramètres</strong><span>Paramètres → Facturation électronique → Activer FactPulse.</span></div></div>
       <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Émettez vos factures</strong><span>Le bouton "⚡ Émettre" devient disponible sur chaque facture dans vos dossiers.</span></div></div>
 
-      <h2>⚠️ Déclaration obligatoire sur impots.gouv.fr</h2>
-      <p><strong>Chaque entreprise doit déclarer elle-même la plateforme qu'elle utilise</strong> (Artio via FactPulse) dans l'<strong>annuaire du Portail Public de Facturation (PPF)</strong> sur impots.gouv.fr. Cette démarche est <strong>obligatoire</strong> et ne peut pas être faite par Artio à votre place — elle doit être effectuée par l'entreprise pour son propre SIRET.</p>
-      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Connectez-vous à impots.gouv.fr</strong><span>Espace professionnel de votre entreprise.</span></div></div>
-      <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Accédez à l'annuaire du PPF</strong><span>Rubrique "Facturation électronique" → Annuaire.</span></div></div>
-      <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>Déclarez FactPulse comme votre plateforme</strong><span>Sélectionnez FactPulse dans la liste des plateformes agréées et validez.</span></div></div>
-      <p style="color:var(--muted);font-size:13px;">Sans cette déclaration, vos partenaires B2B ne pourront pas savoir vers quelle plateforme vous adresser leurs factures électroniques.</p>
+      <h2>Comment votre plateforme est désignée à l'annuaire</h2>
+      <p>Pour recevoir vos factures fournisseurs, votre entreprise doit être référencée dans l'<strong>annuaire du Portail Public de Facturation (PPF)</strong> avec la plateforme que vous utilisez. Bonne nouvelle : <strong>cette désignation se fait directement dans Artio</strong>, vous n'avez aucune démarche à effectuer sur impots.gouv.fr.</p>
+      <div class="article-step"><div class="article-step-num">1</div><div class="article-step-body"><strong>Ouvrez les Paramètres d'Artio</strong><span>Rubrique « Réception des factures fournisseurs ».</span></div></div>
+      <div class="article-step"><div class="article-step-num">2</div><div class="article-step-body"><strong>Connectez votre plateforme (FactPulse SuperPDP)</strong><span>En un clic, vous autorisez FactPulse à référencer votre SIRET dans l'annuaire pour recevoir vos factures. Une vérification d'identité de dirigeant peut vous être demandée.</span></div></div>
+      <div class="article-step"><div class="article-step-num">3</div><div class="article-step-body"><strong>C'est fait</strong><span>Votre SIRET est désigné à l'annuaire. Vos fournisseurs savent désormais où vous adresser leurs factures électroniques.</span></div></div>
+      <p style="color:var(--muted);font-size:13px;">La désignation d'une plateforme se fait auprès de la plateforme elle-même (ou via votre logiciel de gestion), et non par un formulaire sur le site des impôts. Artio s'en charge pour vous via FactPulse.</p>
 
-      <div class="article-warn"><strong>⚠ À faire dès que possible :</strong> La déclaration dans l'annuaire PPF doit être effectuée avant le 1er septembre 2026 pour être opérationnel à l'entrée en vigueur de l'obligation de réception.</div>
-      <div class="article-tip"><strong>💡 Besoin d'aide ?</strong> En cas de doute sur la démarche, contactez votre expert-comptable ou consultez la documentation officielle sur <a href="https://www.impots.gouv.fr/professionnel/je-passe-la-facturation-electronique" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:underline;">impots.gouv.fr</a>.</div>`
+      <div class="article-warn"><strong>⚠ À faire dès que possible :</strong> La connexion de votre plateforme doit être effectuée avant le 1er septembre 2026 pour être opérationnel à l'entrée en vigueur de l'obligation de réception.</div>
+      <div class="article-tip"><strong>💡 Rôle du site des impôts :</strong> impots.gouv.fr vous permet de vous informer sur la réforme et de consulter la liste officielle des plateformes agréées, mais la désignation de votre plateforme, elle, se fait dans Artio. Pour en savoir plus : <a href="https://www.impots.gouv.fr/professionnel/je-passe-la-facturation-electronique" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:underline;">impots.gouv.fr</a>.</div>`
   },
   'registre-achats': {
     title: '🧾 Registre des achats',
@@ -1286,7 +1285,7 @@ const ARTICLE_CONTENT = {
       <h2>Les trois démarches à effectuer</h2>
       <ul>
         <li><strong>Souscrire à une autre plateforme conforme</strong> — toute entreprise assujettie doit pouvoir recevoir des factures électroniques ; ce n'est pas optionnel.</li>
-        <li><strong>Vous référencer dans l'annuaire</strong> avec votre nouvelle plateforme, sur impots.gouv.fr.</li>
+        <li><strong>Vous référencer auprès de votre nouvelle plateforme</strong>, qui déclarera votre SIRET à l'annuaire à votre place.</li>
         <li><strong>Informer vos fournisseurs</strong> de vos nouvelles coordonnées de facturation.</li>
       </ul>
 
