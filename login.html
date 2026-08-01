@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VD9XMYB6CS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VD9XMYB6CS');
+  </script>
   <meta charset="UTF-8"/>
   <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -489,6 +497,11 @@ async function handleAuth() {
     }
 
     // L'acceptation CGV est posee par le trigger serveur, pas ici.
+
+    // Conversion GA4 : compte reellement cree (email non deja pris).
+    if (typeof gtag === 'function') {
+      gtag('event', 'sign_up', { method: 'email' });
+    }
 
     if (data.user && !data.session) {
       // Compte créé, confirmation email en attente : on vide les
