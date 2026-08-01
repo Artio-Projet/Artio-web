@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VD9XMYB6CS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VD9XMYB6CS');
+  </script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="artio-icon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artio — Gérez votre administratif par la voix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- TrustBox script -->
+  <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #080b14;
+      --surface: #0e1220;
+      --surface-2: #141829;
+      --border: rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.13);
+      --text: #e2e5f1;
+      --muted: #6b7494;
+      --amber: #f5a742;
+      --amber-dim: rgba(245,167,66,0.13);
+      --amber-glow: rgba(245,167,66,0.3);
+      --teal: #3ecfcf;
+      --teal-dim: rgba(62,207,207,0.12);
+      --noise-opacity: 0.45;
+      --r: 16px;
+      --fh: 'Space Grotesk', sans-serif;
+      --fb: 'Plus Jakarta Sans', sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:         #faf8f3;
+      --surface:    #ffffff;
+      --surface-2:  #f3efe6;
+      --surface-3:  #ece7dc;
+      --border:     rgba(20,18,12,0.08);
+      --border-hi:  rgba(20,18,12,0.16);
+      --text:       #1a1a1f;
+      --muted:      #6a6b78;
+      --amber:      #d97706;
+      --amber-dim:  rgba(217,119,6,0.10);
+      --amber-glow: rgba(217,119,6,0.22);
+      --teal:       #0d9488;
+      --teal-dim:   rgba(13,148,136,0.10);
+      --noise-opacity: 0.10;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--fb);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.45;
+    }
+
+    /* ── NAV ─────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 64px; padding: 0 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(8,11,20,0.75);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--fh); font-size: 22px; font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .nav-logo img { width: 32px; height: 32px; display: block; }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .lang-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .lang-btn { padding: 6px 12px; font-size: 12px; font-weight: 700; font-family: var(--fb); background: none; border: none; cursor: pointer; color: var(--muted); transition: all .2s; letter-spacing: 0.05em; }
+    .lang-btn.active { background: var(--amber); color: #080b14; }
+    .btn-nav {
+      padding: 9px 20px; background: var(--amber); color: #080b14;
+      border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: var(--fb); transition: opacity .2s, transform .15s;
+    }
+    .btn-nav:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-login {
+      padding: 9px 18px; background: transparent; color: var(--text);
+      border: 1px solid var(--border-hi); border-radius: 9px; font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: var(--fb); transition: border-color .2s, color .2s;
+    }
+    .btn-login:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── HERO ────────────────────────────────────── */
+    #hero {
+      position: relative; min-height: 100vh; display: flex; align-items: center;
+      overflow: hidden; padding-top: 64px;
+    }
+    .hero-blob-a {
+      position: absolute; top: -120px; right: -80px; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(245,167,66,0.11) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero-blob-b {
+      position: absolute; bottom: -100px; left: 50px; width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(62,207,207,0.09) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 1200px; margin: 0 auto; padding: 80px 48px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--amber-dim); border: 1px solid rgba(245,167,66,0.28);
+      border-radius: 100px; padding: 6px 14px; margin-bottom: 22px;
+      font-size: 13px; font-weight: 500; color: var(--amber);
+    }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--amber);
+      animation: bdot 2s ease-in-out infinite;
+    }
+    @keyframes bdot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(.75); } }
+    h1 {
+      font-family: var(--fh); font-size: clamp(38px, 4.8vw, 64px);
+      font-weight: 800; line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 20px;
+    }
+    .h1-accent { color: var(--amber); }
+    .hero-sub { font-size: 17px; color: var(--muted); max-width: 430px; margin-bottom: 36px; line-height: 1.75; }
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 14px 28px; background: var(--amber); color: #080b14;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: var(--fb);
+      box-shadow: 0 0 36px var(--amber-glow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 48px rgba(245,167,66,.42); }
+    .hero-legal {
+      display: inline-flex; align-items: flex-start; gap: 12px;
+      margin-top: 20px; padding: 12px 14px; background: rgba(62,207,207,.1); border: 1px solid rgba(62,207,207,.22);
+      border-radius: 100px; font-size: 12px; color: rgba(62,207,207,.9);
+    }
+    .hero-legal svg { color: var(--teal); flex-shrink: 0; margin-top: 1px; }
+      border: 1px solid var(--border-hi); border-radius: 12px; font-size: 15px; font-weight: 500;
+      cursor: pointer; font-family: var(--fb); transition: border-color .2s, background .2s;
+    }
+    .btn-ghost:hover { border-color: var(--amber); background: var(--amber-dim); }
+
+    /* hero variant A — voice card */
+    .hero-visual { display: flex; align-items: center; justify-content: center; }
+    .voice-card {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 24px; padding: 36px; width: 100%; max-width: 400px; position: relative;
+    }
+    .voice-card::before {
+      content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    }
+    .mic-area { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-bottom: 24px; }
+    .mic-btn {
+      width: 68px; height: 68px; border-radius: 50%; background: var(--amber);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 40px var(--amber-glow); animation: mpulse 3s ease-in-out infinite;
+    }
+    @keyframes mpulse { 0%,100% { box-shadow:0 0 30px var(--amber-glow); } 50% { box-shadow:0 0 64px rgba(245,167,66,.55); } }
+    .waveform { display: flex; align-items: center; gap: 3px; height: 32px; }
+    .wbar {
+      width: 3px; border-radius: 3px; background: var(--amber);
+      animation: wv var(--wd, 1s) ease-in-out infinite; animation-delay: var(--wdl, 0s);
+    }
+    @keyframes wv { 0%,100% { height:4px; opacity:.3; } 50% { height:var(--wh,18px); opacity:1; } }
+    .voice-caption { font-size: 13px; color: var(--muted); font-style: italic; text-align: center; line-height: 1.6; }
+    .voice-name { color: var(--teal); transition: opacity .35s; }
+    .activity-text { color: var(--amber); transition: opacity .35s; }
+    .arrow-bounce { text-align: center; color: var(--muted); font-size: 18px; margin: 12px 0; animation: ab 2s ease-in-out infinite; }
+    @keyframes ab { 0%,100% { transform:translateY(0); } 50% { transform:translateY(5px); } }
+    .doc-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; font-size: 13px;
+    }
+    .doc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .doc-num { font-family: var(--fh); font-weight: 700; font-size: 14px; }
+    .doc-chip {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+      background: rgba(62,207,207,.14); color: var(--teal);
+    }
+    .doc-lines { display: flex; flex-direction: column; gap: 7px; }
+    .dline { height: 8px; border-radius: 4px; background: rgba(255,255,255,.06); }
+    .dline.m { width: 78%; } .dline.s { width: 54%; }
+    .dline.hl { background: rgba(245,167,66,.18); width: 42%; }
+
+    /* hero variant B — minimal stat */
+    .hero-b-wrap { text-align: center; padding: 20px; width: 100%; }
+    .hero-b-num {
+      font-family: var(--fh); font-size: 88px; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, var(--amber), var(--teal)); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-b-label { font-size: 16px; color: var(--muted); margin-top: 8px; margin-bottom: 28px; }
+    .hero-b-flow { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .flow-pill {
+      padding: 10px 24px; border-radius: 100px; font-size: 13px;
+      background: var(--surface-2); border: 1px solid var(--border);
+    }
+    .flow-arrow { color: var(--border-hi); font-size: 20px; }
+
+    /* hero variant C — dashboard */
+    .dash-card {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 20px; padding: 24px; width: 100%; max-width: 400px;
+    }
+    .dash-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .dash-kpi { background: var(--surface-2); border-radius: 12px; padding: 14px; }
+    .dash-kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .dash-kpi-val { font-family: var(--fh); font-size: 22px; font-weight: 800; }
+    .dash-activity { background: var(--surface-2); border-radius: 12px; padding: 14px; }
+    .dash-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .dash-row:last-child { border: none; }
+    .dash-row span:last-child { font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .status-signed { background: rgba(62,207,207,.14); color: var(--teal); }
+    .status-wait { background: rgba(245,167,66,.14); color: var(--amber); }
+    .status-sent { background: rgba(255,255,255,.07); color: var(--muted); }
+
+    /* ── FEATURES ────────────────────────────────── */
+    #features { padding: 120px 48px; max-width: 1200px; margin: 0 auto; }
+    .section-tag { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+    .section-title { font-family: var(--fh); font-size: clamp(30px, 3.6vw, 46px); font-weight: 700; line-height: 1.18; letter-spacing: -0.02em; margin-bottom: 14px; }
+    .section-sub { font-size: 17px; color: var(--muted); max-width: 520px; line-height: 1.75; margin-bottom: 56px; }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fc {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 28px 30px; position: relative; overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+    .fc:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .fc.star {
+      grid-column: span 2;
+      border-color: rgba(245,167,66,.28);
+      background: linear-gradient(145deg, rgba(245,167,66,.09) 0%, var(--surface) 55%);
+      padding: 36px 40px;
+    }
+    .fc.star::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 5%, var(--amber) 50%, transparent 95%);
+    }
+    .star-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+    .star-right-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .scenario-list { display: flex; flex-direction: column; gap: 10px; }
+    .scenario-pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; transition: border-color .2s; }
+    .scenario-pill:hover { border-color: rgba(245,167,66,.25); }
+    .sp-emoji { font-size: 20px; flex-shrink: 0; line-height: 1.3; }
+    .sp-body { flex: 1; }
+    .sp-ctx { font-size: 12px; font-weight: 700; color: var(--amber); margin-bottom: 3px; }
+    .sp-text { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .fi {
+      width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 18px;
+    }
+    .fi.a { background: var(--amber-dim); }
+    .fi.t { background: var(--teal-dim); }
+    .ft { font-family: var(--fh); font-size: 17px; font-weight: 700; margin-bottom: 9px; }
+    .fd { font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .feat-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 22px; background: var(--surface-2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--amber); }
+    .feat-chip-sync { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; background: var(--teal-dim); border: 1px solid rgba(62,207,207,.25); border-radius: 100px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--teal); }
+    .feat-chip-sync svg { width: 11px; height: 11px; }
+
+    /* ── DEMO ────────────────────────────────────── */
+    #demo { padding: 80px 48px 120px; }
+    .demo-wrap { max-width: 880px; margin: 0 auto; text-align: center; }
+    .demo-player {
+      position: relative; width: 100%; aspect-ratio: 16/9;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden; margin-top: 44px; cursor: pointer;
+    }
+    .demo-player::before {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 24px, rgba(255,255,255,.012) 24px, rgba(255,255,255,.012) 48px);
+    }
+    .demo-player::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 40%, rgba(245,167,66,.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 70%, rgba(62,207,207,.05) 0%, transparent 55%);
+    }
+    .play-ring {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2;
+    }
+    .play-circle {
+      width: 68px; height: 68px; border-radius: 50%; background: var(--amber);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 60px var(--amber-glow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .demo-player:hover .play-circle { transform: scale(1.1); box-shadow: 0 0 80px rgba(245,167,66,.5); }
+    .demo-foot {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 13px; color: var(--muted); z-index: 2; white-space: nowrap;
+    }
+
+    /* ── TESTIMONIALS ────────────────────────────── */
+    #testimonials {
+      padding: 100px 48px 120px;
+      background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .testi-inner { max-width: 1200px; margin: 0 auto; }
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+    .tc {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 28px;
+      transition: border-color .25s;
+    }
+    .tc:hover { border-color: var(--border-hi); }
+    .t-stars { color: var(--amber); font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; }
+    .t-quote { font-size: 14px; color: var(--text); line-height: 1.75; margin-bottom: 20px; font-style: italic; }
+    .t-author { display: flex; align-items: center; gap: 12px; }
+    .t-av {
+      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; font-weight: 800; font-family: var(--fh); flex-shrink: 0;
+    }
+    .t-name { font-size: 13px; font-weight: 600; }
+    .t-role { font-size: 12px; color: var(--muted); }
+
+    /* ── PRICING ─────────────────────────────────── */
+    #pricing { padding: 120px 48px; max-width: 1200px; margin: 0 auto; text-align: center; }
+    .pricing-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 780px; margin: 48px auto 0;
+    }
+    .pc {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 36px; text-align: left; position: relative;
+    }
+    .pc.pop {
+      border-color: rgba(245,167,66,.4);
+      background: linear-gradient(145deg, rgba(245,167,66,.07) 0%, var(--surface) 70%);
+    }
+    .pop-label {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: var(--amber); color: #080b14;
+      font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 100px; white-space: nowrap;
+      letter-spacing: .04em;
+    }
+    .p-name { font-family: var(--fh); font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+    .p-desc { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+    .p-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
+    .p-amount { font-family: var(--fh); font-size: 36px; font-weight: 800; }
+    .p-suf { font-size: 13px; color: var(--muted); }
+    .p-monthly { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .p-monthly strong { color: var(--text); }
+    .p-div { height: 1px; background: var(--border); margin: 22px 0; }
+    .p-feats { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .p-feats li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+    .ck { color: var(--teal); font-size: 15px; }
+    .btn-plan {
+      width: 100%; margin-top: 24px; padding: 13px;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: var(--fb); transition: all .2s; border: none;
+    }
+    .btn-plan.prim { background: var(--amber); color: #080b14; }
+    .btn-plan.prim:hover { box-shadow: 0 6px 30px var(--amber-glow); transform: translateY(-1px); }
+    .btn-plan.out { background: transparent; color: var(--text); border: 1px solid var(--border-hi); }
+    .btn-plan.out:hover { border-color: var(--amber); background: var(--amber-dim); }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer { border-top:1px solid var(--border); padding:56px 48px 32px; color:var(--muted); font-size:13px; }
+    .footer-inner { max-width:900px; margin:0 auto; }
+    .footer-top { display:grid; grid-template-columns:1fr 1fr 1fr; gap:40px; margin-bottom:40px; }
+    .f-brand { display:flex; flex-direction:column; gap:14px; }
+    .f-logo { display:inline-flex; align-items:center; gap:8px; font-family:var(--fh); font-weight:800; font-size:18px; color:var(--text); }
+    .f-logo img { width:26px; height:26px; display:block; }
+    .f-tagline { font-size:12.5px; line-height:1.6; color:var(--muted); }
+    .f-ratings { display:flex; flex-direction:column; gap:8px; }
+    .f-rating-item a { display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); transition:color .2s; }
+    .f-rating-item a:hover { color:var(--text); }
+    .f-stars { color:#f5a742; font-size:13px; letter-spacing:1px; }
+    .f-score { font-size:12px; font-weight:600; color:var(--text); }
+    .f-rating-count { font-size:11px; color:var(--muted); }
+    .f-app-badges { display:flex; gap:8px; flex-wrap:wrap; }
+    .f-app-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid var(--border-hi); border-radius:9px; text-decoration:none; color:var(--text); transition:border-color .2s,background .2s; background:var(--surface); }
+    .f-app-badge:hover { border-color:var(--amber); background:var(--amber-dim); }
+    .f-app-badge svg { flex-shrink:0; }
+    .f-app-badge-text { display:flex; flex-direction:column; }
+    .f-app-badge-text span:first-child { font-size:9px; color:var(--muted); line-height:1; }
+    .f-app-badge-text span:last-child { font-size:12px; font-weight:600; line-height:1.4; }
+    .f-factpulse-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border:1px solid var(--border); border-radius:8px; font-size:11px; font-weight:600; color:var(--muted); background:var(--surface); width:fit-content; }
+    .f-factpulse-badge svg { color:var(--teal); }
+    .f-col h4 { font-family:var(--fh); font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text); margin-bottom:12px; }
+    .f-col ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .f-col ul li a { color:var(--muted); text-decoration:none; transition:color .2s; font-size:13px; }
+    .f-col ul li a:hover { color:var(--text); }
+    .footer-bottom { border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+    .footer-bottom-left { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .footer-legal-links { display:flex; gap:14px; }
+    .footer-legal-links a { color:var(--muted); text-decoration:none; font-size:12px; transition:color .2s; }
+    .footer-legal-links a:hover { color:var(--text); }
+    .footer-copy { font-size:12px; }
+    .f-socials { display:flex; gap:8px; }
+    .f-social { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted); text-decoration:none; transition:border-color .2s,color .2s,background .2s; }
+    .f-social:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-dim); }
+    @media (max-width:700px) {
+      .footer-top { grid-template-columns:1fr; }
+      .footer-bottom { flex-direction:column; text-align:center; }
+      .footer-bottom-left { flex-direction:column; gap:8px; }
+    }
+
+    /* ── SCROLL REVEAL ───────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ── TWEAKS ──────────────────────────────────── */
+    #tweaks-panel {
+      position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+      background: var(--surface-2); border: 1px solid var(--border-hi);
+      border-radius: 18px; padding: 20px 22px; width: 250px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.55); display: none;
+    }
+    #tweaks-panel h3 { font-family: var(--fh); font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+    .tw-group { margin-bottom: 14px; }
+    .tw-lbl { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+    .tw-opts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tw-opt {
+      padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500;
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: pointer; color: var(--muted); transition: all .2s; font-family: var(--fb);
+    }
+    .tw-opt.on { background: var(--amber); color: #080b14; border-color: var(--amber); }
+    .tw-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all .2s; }
+    .tw-swatch.on { border-color: white; transform: scale(1.15); }
+
+    @media (max-width: 860px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero-content { grid-template-columns: 1fr; gap: 40px; padding: 60px 20px; }
+      #features { padding: 80px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .fc.star { grid-column: span 1; }
+      .star-inner { grid-template-columns: 1fr; gap: 28px; }
+      #demo, #testimonials, #pricing { padding: 80px 20px; }
+      .testi-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+    }
+    }
+    @media (max-width: 900px) {
+      #time-savings { padding: 80px 20px; }
+      .ts-gesture-grid { grid-template-columns: 1fr; gap: 20px; }
+      .ts-vs { display: none; }
+      .ts-scenes-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 540px) {
+      .ts-scenes-grid { grid-template-columns: 1fr; }
+    }
+    /* ── TIME SAVINGS ─────────────────────────────── */
+    #time-savings { padding: 120px 48px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .ts-inner { max-width: 1100px; margin: 0 auto; }
+    .ts-header { text-align: center; margin-bottom: 64px; }
+    .ts-gesture-block { margin-bottom: 64px; }
+    .ts-gesture-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; }
+    .ts-gesture-panel { border-radius: 20px; padding: 36px 32px; }
+    .ts-gesture-panel.before { background: var(--bg); border: 1px solid rgba(248,113,113,.2); }
+    .ts-gesture-panel.after { background: linear-gradient(145deg,rgba(245,167,66,.09) 0%,var(--bg) 65%); border: 1px solid rgba(245,167,66,.3); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; }
+    .ts-gesture-panel.after::before { content:''; position:absolute; top:0; left:20%; right:20%; height:1px; background:linear-gradient(90deg,transparent,var(--amber),transparent); }
+    .ts-panel-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 24px; }
+    .ts-panel-label.before { color: #f87171; }
+    .ts-panel-label.after  { color: var(--amber); }
+    .ts-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted); }
+    .ts-step:last-child { border: none; }
+    .ts-step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(248,113,113,.12); color: #f87171; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ts-vs { display: flex; align-items: center; justify-content: center; padding: 0 24px; font-size: 22px; color: var(--muted); }
+    .ts-punchline { font-family: var(--fh); font-size: 56px; font-weight: 800; color: var(--amber); letter-spacing: -0.025em; line-height: 1; margin-bottom: 16px; }
+    .ts-punchline-sub { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 240px; }
+    .ts-punchline-sub strong { color: var(--text); }
+    .ts-scenes-title { text-align: center; font-family: var(--fh); font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 28px; }
+    .ts-scenes-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .ts-scene { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; transition: border-color .25s, transform .25s; }
+    .ts-scene:hover { border-color: rgba(245,167,66,.25); transform: translateY(-2px); }
+    .ts-scene-emoji { font-size: 28px; margin-bottom: 14px; display: block; }
+    .ts-scene-title { font-family: var(--fh); font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .ts-scene-text { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    @media(max-width:900px) {
+      #time-savings { padding: 80px 20px; }
+      .ts-arrow-col { display: none; }
+      .ts-bottom { grid-template-columns: 1fr; }
+    }
+  
+    /* ── THEME TOGGLE ─────────────────────────────── */
+    .theme-toggle {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+      cursor: pointer; color: var(--text); transition: all .2s; flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--amber); color: var(--amber); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: block; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: block; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
+    /* ── LIGHT MODE OVERRIDES ─────────────────────── */
+    [data-theme="light"] nav {
+      background: rgba(250,248,243,0.92);
+      border-bottom-color: rgba(20,18,12,0.10);
+    }
+    [data-theme="light"] body::after { opacity: 0.10; }
+  </style>
+
+  <!-- Supabase auth token handler (email change, recovery) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (async () => {
+    const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+
+    // Lire les params dans le hash (#) et la query (?)
+    const hash  = new URLSearchParams(window.location.hash.slice(1));
+    const query = new URLSearchParams(window.location.search);
+    const type  = hash.get("type") || query.get("type");
+    const code  = query.get("code");
+
+    if (!type && !code) return; // page normale, rien à faire
+
+    const { createClient } = supabase;
+    const sb = createClient(SB_URL, SB_KEY);
+
+    try {
+      if (code) {
+        // Flow PKCE (Supabase récent)
+        await sb.auth.exchangeCodeForSession(code);
+      }
+      // Pour le hash flow, Supabase le détecte automatiquement à l'init
+
+      if (type === "email_change") {
+        // Attendre que la session soit établie
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          // Rediriger vers settings avec message de succès
+          window.location.href = "settings.html?email_updated=1";
+        } else {
+          window.location.href = "login.html";
+        }
+      } else if (type === "recovery") {
+        // Mot de passe — rediriger vers settings
+        window.location.href = "settings.html";
+      } else {
+        // Autre type (signup confirmation etc.)
+        window.location.href = "home.html";
+      }
+    } catch(e) {
+      console.error("Auth handler:", e);
+      window.location.href = "login.html";
+    }
+  })();
+  </script>
+
+<script>
+  /* ── THEME INIT ── */
+  (function(){
+    let t='light';
+    try{t=localStorage.getItem('artio-theme')||'light';}catch(e){}
+    document.documentElement.setAttribute('data-theme',t);
+  })();
+</script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="artio-icon.png" alt="">
+    <span>Artio</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a></li>
+    <li><a href="#testimonials" data-fr="Avis clients" data-en="Reviews">Avis clients</a></li>
+    <li><a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a></li>
+    <li><a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème" title="Changer de thème">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <button class="btn-login" onclick="window.location='/login'" data-fr="Se connecter" data-en="Log in">Se connecter</button>
+    <button class="btn-nav" onclick="window.location='/login'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-blob-a"></div>
+  <div class="hero-blob-b"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span data-fr="Nouvelle génération d'administratif intelligent" data-en="Next-gen intelligent admin">Nouvelle génération d'administratif intelligent</span>
+      </div>
+      <h1>
+        <span data-fr="Dictez." data-en="Speak.">Dictez.</span><br>
+        <span class="h1-accent" data-fr="Artio s'occupe" data-en="Artio handles">Artio s'occupe</span><br>
+        <span data-fr="du reste." data-en="the rest.">du reste.</span>
+      </h1>
+      <p class="hero-sub" data-fr="Dictez, Artio génère votre devis ou facture en 30 secondes. Signez en ligne, suivez vos paiements, gérez vos clients. Tout ça, depuis un seul endroit." data-en="Quotes, invoices, follow-ups — generated by your voice in 30 seconds. So you can focus on your craft.">
+        Devis, factures, relances — générés par votre voix en 30 secondes. Pour que vous puissiez vous concentrer sur votre vrai métier.
+      </p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="window.location='/login'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
+
+      </div>
+      <div class="hero-legal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div>
+          <div style="font-weight: 700; font-size: 13px; margin-bottom: 3px; color: var(--text);" data-fr="Solution compatible DGFIP 2026" data-en="Compatible solution DGFIP 2026">Solution compatible DGFIP 2026</div>
+          <div style="font-size: 12px; color: var(--muted);" data-fr="Conforme à la réforme de facturation électronique obligatoire" data-en="Compliant with mandatory e-invoicing reform">Conforme à la réforme de facturation électronique obligatoire</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant A: voice card -->
+    <div class="hero-visual" id="hv-a">
+      <div class="voice-card">
+        <div class="mic-area">
+          <div class="mic-btn">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#080b14">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V22H8v2h8v-2h-3v-1.06A9 9 0 0 0 21 12v-2h-2z"/>
+            </svg>
+          </div>
+          <div class="waveform" id="waveform"></div>
+          <p class="voice-caption">
+            <span data-fr='"Créer un devis pour' data-en='"Create a quote for'>"Créer un devis pour</span>
+            <span class="voice-name" id="vname">M. Dupont</span>
+            <span id="vactivity" class="activity-text" data-fr=', Un shoot photo…"' data-en=', A photo shoot…"'>, Un shoot photo…"</span>
+          </p>
+        </div>
+        <div class="arrow-bounce">↓</div>
+        <div class="doc-card">
+          <div class="doc-head">
+            <span class="doc-num" data-fr="Devis #2024-089" data-en="Quote #2024-089">Devis #2024-089</span>
+            <span class="doc-chip" data-fr="Généré par IA" data-en="AI Generated">Généré par IA</span>
+          </div>
+          <div class="doc-lines">
+            <div class="dline m"></div>
+            <div class="dline s"></div>
+            <div class="dline m"></div>
+            <div class="dline hl"></div>
+            <div class="dline s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant B: minimal stat -->
+    <div class="hero-visual" id="hv-b" style="display:none">
+      <div class="hero-b-wrap">
+        <div class="hero-b-num">30"</div>
+        <div class="hero-b-label" data-fr="pour créer un devis complet" data-en="to generate a complete quote">pour créer un devis complet</div>
+        <div class="hero-b-flow">
+          <div class="flow-pill">🎙️ <span data-fr="Parlez à Artio" data-en="Speak to Artio">Parlez à Artio</span></div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-pill" style="border-color:rgba(62,207,207,.25);color:var(--teal)">📄 <span data-fr="Devis prêt à signer" data-en="Quote ready to sign">Devis prêt à signer</span></div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-pill" style="border-color:rgba(245,167,66,.25);color:var(--amber)">✍️ <span data-fr="Signature en 1 clic" data-en="Signed in 1 click">Signature en 1 clic</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant C: dashboard -->
+    <div class="hero-visual" id="hv-c" style="display:none">
+      <div class="dash-card">
+        <div class="dash-label" data-fr="Tableau de bord" data-en="Dashboard">Tableau de bord</div>
+        <div class="dash-grid">
+          <div class="dash-kpi">
+            <div class="dash-kpi-label" data-fr="Revenus ce mois" data-en="Revenue this month">Revenus ce mois</div>
+            <div class="dash-kpi-val" style="color:var(--amber)">€4 280</div>
+          </div>
+          <div class="dash-kpi">
+            <div class="dash-kpi-label" data-fr="Devis envoyés" data-en="Quotes sent">Devis envoyés</div>
+            <div class="dash-kpi-val" style="color:var(--teal)">12</div>
+          </div>
+          <div class="dash-kpi">
+            <div class="dash-kpi-label" data-fr="Taux de conversion" data-en="Conversion rate">Taux de conversion</div>
+            <div class="dash-kpi-val" style="color:var(--text)">75%</div>
+          </div>
+          <div class="dash-kpi">
+            <div class="dash-kpi-label" data-fr="Clients actifs" data-en="Active clients">Clients actifs</div>
+            <div class="dash-kpi-val" style="color:var(--text)">34</div>
+          </div>
+        </div>
+        <div class="dash-activity">
+          <div class="dash-label" data-fr="Activité récente" data-en="Recent activity">Activité récente</div>
+          <div class="dash-row"><span>Devis #089 — M. Dupont</span><span class="status-signed" data-fr="✓ Signé" data-en="✓ Signed">✓ Signé</span></div>
+          <div class="dash-row"><span>Facture #034 — Atelier Martin</span><span class="status-wait" data-fr="⏳ En attente" data-en="⏳ Pending">⏳ En attente</span></div>
+          <div class="dash-row"><span>Devis #088 — S. Kowalski</span><span class="status-sent" data-fr="📤 Envoyé" data-en="📤 Sent">📤 Envoyé</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<!-- FEATURES -->
+<section id="features" class="reveal">
+  <div class="section-tag">Fonctionnalités</div>
+  <div class="section-title">Tout ce dont vous avez besoin.<br>Rien de superflu.</div>
+  <p class="section-sub">Artio centralise toutes vos tâches administratives en un seul endroit, piloté par votre voix.</p>
+  <div class="features-grid">
+
+    <!-- STAR : pleine largeur -->
+    <div class="fc star">
+      <div class="star-inner">
+        <div>
+          <div class="fi a">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+          </div>
+          <div class="ft">Devis &amp; factures par la voix</div>
+          <p class="fd" style="max-width:420px">
+            <strong style="color:var(--text)">Le cœur d'Artio.</strong> Dictez votre prestation en français naturel — l'IA structure, met en page, numérote et génère le PDF en moins de 30 secondes. Catalogue de prix auto-appris, conversion devis → facture en un clic.
+          </p>
+          <div class="feat-badge">
+            <span>⚡</span>
+            <span>10× plus rapide qu'une saisie manuelle</span>
+          </div>
+        </div>
+        <div>
+          <div class="star-right-title">En pratique</div>
+          <div class="scenario-list">
+            <div class="scenario-pill">
+              <span class="sp-emoji">🚗</span>
+              <div class="sp-body">
+                <div class="sp-ctx">Sur la route, après un RDV</div>
+                <div class="sp-text">Avant de démarrer, vous dictez le devis. Il part en trente secondes.</div>
+              </div>
+            </div>
+            <div class="scenario-pill">
+              <span class="sp-emoji">📞</span>
+              <div class="sp-body">
+                <div class="sp-ctx">Au téléphone avec un client</div>
+                <div class="sp-text">Le tarif se fixe ensemble. La facture se crée pendant la conversation.</div>
+              </div>
+            </div>
+            <div class="scenario-pill">
+              <span class="sp-emoji">⚡</span>
+              <div class="sp-body">
+                <div class="sp-ctx">En pleine journée, entre deux clients</div>
+                <div class="sp-text">Pas besoin de vous arrêter ni d'ouvrir un ordinateur. Une phrase suffit pour que tout soit réglé.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ligne 2 -->
+    <div class="fc">
+      <div class="fi t">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        </svg>
+      </div>
+      <div class="ft">Signature électronique eIDAS</div>
+      <p class="fd">Votre client signe depuis son téléphone — vérification OTP, empreinte SHA-256, audit trail complet. Preuve signée téléchargeable, conforme au règlement eIDAS n°910/2014. Lien valable 72h.</p>
+    </div>
+    <div class="fc">
+      <div class="fi a">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="13" y2="17"/>
+        </svg>
+      </div>
+      <div class="ft">Facturation électronique 2026</div>
+      <p class="fd">Artio est <strong style="color:var(--text)">Solution Compatible DGFiP 2026</strong> via FactPulse. Vos factures B2B transitent automatiquement par le réseau PDP — conformité garantie dès maintenant, sans changer de workflow.</p>
+    </div>
+
+    <!-- Ligne 3 -->
+    <div class="fc">
+      <div class="fi t">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="ft">Calendrier Google synchronisé</div>
+      <p class="fd">Vos rendez-vous synchronisés en temps réel avec Google Calendar, dans les deux sens. Vue semaine/mois, création de RDV par la voix, notification push à chaque confirmation.</p>
+      <div class="feat-chip-sync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Sync bidirectionnelle</span>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fi a">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </div>
+      <div class="ft">Messagerie Gmail synchronisée</div>
+      <p class="fd">Votre boîte Gmail directement dans Artio. Lisez, répondez et envoyez vos emails clients sans changer d'outil — l'IA rédige vos réponses si besoin.</p>
+      <div class="feat-chip-sync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Sync bidirectionnelle</span>
+      </div>
+    </div>
+
+    <!-- Ligne 4 -->
+    <div class="fc">
+      <div class="fi t">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6.29 6.29l.91-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <div class="ft">Relances &amp; rappels IA</div>
+      <p class="fd">Artio relance automatiquement les devis non signés (J+2 et J+5 après ouverture du lien) et les factures impayées (J+7, J+15, J+30). Emails générés par IA, personnalisés au contexte du dossier.</p>
+    </div>
+    <div class="fc">
+      <div class="fi a">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </div>
+      <div class="ft">Dashboard &amp; annuaire clients</div>
+      <p class="fd">KPIs financiers en temps réel — CA mensuel, factures en attente, taux de conversion. Annuaire clients avec historique complet et lookup SIRET automatique via Pappers.</p>
+    </div>
+
+  </div>
+</section>
+
+
+
+<section id="time-savings">
+  <div class="ts-inner reveal">
+    <div class="ts-header">
+      <div class="section-tag" data-fr="Gain de temps" data-en="Time saved">Gain de temps</div>
+      <div class="section-title" data-fr="Chaque minute compte.<br>Artio vous en rend des centaines." data-en="Every minute counts.<br>Artio gives you hundreds back.">Chaque minute compte.<br>Artio vous en rend des centaines.</div>
+      <p class="section-sub" style="margin:0 auto" data-fr="Le temps passé sur l'administratif, c'est du temps en moins sur votre métier. Voici pourquoi Artio change vraiment la donne." data-en="Time spent on admin is time taken away from your craft. Here's why Artio really makes a difference.">Le temps passé sur l'administratif, c'est du temps en moins sur votre métier. Voici pourquoi Artio change vraiment la donne.</p>
+    </div>
+
+    <!-- Bloc 1 : geste -->
+    <div class="ts-gesture-block">
+      <div class="ts-gesture-grid">
+        <div class="ts-gesture-panel before">
+          <div class="ts-panel-label before" data-fr="❌ Créer un devis, avant" data-en="❌ Creating a quote, before">❌ Créer un devis, avant</div>
+          <div class="ts-step"><span class="ts-step-num">1</span><span data-fr="Ouvrir votre logiciel ou tableur" data-en="Open your software or spreadsheet">Ouvrir votre logiciel ou tableur</span></div>
+          <div class="ts-step"><span class="ts-step-num">2</span><span data-fr="Retrouver les informations du client" data-en="Find the client's information">Retrouver les informations du client</span></div>
+          <div class="ts-step"><span class="ts-step-num">3</span><span data-fr="Saisir les prestations ligne par ligne" data-en="Enter services line by line">Saisir les prestations ligne par ligne</span></div>
+          <div class="ts-step"><span class="ts-step-num">4</span><span data-fr="Vérifier les totaux et corriger la mise en page" data-en="Check totals and fix formatting">Vérifier les totaux et corriger la mise en page</span></div>
+          <div class="ts-step"><span class="ts-step-num">5</span><span data-fr="Exporter le document en PDF" data-en="Export the document to PDF">Exporter le document en PDF</span></div>
+          <div class="ts-step"><span class="ts-step-num">6</span><span data-fr="Envoyer par email, archiver" data-en="Send by email, archive">Envoyer par email, archiver</span></div>
+        </div>
+        <div class="ts-vs">→</div>
+        <div class="ts-gesture-panel after">
+          <div class="ts-panel-label after" data-fr="✓ Avec Artio" data-en="✓ With Artio">✓ Avec Artio</div>
+          <div class="ts-punchline" data-fr="Dites-le." data-en="Say it.">Dites-le.</div>
+          <p class="ts-punchline-sub">
+            <span data-fr="Une phrase au téléphone." data-en="One sentence on the phone.">Une phrase au téléphone.</span><br>
+            <strong data-fr="Devis rédigé, mis en page, envoyé." data-en="Quote written, formatted, sent.">Devis rédigé, mis en page, envoyé.</strong><br>
+            <span data-fr="En moins de 30 secondes." data-en="In under 30 seconds.">En moins de 30 secondes.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloc 2 : scènes -->
+    <div class="ts-scenes-title" data-fr="Artio s'adapte à votre réalité" data-en="Artio adapts to your reality">Artio s'adapte à votre réalité</div>
+    <div class="ts-scenes-grid">
+      <div class="ts-scene">
+        <span class="ts-scene-emoji">🚗</span>
+        <div class="ts-scene-title" data-fr="Dans votre voiture, après un RDV" data-en="In your car, after a meeting">Dans votre voiture, après un RDV</div>
+        <p class="ts-scene-text" data-fr="Avant de démarrer le moteur, vous dictez le devis. Il part en trente secondes. Vous n'y pensez plus." data-en="Before starting the engine, you dictate the quote. It's sent in thirty seconds. Done.">Avant de démarrer le moteur, vous dictez le devis. Il part en trente secondes. Vous n'y pensez plus.</p>
+      </div>
+      <div class="ts-scene">
+        <span class="ts-scene-emoji">📞</span>
+        <div class="ts-scene-title" data-fr="En ligne avec un client" data-en="On the phone with a client">En ligne avec un client</div>
+        <p class="ts-scene-text" data-fr="Vous fixez le tarif ensemble. La facture se crée pendant la conversation. Votre client la reçoit avant de raccrocher." data-en="You agree on the price together. The invoice is created during the call. Your client receives it before hanging up.">Vous fixez le tarif ensemble. La facture se crée pendant la conversation. Votre client la reçoit avant de raccrocher.</p>
+      </div>
+      <div class="ts-scene">
+        <span class="ts-scene-emoji">⚡</span>
+        <div class="ts-scene-title" data-fr="Entre deux rendez-vous, en cours de journée" data-en="Between appointments, mid-day">Entre deux rendez-vous, en cours de journée</div>
+        <p class="ts-scene-text" data-fr="Pas de pause administrative. Une phrase au téléphone, Artio s'occupe du reste. Vous pouvez enchaîner." data-en="No admin break. One sentence on the phone, Artio handles the rest. You can move on.">Pas de pause administrative. Une phrase au téléphone, Artio s'occupe du reste. Vous pouvez enchaîner.</p>
+      </div>
+      <div class="ts-scene">
+        <span class="ts-scene-emoji">🌙</span>
+        <div class="ts-scene-title" data-fr="En fin de journée, fatigué" data-en="At the end of the day, tired">En fin de journée, fatigué</div>
+        <p class="ts-scene-text" data-fr="La paperasse ne devrait plus vous coûter d'énergie en soirée. Parlez, c'est géré. La journée peut vraiment se terminer." data-en="Paperwork shouldn't cost you energy in the evening. Speak, it's handled. The day can truly end.">La paperasse ne devrait plus vous coûter d'énergie en soirée. Parlez, c'est géré. La journée peut vraiment se terminer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-inner reveal">
+    <div class="section-tag" data-fr="Témoignages" data-en="Reviews">Témoignages</div>
+    <div class="section-title" data-fr="Ce que disent nos clients" data-en="What our clients say">Ce que disent nos clients</div>
+    <div class="testi-grid">
+      <div class="tc">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote" data-fr='"Avant Artio, je perdais 3h par semaine sur les devis. Maintenant c&apos;est 10 minutes. Je le recommande à tous les indépendants sans hésitation."' data-en='"Before Artio, I was losing 3 hours a week on quotes. Now it&apos;s 10 minutes. I recommend it to every independent without hesitation."'>"Avant Artio, je perdais 3h par semaine sur les devis. Maintenant c'est 10 minutes. Je le recommande à tous les indépendants sans hésitation."</p>
+        <div class="t-author">
+          <div class="t-av" style="background:var(--amber-dim);color:var(--amber)">T</div>
+          <div>
+            <div class="t-name">Thomas B.</div>
+            <div class="t-role" data-fr="Plombier indépendant · Lyon" data-en="Independent plumber · Lyon">Plombier indépendant · Lyon</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote" data-fr='"La signature électronique a changé ma façon de travailler. Mes clients signent depuis leur téléphone en quelques minutes, je suis payée plus vite."' data-en='"The e-signature feature changed how I work. My clients sign from their phone in minutes — I get paid faster."'>"La signature électronique a changé ma façon de travailler. Mes clients signent depuis leur téléphone en quelques minutes, je suis payée plus vite."</p>
+        <div class="t-author">
+          <div class="t-av" style="background:var(--teal-dim);color:var(--teal)">M</div>
+          <div>
+            <div class="t-name">Marie L.</div>
+            <div class="t-role" data-fr="Photographe freelance · Paris" data-en="Freelance photographer · Paris">Photographe freelance · Paris</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote" data-fr='"Artio s&apos;adapte parfaitement à mon vocabulaire. Les devis générés sonnent professionnels, sans que j&apos;aie à corriger quoi que ce soit."' data-en='"Artio adapts perfectly to my vocabulary. Generated quotes sound professional — no corrections needed."'>"Artio s'adapte parfaitement à mon vocabulaire. Les devis générés sonnent professionnels, sans que j'aie à corriger quoi que ce soit."</p>
+        <div class="t-author">
+          <div class="t-av" style="background:rgba(138,99,210,.15);color:#a77fe0">S</div>
+          <div>
+            <div class="t-name">Sarah K.</div>
+            <div class="t-role" data-fr="Coach certifiée · Bordeaux" data-en="Certified coach · Bordeaux">Coach certifiée · Bordeaux</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- PRICING -->
+<section id="pricing" class="reveal">
+  <div class="section-tag" data-fr="Tarifs" data-en="Pricing">Tarifs</div>
+  <div class="section-title" data-fr="Simple, transparent, sans surprise" data-en="Simple, transparent, no surprises">Simple, transparent, sans surprise</div>
+  <p class="section-sub" style="margin:0 auto 0" data-fr="Sans engagement. Résiliable à tout moment. 2 mois offerts avec l'abonnement annuel." data-en="No commitment. Cancel anytime. 2 months free with annual billing.">Sans engagement. Résiliable à tout moment. 2 mois offerts avec l'abonnement annuel.</p>
+
+  <!-- Toggle mensuel / annuel -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:32px auto 0;">
+    <span id="lbl-mensuel" style="font-size:14px;font-weight:600;color:var(--text)" data-fr="Mensuel" data-en="Monthly">Mensuel</span>
+    <div id="billing-toggle" onclick="toggleBilling()" style="width:48px;height:26px;border-radius:100px;background:var(--amber);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;">
+      <div id="billing-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#080b14;transition:transform .2s;"></div>
+    </div>
+    <span id="lbl-annuel" style="font-size:14px;font-weight:400;color:var(--muted)" data-fr="Annuel" data-en="Annual">Annuel</span>
+    <span id="badge-annuel" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,.25)" data-fr="2 mois offerts" data-en="2 months free">2 mois offerts</span>
+  </div>
+
+  <div class="pricing-grid">
+    <!-- SOLO -->
+    <div class="pc">
+      <div class="p-name">Solo</div>
+      <div class="p-desc" data-fr="Pour travailler vite et bien, dès le premier jour" data-en="To work fast and well, from day one">Pour travailler vite et bien, dès le premier jour</div>
+      <div class="p-price">
+        <span class="p-amount" id="price-solo">19 €</span>
+        <span class="p-suf" data-fr="/ mois" data-en="/ mo">/ mois</span>
+      </div>
+      <div class="p-monthly" id="note-solo" data-fr="facturation mensuelle" data-en="billed monthly">facturation mensuelle</div>
+      <div class="p-div"></div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span><span>Génération devis &amp; factures par la voix</span></li>
+        <li><span class="ck">✓</span><span>IA illimitée — aucun quota</span></li>
+        <li><span class="ck">✓</span><span>Facturation électronique (DGFiP 2026)</span></li>
+        <li><span class="ck">✓</span><span>Annuaire clients + lookup SIRET</span></li>
+        <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
+      </ul>
+      <button class="btn-plan out" onclick="window.location='/login'" data-fr="Démarrer en Solo" data-en="Start with Solo">Démarrer en Solo</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="pc pop">
+      <div class="pop-label" data-fr="Recommandé" data-en="Recommended">Recommandé</div>
+      <div class="p-name">Pro</div>
+      <div class="p-desc" data-fr="Pour piloter et développer votre activité" data-en="To manage and grow your business">Pour piloter et développer votre activité</div>
+      <div class="p-price">
+        <span class="p-amount" id="price-pro">39 €</span>
+        <span class="p-suf" data-fr="/ mois" data-en="/ mo">/ mois</span>
+      </div>
+      <div class="p-monthly" id="note-pro" data-fr="facturation mensuelle" data-en="billed monthly">facturation mensuelle</div>
+      <div class="p-div"></div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span><span><strong>Tout Solo, plus :</strong></span></li>
+        <li><span class="ck">✓</span><span>Signature électronique eIDAS</span></li>
+        <li><span class="ck">✓</span><span>Gmail synchronisé (lecture + envoi)</span></li>
+        <li><span class="ck">✓</span><span>Google Calendar synchronisé</span></li>
+        <li><span class="ck">✓</span><span>Relances signature &amp; paiement IA</span></li>
+        <li><span class="ck">✓</span><span>Rappels paiement + mise en demeure</span></li>
+        <li><span class="ck">✓</span><span>Templates de devis sauvegardés</span></li>
+        <li><span class="ck">✓</span><span>Export comptable CSV</span></li>
+      </ul>
+      <button class="btn-plan prim" onclick="window.location='/login'" data-fr="Choisir Pro" data-en="Choose Pro">Choisir Pro</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<!-- ── CONTACT ──────────────────────────────────────── -->
+<section id="contact" class="reveal" style="text-align:center;padding:80px 24px">
+  <div class="section-tag" data-fr="Contact" data-en="Contact">Contact</div>
+  <div class="section-title" data-fr="Une question ?<br>On est là." data-en="Any questions?<br>We're here.">Une question ?<br>On est là.</div>
+  <p class="section-sub" style="margin:0 auto 40px" data-fr="Notre équipe répond à toutes vos questions sur Artio — onboarding, tarifs, fonctionnalités." data-en="Our team answers all your questions about Artio — onboarding, pricing, features.">Notre équipe répond à toutes vos questions sur Artio — onboarding, tarifs, fonctionnalités.</p>
+  <a href="contact.html" style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:var(--amber);border-radius:12px;font-family:var(--fh);font-size:15px;font-weight:700;color:#080b14;text-decoration:none;transition:opacity .2s,transform .2s" onmouseover="this.style.opacity='.88';this.style.transform='translateY(-2px)'" onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span data-fr="Nous contacter" data-en="Contact us">Nous contacter</span>
+  </a>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+
+      <!-- Colonne brand gauche -->
+      <div class="f-brand">
+        <div class="f-logo">
+          <img src="artio-icon.png" alt="Artio" />
+          <span>Artio</span>
+        </div>
+        <p class="f-tagline">Gérez vos devis, factures et clients par la voix. Simple, rapide, conforme.</p>
+
+        <!-- Ratings en colonne -->
+        <div class="f-ratings">
+          <div class="f-rating-item">
+            <a href="https://g.page/r/Cb6ZaXDvesHmEBM/review" target="_blank" rel="noopener">
+              <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              <span class="f-stars">★★★★★</span>
+              <span class="f-score">5,0</span>
+              <span class="f-rating-count">Google Avis</span>
+            </a>
+          </div>
+          <!-- TrustBox widget -->
+          <div class="trustpilot-widget" data-locale="fr-FR" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6a234c05bf4d2e3537251999" data-style-height="52px" data-style-width="100%" data-token="c3839013-6259-495b-8ebe-15d6f3012565">
+            <a href="https://fr.trustpilot.com/review/monartio.fr" target="_blank" rel="noopener">Trustpilot</a>
+          </div>
+        </div>
+
+        <!-- App badges -->
+        <div class="f-app-badges">
+          <a href="https://apps.apple.com" target="_blank" rel="noopener" class="f-app-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <div class="f-app-badge-text">
+              <span>Disponible sur</span>
+              <span>App Store</span>
+            </div>
+          </a>
+          <a href="https://play.google.com" target="_blank" rel="noopener" class="f-app-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76a2.5 2.5 0 0 1-.93-.87V1.11A2.5 2.5 0 0 1 3.18.24l11.9 11.76-11.9 11.76zm14.27-8.43-2.84-2.81 2.84-2.81 3.21 1.83a1.75 1.75 0 0 1 0 2.96l-3.21 1.83zm-3.99-3.95L2.08.35A1.75 1.75 0 0 1 3.73.1l13.59 7.74-3.86 3.54zm0 2.34 3.86 3.54L3.73 23.9a1.75 1.75 0 0 1-1.65-.25l11.38-10.93z"/></svg>
+            <div class="f-app-badge-text">
+              <span>Disponible sur</span>
+              <span>Google Play</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Badge facturation électronique -->
+        <div class="f-factpulse-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Compatible facturation électronique
+        </div>
+      </div>
+
+      <!-- Colonne Ressources -->
+      <div class="f-col">
+        <h4>Ressources</h4>
+        <ul>
+          <li><a href="aide.html">Centre d'aide</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="index.html#pricing">Tarifs</a></li>
+        </ul>
+      </div>
+
+      <!-- Colonne À propos -->
+      <div class="f-col">
+        <h4>À propos</h4>
+        <ul>
+          <li><a href="index.html#waitlist">Rejoindre la waitlist</a></li>
+          <li><a href="contact.html">Nous contacter</a></li>
+          <li><a href="confidentialite.html">Sécurité & vie privée</a></li>
+        </ul>
+      </div>
+
+    </div><!-- /.footer-top -->
+
+    <!-- Barre inférieure -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-left">
+        <span class="footer-copy">© 2026 Artio — SIRET 91450628200021</span>
+        <div class="footer-legal-links">
+          <a href="cgu.html">CGU</a>
+          <a href="cgv.html">CGV</a>
+          <a href="confidentialite.html">Confidentialité</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="f-socials">
+        <a href="https://www.linkedin.com/company/monartio/" target="_blank" rel="noopener" class="f-social" aria-label="LinkedIn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+        <a href="https://www.instagram.com/mon.artio/" target="_blank" rel="noopener" class="f-social" aria-label="Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /.footer-inner -->
+</footer>
+
+<!-- TWEAKS -->
+<div id="tweaks-panel">
+  <h3>Tweaks</h3>
+  <div class="tw-group">
+    <div class="tw-lbl" data-fr="Variante Hero" data-en="Hero Variant">Variante Hero</div>
+    <div class="tw-opts" id="tw-hero">
+      <button class="tw-opt on" onclick="setVariant('a')" data-fr="Voix" data-en="Voice">Voix</button>
+      <button class="tw-opt" onclick="setVariant('b')">Minimal</button>
+      <button class="tw-opt" onclick="setVariant('c')">Dashboard</button>
+    </div>
+  </div>
+  <div class="tw-group">
+    <div class="tw-lbl" data-fr="Couleur d'accent" data-en="Accent color">Couleur d'accent</div>
+    <div class="tw-opts">
+      <div class="tw-swatch on" style="background:#f5a742" onclick="setAccent('#f5a742','rgba(245,167,66,0.13)','rgba(245,167,66,0.3)',this)" title="Amber"></div>
+      <div class="tw-swatch" style="background:#a77fe0" onclick="setAccent('#a77fe0','rgba(138,99,210,0.13)','rgba(138,99,210,0.28)',this)" title="Violet"></div>
+      <div class="tw-swatch" style="background:#3ecfcf" onclick="setAccent('#3ecfcf','rgba(62,207,207,0.12)','rgba(62,207,207,0.28)',this)" title="Teal"></div>
+      <div class="tw-swatch" style="background:#6ee7b7" onclick="setAccent('#6ee7b7','rgba(110,231,183,0.12)','rgba(110,231,183,0.28)',this)" title="Mint"></div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  /* ── TWEAKS PROTOCOL ── */
+  window.addEventListener('message', e => {
+    if (e.data?.type === '__activate_edit_mode') document.getElementById('tweaks-panel').style.display = 'block';
+    if (e.data?.type === '__deactivate_edit_mode') document.getElementById('tweaks-panel').style.display = 'none';
+  });
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+
+  /* ── LANG ── */
+  let lang = 'fr';
+  function setLang(l) {
+    lang = l;
+    document.querySelectorAll('[data-' + l + ']').forEach(el => el.innerHTML = el.getAttribute('data-' + l));
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector('.lang-btn[onclick="setLang(\'' + l + '\')"]');
+    if (activeBtn) activeBtn.classList.add('active');
+    document.documentElement.lang = l;
+  }
+
+  /* ── HERO VARIANTS ── */
+  function setVariant(v) {
+    ['a','b','c'].forEach(x => document.getElementById('hv-' + x).style.display = x === v ? 'flex' : 'none');
+    document.querySelectorAll('#tw-hero .tw-opt').forEach((b, i) => b.classList.toggle('on', ['a','b','c'][i] === v));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { heroVariant: v } }, '*');
+  }
+
+  /* ── ACCENT COLOR ── */
+  function setAccent(col, dim, glow, el) {
+    document.documentElement.style.setProperty('--amber', col);
+    document.documentElement.style.setProperty('--amber-dim', dim);
+    document.documentElement.style.setProperty('--amber-glow', glow);
+    document.querySelectorAll('.tw-swatch').forEach(s => s.classList.remove('on'));
+    el.classList.add('on');
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { accent: col } }, '*');
+  }
+
+  /* ── WAVEFORM ── */
+  const wf = document.getElementById('waveform');
+  [6,14,24,30,20,28,12,22,30,18,24,10,20,26,14].forEach((h, i) => {
+    const b = document.createElement('div');
+    b.className = 'wbar';
+    b.style.cssText = `--wh:${h}px;--wd:${(.8+Math.random()*.5).toFixed(2)}s;--wdl:${(i*.065).toFixed(2)}s`;
+    wf.appendChild(b);
+  });
+
+  /* ── TYPING NAME ── */
+  const names = ['M. Dupont', 'Atelier Martin', 'Sophie K.', 'Jean-Paul R.', 'Élodie M.'];
+  const activities = [
+    { fr: ', Un shoot photo…"', en: ', A photo shoot…"' },
+    { fr: ', developpement d\'un site web…"', en: ', website development…"' },
+    { fr: ', Une séance de coaching vocal…"', en: ', A vocal coaching session…"' },
+    { fr: ', lavage de voiture…"', en: ', car wash…"' },
+    { fr: ', 3h de plomberie…"', en: ', 3h of plumbing…"' }
+  ];
+  let ni = 0;
+  const vname = document.getElementById('vname');
+  const vactivity = document.getElementById('vactivity');
+  setInterval(() => {
+    vname.style.opacity = 0;
+    vactivity.style.opacity = 0;
+    setTimeout(() => {
+      ni = (ni + 1) % names.length;
+      vname.textContent = names[ni];
+      vactivity.setAttribute('data-fr', activities[ni].fr);
+      vactivity.setAttribute('data-en', activities[ni].en);
+      vactivity.innerHTML = activities[ni][lang];
+      vname.style.opacity = 1;
+      vactivity.style.opacity = 1;
+    }, 350);
+  }, 3000);
+  vname.style.transition = 'opacity .35s';
+  vactivity.style.transition = 'opacity .35s';
+
+  /* ── SCROLL REVEAL ── */
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  /* ── BILLING TOGGLE ── */
+  let isAnnual = false;
+  function toggleBilling() {
+    isAnnual = !isAnnual;
+    const knob = document.getElementById('billing-knob');
+    const lblM = document.getElementById('lbl-mensuel');
+    const lblA = document.getElementById('lbl-annuel');
+    knob.style.transform = isAnnual ? 'translateX(22px)' : 'translateX(0)';
+    lblM.style.fontWeight = isAnnual ? '400' : '600';
+    lblM.style.color = isAnnual ? 'var(--muted)' : 'var(--text)';
+    lblA.style.fontWeight = isAnnual ? '600' : '400';
+    lblA.style.color = isAnnual ? 'var(--text)' : 'var(--muted)';
+    const notesSolo = document.getElementById('note-solo');
+    const notesPro  = document.getElementById('note-pro');
+    if (isAnnual) {
+      document.getElementById('price-solo').textContent = '190 €';
+      document.getElementById('price-pro').textContent  = '390 €';
+      notesSolo.textContent = lang === 'en' ? '/ year — 15.83 €/mo · 2 months free' : '/ an — soit 15,83 €/mois · 2 mois offerts';
+      notesPro.textContent  = lang === 'en' ? '/ year — 32.50 €/mo · 2 months free' : '/ an — soit 32,50 €/mois · 2 mois offerts';
+    } else {
+      document.getElementById('price-solo').textContent = '19 €';
+      document.getElementById('price-pro').textContent  = '39 €';
+      notesSolo.textContent = lang === 'en' ? 'billed monthly' : 'facturation mensuelle';
+      notesPro.textContent  = lang === 'en' ? 'billed monthly' : 'facturation mensuelle';
+    }
+    // Rafraîchit les autres éléments data-fr/data-en sans toucher aux lang-btn
+    document.querySelectorAll('[data-' + lang + ']').forEach(el => el.innerHTML = el.getAttribute('data-' + lang));
+  }
+</script>
+<script>
+  /* ── THEME TOGGLE ── */
+  function toggleTheme(){
+    const cur=document.documentElement.getAttribute('data-theme')||'light';
+    const next=cur==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    try{localStorage.setItem('artio-theme',next);}catch(e){}
+  }
+</script>
+</body>
+</html>
