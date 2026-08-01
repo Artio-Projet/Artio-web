@@ -312,28 +312,6 @@
       font-size: 13px; color: var(--muted); z-index: 2; white-space: nowrap;
     }
 
-    /* ── TESTIMONIALS ────────────────────────────── */
-    #testimonials {
-      padding: 100px 48px 120px;
-      background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-    }
-    .testi-inner { max-width: 1200px; margin: 0 auto; }
-    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
-    .tc {
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 28px;
-      transition: border-color .25s;
-    }
-    .tc:hover { border-color: var(--border-hi); }
-    .t-stars { color: var(--amber); font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; }
-    .t-quote { font-size: 14px; color: var(--text); line-height: 1.75; margin-bottom: 20px; font-style: italic; }
-    .t-author { display: flex; align-items: center; gap: 12px; }
-    .t-av {
-      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-size: 14px; font-weight: 800; font-family: var(--fh); flex-shrink: 0;
-    }
-    .t-name { font-size: 13px; font-weight: 600; }
-    .t-role { font-size: 12px; color: var(--muted); }
-
     /* ── PRICING ─────────────────────────────────── */
     #pricing { padding: 120px 48px; max-width: 1200px; margin: 0 auto; text-align: center; }
     .pricing-grid {
@@ -449,7 +427,7 @@
       .features-grid { grid-template-columns: 1fr; }
       .fc.star { grid-column: span 1; }
       .star-inner { grid-template-columns: 1fr; gap: 28px; }
-      #demo, #testimonials, #pricing { padding: 80px 20px; }
+      #demo, #pricing { padding: 80px 20px; }
       .testi-grid { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
       footer { padding: 32px 20px; flex-direction: column; text-align: center; }
@@ -586,7 +564,6 @@
   </a>
   <ul class="nav-links">
     <li><a href="#features" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a></li>
-    <li><a href="#testimonials" data-fr="Avis clients" data-en="Reviews">Avis clients</a></li>
     <li><a href="#pricing" data-fr="Tarifs" data-en="Pricing">Tarifs</a></li>
     <li><a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a></li>
   </ul>
@@ -908,50 +885,10 @@
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<section id="testimonials">
-  <div class="testi-inner reveal">
-    <div class="section-tag" data-fr="Témoignages" data-en="Reviews">Témoignages</div>
-    <div class="section-title" data-fr="Ce que disent nos clients" data-en="What our clients say">Ce que disent nos clients</div>
-    <div class="testi-grid">
-      <div class="tc">
-        <div class="t-stars">★★★★★</div>
-        <p class="t-quote" data-fr='"Avant Artio, je perdais 3h par semaine sur les devis. Maintenant c&apos;est 10 minutes. Je le recommande à tous les indépendants sans hésitation."' data-en='"Before Artio, I was losing 3 hours a week on quotes. Now it&apos;s 10 minutes. I recommend it to every independent without hesitation."'>"Avant Artio, je perdais 3h par semaine sur les devis. Maintenant c'est 10 minutes. Je le recommande à tous les indépendants sans hésitation."</p>
-        <div class="t-author">
-          <div class="t-av" style="background:var(--amber-dim);color:var(--amber)">T</div>
-          <div>
-            <div class="t-name">Thomas B.</div>
-            <div class="t-role" data-fr="Plombier indépendant · Lyon" data-en="Independent plumber · Lyon">Plombier indépendant · Lyon</div>
-          </div>
-        </div>
-      </div>
-      <div class="tc">
-        <div class="t-stars">★★★★★</div>
-        <p class="t-quote" data-fr='"La signature électronique a changé ma façon de travailler. Mes clients signent depuis leur téléphone en quelques minutes, je suis payée plus vite."' data-en='"The e-signature feature changed how I work. My clients sign from their phone in minutes — I get paid faster."'>"La signature électronique a changé ma façon de travailler. Mes clients signent depuis leur téléphone en quelques minutes, je suis payée plus vite."</p>
-        <div class="t-author">
-          <div class="t-av" style="background:var(--teal-dim);color:var(--teal)">M</div>
-          <div>
-            <div class="t-name">Marie L.</div>
-            <div class="t-role" data-fr="Photographe freelance · Paris" data-en="Freelance photographer · Paris">Photographe freelance · Paris</div>
-          </div>
-        </div>
-      </div>
-      <div class="tc">
-        <div class="t-stars">★★★★★</div>
-        <p class="t-quote" data-fr='"Artio s&apos;adapte parfaitement à mon vocabulaire. Les devis générés sonnent professionnels, sans que j&apos;aie à corriger quoi que ce soit."' data-en='"Artio adapts perfectly to my vocabulary. Generated quotes sound professional — no corrections needed."'>"Artio s'adapte parfaitement à mon vocabulaire. Les devis générés sonnent professionnels, sans que j'aie à corriger quoi que ce soit."</p>
-        <div class="t-author">
-          <div class="t-av" style="background:rgba(138,99,210,.15);color:#a77fe0">S</div>
-          <div>
-            <div class="t-name">Sarah K.</div>
-            <div class="t-role" data-fr="Coach certifiée · Bordeaux" data-en="Certified coach · Bordeaux">Coach certifiée · Bordeaux</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </section>
-
-
 
 <!-- PRICING -->
 <section id="pricing" class="reveal">
