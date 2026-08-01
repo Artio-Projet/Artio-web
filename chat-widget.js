@@ -113,6 +113,7 @@ DIVERS :
   let contexteIA      = null; // contexte métier de l'utilisateur
   let userId          = null; // pour le logging des tokens
   let userEmail       = null;
+  let accessToken     = null;
   let isOpen          = false;
   let isLoading       = false;
   let history         = loadHistory();
@@ -494,9 +495,14 @@ DIVERS :
 
   // ── INIT ──────────────────────────────────────────────
   async function init() {
+    // Le widget ne doit exister que pour un utilisateur connecte.
+    // On verifie la session AVANT de construire quoi que ce soit :
+    // pas de bulle, pas de panneau, pas de bouton pour un visiteur anonyme.
+    await initUser();
+    if (!accessToken) return;
+
     buildWidget();
     bindEvents();
-    await initUser();
     if (history.length > 0) {
       const badge = document.getElementById("artio-chat-badge");
       if (badge) badge.style.display = "block";
