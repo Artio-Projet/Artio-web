@@ -14,6 +14,32 @@
   const MAX_TOKENS    = 512;
   const INACTIVITY_MS = 10 * 60 * 1000; // 10 minutes
 
+  // Fin de l'offre de lancement (tarif Fondateurs) : 31 août 2026 23:59 Europe/Paris.
+  // Passé cette date, le bot doit parler au passé de l'offre et donner les tarifs normaux.
+  const FOUNDER_OFFER_END = new Date("2026-09-01T00:00:00+02:00");
+
+  // Obligation de RÉCEPTION facturation électronique (toutes entreprises) : 1er sept. 2026.
+  const EINVOICE_RECEPTION_START = new Date("2026-09-01T00:00:00+02:00");
+
+  function getTemporalContext() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const founderOfferActive = now < FOUNDER_OFFER_END;
+    const einvoiceReceptionLive = now >= EINVOICE_RECEPTION_START;
+
+    let block = `== CONTEXTE TEMPOREL (à toujours respecter, ne jamais contredire) ==\nNous sommes le ${dateStr}.\n`;
+
+    block += founderOfferActive
+      ? `L'offre de lancement (tarif Fondateurs) est ACTIVE : Solo 14 €/mois ou 140 €/an, Pro 29 €/mois ou 290 €/an, tarif figé à vie. Elle se termine le 31 août 2026 — tu peux créer un sentiment d'urgence légitime si l'utilisateur hésite.\n`
+      : `L'offre de lancement (tarif Fondateurs) est TERMINÉE depuis le 1er septembre 2026. Les tarifs normaux s'appliquent : Solo 19 €/mois ou 190 €/an, Pro 39 €/mois ou 390 €/an. N'évoque plus l'offre Fondateurs comme disponible — si l'utilisateur la mentionne, précise qu'elle a pris fin mais que les abonnés qui l'ont souscrite avant la fin du lancement gardent leur tarif figé à vie.\n`;
+
+    block += einvoiceReceptionLive
+      ? `L'obligation de RÉCEPTION des factures électroniques est déjà EN VIGUEUR pour toutes les entreprises françaises (depuis le 1er septembre 2026). Ne parle plus de cette échéance au futur.\n`
+      : `L'obligation de RÉCEPTION des factures électroniques entre en vigueur le 1er septembre 2026 pour toutes les entreprises (compte à rebours en cours). L'obligation d'ÉMISSION suit un calendrier différent selon la taille de l'entreprise (1er septembre 2026 pour grandes entreprises/ETI, 1er septembre 2027 pour PME et micro-entrepreneurs).\n`;
+
+    return block;
+  }
+
   const SYSTEM_PROMPT_BASE = `Tu es l'assistant IA officiel d'Artio, une application SaaS française pour les professionnels indépendants (freelancers, artisans, coaches, photographes, plombiers, électriciens, etc.).
 
 == PRÉSENTATION D'ARTIO ==
@@ -34,7 +60,7 @@ Artio permet de :
 - Gratuit : accès limité, consultation de l'historique uniquement
 - Solo : 19 €/mois ou 190 €/an — création de devis, factures, clients, calendrier
 - Pro : 39 €/mois ou 390 €/an — tout Solo + signature électronique, envoi d'emails Gmail via Rédiger, relances IA, rappels de paiement IA, branding PDF, templates sauvegardés, facturation électronique via FactPulse
-- Offre Fondateurs (lancement) : Solo 14 €/mois / 140 €/an — Pro 29 €/mois / 290 €/an — tarif figé à vie, essai 62 jours, 2 mois offerts sur l'annuel
+- (Le statut de l'offre de lancement Fondateurs — active ou terminée — est précisé dans le contexte temporel ci-dessus, toujours s'y référer plutôt qu'à une date fixe.)
 - Paiement par carte bancaire via Stripe. Résiliation à tout moment sans frais, effet en fin de période.
 - Satisfaction 7 jours : remboursement intégral du 1er mois si usage non significatif.
 
@@ -67,7 +93,7 @@ ABONNEMENT ET FACTURATION :
 - "Comment m'abonner ?" → Paramètres → Abonnement → choisir Solo ou Pro → paiement via Stripe.
 - "Comment résilier ?" → Paramètres → Abonnement → bouton Résilier. Effet à la fin de la période en cours, aucun remboursement au prorata.
 - "Je veux changer de plan" → Paramètres → Abonnement. En cas de passage Pro → Solo, certaines fonctionnalités Pro deviennent inaccessibles.
-- "Offre Fondateurs : comment en bénéficier ?" → L'offre est disponible pendant la période de lancement sur monartio.fr. Le tarif est figé à vie tant que l'abonnement est maintenu.
+- "Offre Fondateurs : comment en bénéficier ?" → Se référer au statut de l'offre indiqué dans le contexte temporel (active ou terminée) pour répondre précisément. Si active : disponible sur monartio.fr jusqu'à la fin du lancement, tarif figé à vie. Si terminée : l'offre n'est plus accessible aux nouveaux abonnés, mais ceux qui l'ont souscrite pendant le lancement gardent leur tarif à vie.
 
 GMAIL ET GOOGLE :
 - "Comment connecter Gmail ?" → Paramètres → Gmail → cliquer sur Connecter Gmail → suivre le flux OAuth Google. Un seul OAuth pour Gmail + Google Calendar.
@@ -85,7 +111,7 @@ DEVIS ET FACTURES (suite) :
 - "Le statut de mon devis ne change pas" → La page Dossiers se met à jour automatiquement en arrière-plan. Le statut bascule dès qu'un événement intervient (signature client, paiement, etc.) sans nécessiter de rafraîchissement manuel.
 
 FACTURATION ÉLECTRONIQUE :
-- "Qu'est-ce que la facturation électronique ?" → Réforme obligatoire pour les entreprises françaises. À partir du 1er septembre 2026, toutes les entreprises (y compris les micro-entrepreneurs en franchise TVA) doivent pouvoir recevoir des factures électroniques. L'obligation d'émission arrive le 1er septembre 2026 pour les grandes entreprises et ETI, et le 1er septembre 2027 pour les PME et micro-entrepreneurs. Artio est Solution Compatible DGFiP via FactPulse, une plateforme agréée.
+- "Qu'est-ce que la facturation électronique ?" → Réforme obligatoire pour les entreprises françaises. Se référer au contexte temporel pour savoir si l'obligation de réception (1er septembre 2026, toutes entreprises y compris micro-entrepreneurs en franchise TVA) est déjà en vigueur ou à venir, et formuler la réponse au bon temps grammatical en conséquence. L'obligation d'émission arrive le 1er septembre 2026 pour les grandes entreprises et ETI, et le 1er septembre 2027 pour les PME et micro-entrepreneurs. Artio est Solution Compatible DGFiP via FactPulse, une plateforme agréée.
 - "Comment activer FactPulse ?" → Paramètres → Facturation électronique → Activer FactPulse. Fonctionnalité incluse dans l'offre Pro, aucun compte ou token FactPulse à créer, tout est intégré à Artio.
 - "Dois-je faire une démarche sur impots.gouv.fr ?" → Oui, c'est obligatoire. Chaque entreprise doit déclarer elle-même sa plateforme dans l'annuaire du Portail Public de Facturation (PPF) sur impots.gouv.fr, avec son propre SIRET. Artio ne peut pas faire cette démarche à votre place. Étapes : se connecter à son espace professionnel → rubrique Facturation électronique → Annuaire → sélectionner FactPulse comme plateforme. À faire avant le 1er septembre 2026. Article complet dans Aide → Réforme facturation électronique 2026.
 - "Je suis micro-entrepreneur en franchise TVA, suis-je concerné ?" → Oui. Depuis la mise à jour de la réforme, tous les micro-entrepreneurs — y compris ceux en franchise en base de TVA (art. 293 B CGI) — sont concernés par l'obligation de réception dès le 1er septembre 2026. L'obligation d'émission arrive le 1er septembre 2027.
@@ -96,7 +122,7 @@ DIVERS :
 - "Comment supprimer mon compte ?" → Envoyer un email à contact@monartio.fr. Les données restent accessibles 30 jours pour export, puis sont supprimées.
 
 == RÈGLES DE COMPORTEMENT ==
-- Réponds TOUJOURS en français, de façon chaleureuse, claire et concise (4-5 phrases max).
+- Réponds TOUJOURS en français, de façon chaleureuse et claire. Reste concis par défaut (4-5 phrases max) pour les questions simples ; pour les sujets à plusieurs volets (ex : calendrier de la réforme facturation électronique, différence entre plans, démarche PPF), tu peux structurer la réponse en quelques points courts plutôt que de tout compresser en une seule phrase dense — la clarté prime sur la brièveté quand le sujet a plusieurs facettes.
 - Si tu ne sais pas, dis-le honnêtement et oriente vers contact@monartio.fr.
 - Ne jamais inventer de fonctionnalités qui n'existent pas dans Artio.
 - Pour les questions de comptabilité, fiscalité ou droit : donner l'information générale disponible dans l'app mais recommander de consulter un expert-comptable.
@@ -104,8 +130,18 @@ DIVERS :
 - Si l'utilisateur dit "non merci", "c'est bon", "merci", "parfait" ou similaire : remercier chaleureusement puis terminer par [CONVERSATION_CLOSE].`;
 
   function getSystemPrompt() {
-    if (!contexteIA) return SYSTEM_PROMPT_BASE;
-    return SYSTEM_PROMPT_BASE + `\n\nINFORMATIONS SUR L'ENTREPRISE DE L'UTILISATEUR :\n${contexteIA}\n\nUtilise ces informations pour répondre de façon personnalisée aux questions sur l'activité, les offres, les tarifs ou les services de cet utilisateur.`;
+    let prompt = getTemporalContext() + "\n" + SYSTEM_PROMPT_BASE;
+
+    if (subscriptionStatus) {
+      const planLabel = { free: "Gratuit (lecture seule)", solo: "Solo", pro: "Pro" }[subscriptionStatus] || subscriptionStatus;
+      prompt += `\n\n== PLAN DE L'UTILISATEUR ACTUEL ==\nCet utilisateur est actuellement sur le plan ${planLabel}. Personnalise tes réponses en conséquence : s'il demande une fonctionnalité réservée à un plan supérieur, précise-le clairement et propose la mise à niveau (Paramètres → Abonnement) sans être insistant. Ne lui présente jamais une fonctionnalité qu'il a déjà comme un avantage à débloquer.`;
+    }
+
+    if (contexteIA) {
+      prompt += `\n\nINFORMATIONS SUR L'ENTREPRISE DE L'UTILISATEUR :\n${contexteIA}\n\nUtilise ces informations pour répondre de façon personnalisée aux questions sur l'activité, les offres, les tarifs ou les services de cet utilisateur.`;
+    }
+
+    return prompt;
   }
 
   // ── STATE ─────────────────────────────────────────────
@@ -114,6 +150,7 @@ DIVERS :
   let userId          = null; // pour le logging des tokens
   let userEmail       = null;
   let accessToken     = null;
+  let subscriptionStatus = null; // 'free' | 'solo' | 'pro' — pour personnaliser les réponses
   let isOpen          = false;
   let isLoading       = false;
   let history         = loadHistory();
@@ -141,19 +178,32 @@ DIVERS :
       userId    = session.user.id;
       accessToken = session.access_token;
       const { data: profil } = await sbClient
-        .from("profils").select("contexte_ia")
+        .from("profils").select("contexte_ia, subscription_status")
         .eq("user_id", session.user.id).single();
       if (profil?.contexte_ia) contexteIA = profil.contexte_ia;
+      if (profil?.subscription_status) subscriptionStatus = profil.subscription_status;
     } catch (e) { console.warn("Chat widget:", e.message); }
   }
 
   // ── PERSISTENCE ───────────────────────────────────────
+  // Durée de rétention de l'historique en localStorage : 7 jours.
+  // Au-delà, on repart d'une conversation neuve plutôt que de rouvrir
+  // un fil probablement oublié par l'utilisateur.
+  const HISTORY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
   function loadHistory() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!raw || !raw.savedAt || !Array.isArray(raw.messages)) return [];
+      if (Date.now() - raw.savedAt > HISTORY_TTL_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        return [];
+      }
+      return raw.messages;
+    } catch { return []; }
   }
   function saveHistory() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ savedAt: Date.now(), messages: history })); }
     catch {}
   }
   function clearHistory() {
@@ -271,12 +321,41 @@ DIVERS :
     if (input) { input.value = btn.textContent; sendMessage(); }
   };
 
-  function showTyping() {
+  // ── ATTENTE CONTEXTUELLE ─────────────────────────────
+  // Pour les sujets à plusieurs facettes, on affiche une petite phrase
+  // au-dessus des points "typing" pour meubler l'attente au lieu du silence.
+  // Retourne null pour les questions simples (dans ce cas, points seuls).
+  function getWaitingMessage(text) {
+    const q = text.toLowerCase();
+    if (q.includes("facturation électronique") || q.includes("factpulse") || q.includes("pdp") || q.includes("réforme") || q.includes("dgfip") || q.includes("impots.gouv")) {
+      return "Je regarde ce qui s'applique à votre situation…";
+    }
+    if (q.includes("signature") || q.includes("signer") || q.includes("eidas")) {
+      return "Je vérifie comment ça marche pour la signature…";
+    }
+    if (q.includes("plan") || q.includes("tarif") || q.includes("prix") || q.includes("solo") || q.includes("pro") || q.includes("abonnement")) {
+      return "Je regarde les options qui vous correspondent…";
+    }
+    if (q.includes("résilier") || q.includes("supprimer") || q.includes("annuler")) {
+      return "Je regarde la procédure…";
+    }
+    if (q.includes("gmail") || q.includes("google") || q.includes("calendar") || q.includes("oauth")) {
+      return "Je vérifie la connexion Google…";
+    }
+    return null;
+  }
+
+  function showTyping(waitingMsg) {
     const c = document.getElementById("artio-chat-messages");
     if (!c) return;
     const d = document.createElement("div");
     d.className = "artio-msg typing"; d.id = "artio-typing";
-    d.innerHTML = `<div class="artio-dots"><span></span><span></span><span></span></div>`;
+    const dotsHtml = `<div class="artio-dots"><span></span><span></span><span></span></div>`;
+    if (waitingMsg) {
+      d.innerHTML = `<div class="artio-waiting">${waitingMsg}</div>${dotsHtml}`;
+    } else {
+      d.innerHTML = dotsHtml;
+    }
     c.appendChild(d); c.scrollTop = c.scrollHeight;
   }
   function removeTyping() {
@@ -300,7 +379,7 @@ DIVERS :
     history.push({ role: "user", content: text });
     saveHistory();
     renderMessages();
-    showTyping();
+    showTyping(getWaitingMessage(text));
 
     let reply;
 
@@ -346,13 +425,66 @@ DIVERS :
     if (!reply.includes("[CONVERSATION_CLOSE]")) input?.focus();
   }
 
+  // ── FALLBACK ───────────────────────────────────────────
+  // Utilisé quand l'appel à claude-proxy échoue (déconnexion, erreur API, etc.)
+  // ou pour un visiteur sans session. Le ton est honnête sur la limitation :
+  // ne pas prétendre pouvoir tenir une vraie conversation, mais donner l'info
+  // utile la plus proche du sujet et orienter vers de vraies ressources.
   function fallback(text) {
     const q = text.toLowerCase();
-    if (q.includes("devis")) return "Pour créer un devis, allez dans l'onglet Application et utilisez la dictée vocale. L'IA génère automatiquement votre devis. Y a-t-il autre chose que je puisse faire pour vous ?";
-    if (q.includes("facture")) return "Les factures se créent depuis l'Application. Vous pouvez aussi convertir un devis accepté en facture. Y a-t-il autre chose que je puisse faire pour vous ?";
-    if (q.includes("client")) return "La gestion des clients est disponible dans l'onglet Clients. Y a-t-il autre chose que je puisse faire pour vous ?";
-    if (q.includes("signature")) return "La signature électronique est disponible depuis un dossier client. Y a-t-il autre chose que je puisse faire pour vous ?";
-    return "Je ne suis pas sûr de pouvoir répondre sans connexion. Consultez notre formulaire de contact pour une assistance personnalisée.";
+    const suffix = " Je fonctionne en mode limité pour l'instant — pour une réponse plus complète, réessayez dans un instant ou écrivez à contact@monartio.fr.";
+
+    // Devis / factures
+    if (q.includes("devis") && (q.includes("créer") || q.includes("créé") || q.includes("faire") || q.includes("comment"))) {
+      return "Pour créer un devis, allez dans l'onglet Application, choisissez l'onglet Devis, puis utilisez la dictée vocale (bouton micro) ou remplissez manuellement. Cliquez sur Générer pour obtenir le PDF." + suffix;
+    }
+    if (q.includes("facture") && (q.includes("créer") || q.includes("faire") || q.includes("convertir") || q.includes("devis"))) {
+      return "Une facture se crée depuis un dossier existant : ouvrez le dossier du devis signé et cliquez sur \"Créer la facture\". La conversion est manuelle et volontaire." + suffix;
+    }
+    if (q.includes("devis")) return "Vos devis se gèrent dans l'onglet Application, et se retrouvent ensuite dans Dossiers." + suffix;
+    if (q.includes("facture")) return "Vos factures se gèrent dans l'onglet Application et Dossiers, avec conversion possible depuis un devis signé." + suffix;
+
+    // Signature
+    if (q.includes("signature") || q.includes("signer")) {
+      return "La signature électronique (offre Pro) se déclenche depuis un dossier de devis : bouton \"Signature\" → un lien est envoyé au client, valide 72h. La signature est conforme au règlement eIDAS." + suffix;
+    }
+
+    // Facturation électronique / PDP / FactPulse
+    if (q.includes("facturation électronique") || q.includes("factpulse") || q.includes("pdp") || q.includes("réforme") || q.includes("dgfip") || q.includes("impots.gouv")) {
+      return "Artio est Solution Compatible DGFiP via FactPulse (plateforme agréée par l'État). Vous devez déclarer FactPulse dans votre espace impots.gouv.fr → rubrique Facturation électronique → Annuaire. L'article complet est dans Aide → Réforme facturation électronique 2026." + suffix;
+    }
+
+    // Abonnement / plans / tarifs
+    if (q.includes("abonnement") || q.includes("résilier") || q.includes("plan") || q.includes("tarif") || q.includes("prix") || q.includes("solo") || q.includes("pro") || q.includes("payer")) {
+      return "Vos options d'abonnement sont dans Paramètres → Abonnement. Vous pouvez souscrire, changer de plan ou résilier à tout moment (effet en fin de période, sans remboursement au prorata)." + suffix;
+    }
+
+    // Gmail / Google
+    if (q.includes("gmail") || q.includes("google") || q.includes("calendar") || q.includes("agenda") || q.includes("oauth")) {
+      return "La connexion Gmail + Google Calendar se fait dans Paramètres → Gmail, en un seul flux OAuth. Si vous êtes déconnecté, reconnectez-vous depuis le même écran." + suffix;
+    }
+
+    // Clients
+    if (q.includes("client")) {
+      return "Vos clients se gèrent dans l'onglet Clients : ajout manuel, ou récupération automatique via le SIRET (lookup Pappers)." + suffix;
+    }
+
+    // Support / contact
+    if (q.includes("support") || q.includes("contact") || q.includes("aide") || q.includes("problème") || q.includes("bug")) {
+      return "Vous pouvez me poser vos questions ici quand la connexion est rétablie, ou écrire directement à contact@monartio.fr (réponse sous 24-48h).";
+    }
+
+    // Salutations
+    if (q.includes("bonjour") || q.includes("salut") || q.includes("hello") || q === "hey" || q === "coucou") {
+      return "Bonjour ! Je fonctionne en mode limité pour l'instant. Vous pouvez tout de même me poser une question, je vais essayer d'aider — sinon écrivez à contact@monartio.fr.";
+    }
+
+    // Remerciements / fin de conversation
+    if (q.includes("merci") || q.includes("bonne journée") || q === "ok" || q === "d'accord") {
+      return "Avec plaisir ! N'hésitez pas à revenir quand vous voulez.";
+    }
+
+    return "Je fonctionne en mode limité pour l'instant, donc je ne peux pas répondre précisément à cette question. Pour une réponse fiable, réessayez dans un instant ou écrivez à contact@monartio.fr — nous répondons sous 24 à 48h.";
   }
 
   // ── TOGGLE ────────────────────────────────────────────
@@ -399,6 +531,7 @@ DIVERS :
       .artio-msg.user{background:rgba(245,167,66,.15);color:#e2e5f1;border:1px solid rgba(245,167,66,.25);align-self:flex-end;border-bottom-right-radius:4px}
       .artio-msg.bot{background:#1a2035;color:#e2e5f1;border:1px solid rgba(255,255,255,.07);align-self:flex-start;border-bottom-left-radius:4px}
       .artio-msg.typing{background:#1a2035;border:1px solid rgba(255,255,255,.07);align-self:flex-start;padding:12px 16px}
+      .artio-waiting{font-size:12px;color:#8b93b0;margin-bottom:6px;font-style:italic}
       .artio-dots{display:flex;gap:4px;align-items:center}
       .artio-dots span{width:6px;height:6px;background:#6b7494;border-radius:50%;animation:artio-bounce 1.2s infinite}
       .artio-dots span:nth-child(2){animation-delay:.2s}
@@ -429,6 +562,7 @@ DIVERS :
       [data-theme="light"] .artio-msg.user{background:rgba(217,119,6,0.12);color:#1a1a1f;border-color:rgba(217,119,6,0.3)}
       [data-theme="light"] .artio-msg.bot{background:#f3efe6;color:#1a1a1f;border-color:rgba(20,18,12,0.10)}
       [data-theme="light"] .artio-msg.typing{background:#f3efe6;border-color:rgba(20,18,12,0.10)}
+      [data-theme="light"] .artio-waiting{color:#6a6b78}
       [data-theme="light"] .artio-dots span{background:#6a6b78}
       [data-theme="light"] #artio-chat-footer{background:#ffffff;border-top-color:rgba(20,18,12,0.10)}
       [data-theme="light"] #artio-chat-input{background:#f3efe6;border-color:rgba(20,18,12,0.15);color:#1a1a1f}
