@@ -845,7 +845,7 @@
       <div id="billing-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--on-accent);transition:transform .2s;"></div>
     </div>
     <span id="lbl-annuel" style="font-size:14px;font-weight:400;color:var(--muted)">Annuel</span>
-    <span id="badge-annuel" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,.25)">2 mois offerts</span>
+    <span id="badge-billing" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--teal-dim);color:var(--teal);border:1px solid rgba(62,207,207,.25)">1 mois offert</span>
   </div>
 
   <div class="pricing-grid">
@@ -1151,6 +1151,7 @@
     const sp  = document.getElementById('suf-pro');
     const ns  = document.getElementById('note-solo');
     const np  = document.getElementById('note-pro');
+    const bb  = document.getElementById('badge-billing');
 
     if (isAnnual) {
       ps.textContent  = '140 €';  pso.textContent = '190 €';
@@ -1158,12 +1159,14 @@
       ss.textContent  = '/ an';   sp.textContent  = '/ an';
       ns.textContent  = 'soit 14 €/mois · 2 mois offerts · tarif de lancement';
       np.textContent  = 'soit 29 €/mois · 2 mois offerts · tarif de lancement';
+      bb.textContent  = '2 mois offerts';
     } else {
       ps.textContent  = '14 €';   pso.textContent = '19 €';
       pp.textContent  = '29 €';   ppo.textContent = '39 €';
       ss.textContent  = '/ mois'; sp.textContent  = '/ mois';
       ns.textContent  = 'facturation mensuelle · tarif de lancement';
       np.textContent  = 'facturation mensuelle · tarif de lancement';
+      bb.textContent  = '1 mois offert';
     }
   }
 </script>
