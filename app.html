@@ -457,13 +457,9 @@ pre{white-space:pre-wrap;font-size:13px;line-height:1.75;font-family:var(--fb);c
 [data-theme="light"] #artio-splash{background:#faf8f3}
 #artio-splash.artio-splash-out{opacity:0;pointer-events:none}
 #artio-splash-logo{
-  width:56px;height:56px;border-radius:14px;
-  background:#f5a742;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Space Grotesk',system-ui,sans-serif;
-  font-weight:800;font-size:28px;color:#080b14;
-  box-shadow:0 0 40px rgba(245,167,66,.35);
+  width:72px;height:72px;
   animation:artio-splash-pulse 1.4s ease-in-out infinite;
+  filter:drop-shadow(0 0 24px rgba(245,167,66,.35));
 }
 @keyframes artio-splash-pulse{
   0%,100%{transform:scale(1);opacity:1}
@@ -472,7 +468,7 @@ pre{white-space:pre-wrap;font-size:13px;line-height:1.75;font-family:var(--fb);c
 </style>
 </head>
 <body>
-<div id="artio-splash"><div id="artio-splash-logo">A</div></div>
+<div id="artio-splash"><img id="artio-splash-logo" src="artio-icon.png" alt=""/></div>
 <div id="root"></div>
 <script>
 // Retire le splash dès que le contenu principal est monté
