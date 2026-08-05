@@ -1499,7 +1499,24 @@ window.handleGenerate=async()=>{
     const docNumber=await getNextNum(tab,S.user.id);
     const pv=S.pieces.filter(p=>p.description&&p.quantite&&p.prix_unitaire);
     const totaux=calcTotaux(f.nb_heures,e.taux_horaire,pv,e.assujetti_tva?(f.tva||"0"):"0");
-    const {text:desc,usage:ud}=await callClaude(`Tu es un assistant administratif pour ${S.entreprise.secteur||"un prestataire indépendant"}. Rédige en 2-3 phrases professionnelles la description de cette prestation : ${f.travaux}. Adapte le vocabulaire au secteur. IMPORTANT: Réponds obligatoirement en ${({'fr':'français','en':'English','es':'español','zh':'中文'})[S.langue]||'français'}. Paragraphe fluide, pas de liste.`,300);
+    const {text:desc,usage:ud}=await callClaude(`Tu rédiges la description d'une prestation pour un devis ou une facture d'un ${S.entreprise.secteur||"prestataire indépendant"}.
+
+Prestation demandée : ${f.travaux}
+${S.entreprise.contexte_ia?`\nContexte sur l'activité :\n${S.entreprise.contexte_ia}\n`:""}
+Règles ESSENTIELLES :
+- Sois DIRECT et CONCRET. Une phrase courte et claire vaut mieux qu'un paragraphe verbeux.
+- Adapte la longueur à la complexité : une prestation simple (musique, coiffure, cours, dépannage) = 1 à 2 phrases suffisent. Une prestation complexe (chantier, conseil long) = 2 à 3 phrases max.
+- Utilise le vocabulaire naturel du métier, pas du jargon corporate. Écris comme un vrai artisan/indépendant parlerait à son client.
+- INTERDIT : "clés en main", "mise en œuvre du dispositif", "prestataire intervient en tant que", "solution optimale", "prise en charge complète", "expertise reconnue". Ces formules vides sonnent faux.
+- Mentionne la date si elle est claire dans la demande, sinon non.
+- IMPORTANT : Réponds obligatoirement en ${({'fr':'français','en':'English','es':'español','zh':'中文'})[S.langue]||'français'}.
+- Paragraphe fluide, pas de liste, pas de titre.
+
+Exemple pour "prestation saxophone 11 septembre EHPAD" (mauvais vs bon) :
+❌ MAUVAIS : "Notre prestation musicale de saxophone, programmée pour le 11 septembre, offre une animation professionnelle adaptée à vos événements..."
+✅ BON : "Prestation musicale au saxophone le 11 septembre en EHPAD. Matériel fourni par le musicien."
+
+Rédige maintenant la description.`,300);
     logTokens("description", ud);
     const validiteJours=tab==="devis"?parseInt(S.fields.validite_jours||S.entreprise.validite_devis||3):null;
 // Enrichissement client : si lié à un client existant, on récupère is_professionnel/siret/tva_intracom
