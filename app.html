@@ -1155,7 +1155,7 @@ async function handleAuth(){
 
 async function handleLogout(){
   await sb.auth.signOut();
-  S.user=null;S.entreprise={nom:"",adresse:"",tel:"",email:"",siret:"",taux_horaire:"",api_key:""};
+  S.user=null;S.entreprise={nom:"",adresse:"",tel:"",email:"",siret:"",taux_horaire:""};
   S.dossiers=[];S.profilSaved=false;
   window.location.href="index.html";
 }
