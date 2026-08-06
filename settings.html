@@ -992,6 +992,23 @@ function renderProfilHTML() {
 
     <div class="card">
       <div class="card-title-row">
+        <div class="card-title">Assurances &amp; mentions légales</div>
+      </div>
+      <div class="card-sub">Renseignez uniquement ce qui concerne votre activité. Ces mentions apparaîtront automatiquement sur vos devis et factures.</div>
+      <div class="fields-2">
+        <div class="field"><label class="field-label">RC Pro — Assureur</label><input class="pi field-input" data-k="rc_pro_assureur" type="text" value="${esc(e.rc_pro_assureur||'')}" placeholder="Ex: AXA, Hiscox, MAAF…"/></div>
+        <div class="field"><label class="field-label">RC Pro — N° de police</label><input class="pi field-input" data-k="rc_pro_police" type="text" value="${esc(e.rc_pro_police||'')}" placeholder="Ex: 123456789"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field"><label class="field-label">Garantie décennale — Assureur <span style="font-size:11px;font-weight:400;color:var(--muted);">(bâtiment)</span></label><input class="pi field-input" data-k="decennale_assureur" type="text" value="${esc(e.decennale_assureur||'')}" placeholder="Ex: SMABTP, MAAF Pro…"/></div>
+        <div class="field"><label class="field-label">Garantie décennale — N° de police</label><input class="pi field-input" data-k="decennale_police" type="text" value="${esc(e.decennale_police||'')}" placeholder="Ex: 987654321"/></div>
+      </div>
+      <div class="field"><label class="field-label">Certifications / Qualifications</label><input class="pi field-input" data-k="certifications" type="text" value="${esc(e.certifications||'')}" placeholder="Ex: RGE, Qualibat, label bio…"/></div>
+      <div class="field"><label class="field-label">Nature de l'opération</label><select class="pi field-input" data-k="nature_operation"><option value="">-- Choisir --</option>${['Prestations de services uniquement','Livraison de biens uniquement','Prestations de services et livraison de biens'].map(n=>`<option value="${n}" ${e.nature_operation===n?'selected':''}>${n}</option>`).join('')}</select></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
         <div class="card-title">TVA &amp; Conditions</div>
       </div>
       <div class="field">

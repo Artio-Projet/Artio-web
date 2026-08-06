@@ -772,6 +772,9 @@ function renderSucces() {
       ${D.taux_horaire ? `<div class="summary-row"><span>Taux horaire</span><span>${esc(D.taux_horaire)} € / h</span></div>` : ""}
         <div class="summary-row"><span>Contexte IA</span><span>${D.contexte_ia ? "✓ Généré" : "— Non renseigné"}</span></div>
     </div>
+    <div style="margin-top:16px;padding:14px 16px;background:var(--surface-2,rgba(55,138,221,0.08));border:1px solid rgba(55,138,221,0.25);border-radius:10px;font-size:13px;line-height:1.5;color:var(--text)">
+      ⚠️ Selon votre activité, certaines mentions sont <strong>obligatoires</strong> sur vos devis et factures (RC Pro, garantie décennale pour le bâtiment). Renseignez-les dès maintenant depuis les <a href="settings.html" style="color:#378ADD;font-weight:600;text-decoration:none">paramètres</a> pour qu'elles apparaissent automatiquement sur vos documents.
+    </div>
     <button class="btn-next" onclick="location.href='home.html'" style="margin-top:20px">
       Accéder à mon espace →
     </button>

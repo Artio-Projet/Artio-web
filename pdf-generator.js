@@ -62,6 +62,14 @@ function _buildPDF(doc){
     pdf.text("RC Pro : "+doc.entreprise.rc_pro_assureur+(doc.entreprise.rc_pro_police?" — Pol. "+doc.entreprise.rc_pro_police:""),m,y);
     y+=4;
   }
+  if(doc.entreprise?.decennale_assureur){
+    pdf.text("Décennale : "+doc.entreprise.decennale_assureur+(doc.entreprise.decennale_police?" — Pol. "+doc.entreprise.decennale_police:""),m,y);
+    y+=4;
+  }
+  if(doc.entreprise?.certifications){
+    pdf.text("Certifications : "+doc.entreprise.certifications,m,y);
+    y+=4;
+  }
 
   pdf.setFontSize(20).setFont(undefined,"bold").text(doc.type==="devis"?"DEVIS":"FACTURE",rX,m,{align:"right"});
   pdf.setFontSize(10).setFont(undefined,"normal");
