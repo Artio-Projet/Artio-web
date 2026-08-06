@@ -1160,7 +1160,40 @@ function renderHistoriqueLegacy(){
 }
 
 function renderDocPreview(doc){
-  return`<div style="font-size:13px;line-height:1.7;"><div class="preview-grid"><div><p style="font-weight:500;margin-bottom:2px;">${esc(doc.entreprise.nom)}</p><p style="color:#888;font-size:12px;">${esc(doc.entreprise.adresse)}<br/>${esc(doc.entreprise.tel)} — ${esc(doc.entreprise.email)}<br/>SIRET : ${esc(doc.entreprise.siret)}</p></div><div style="text-align:right;"><p style="font-weight:500;font-size:16px;margin-bottom:2px;">${doc.type==="devis"?"DEVIS":"FACTURE"}</p><p style="color:#888;font-size:12px;">N° ${doc.docNumber}<br/>Date : ${doc.date}${doc.validUntil?"<br/>Valable jusqu'au : "+doc.validUntil:""}${doc.date_prestation?"<br/>"+(doc.type==="devis"?"Prestation prévue":"Prestation réalisée")+" : "+new Date(doc.date_prestation).toLocaleDateString("fr-FR")+(doc.heure_prestation?" à "+doc.heure_prestation+(doc.heure_fin_prestation?" → "+doc.heure_fin_prestation:""):""):""}</p></div></div><div class="divider"><p style="font-size:12px;font-weight:500;color:#888;margin-bottom:3px;">CLIENT</p><p>${esc(doc.client.nom)}<br/>${esc(doc.client.adresse)}${doc.client.tel?"<br/>Tél : "+esc(doc.client.tel):""}</p></div><div style="margin-bottom:12px;"><p style="font-size:12px;font-weight:500;color:#888;margin-bottom:3px;">DESCRIPTION DE LA PRESTATION</p><p>${esc(doc.description)}</p></div><table class="preview-table"><thead><tr><th style="text-align:left;">Description</th><th style="text-align:right;">Qté</th><th style="text-align:right;">Prix unit. HT</th><th style="text-align:right;">Total HT</th></tr></thead><tbody>${doc.nb_heures && parseFloat(doc.nb_heures) > 0 ? `<tr><td>Temps de travail (${doc.nb_heures}h × ${doc.entreprise.taux_horaire} €/h)</td><td style="text-align:right;">${doc.nb_heures}</td><td style="text-align:right;">${parseFloat(doc.entreprise.taux_horaire).toFixed(2)} €</td><td style="text-align:right;">${doc.moHT.toFixed(2)} €</td></tr>` : ''}${doc.pieces.map(p=>`<tr><td>${esc(p.description)}</td><td style="text-align:right;">${p.quantite}</td><td style="text-align:right;">${parseFloat(p.prix_unitaire).toFixed(2)} €</td><td style="text-align:right;">${(parseFloat(p.quantite)*parseFloat(p.prix_unitaire)).toFixed(2)} €</td></tr>`).join("")}</tbody></table><div style="text-align:right;font-size:13px;"><p style="margin:3px 0;color:#888;">Total HT : ${doc.totalHT.toFixed(2)} €</p>${doc.entreprise.assujetti_tva?`<p style="margin:3px 0;color:#888;">TVA (${doc.tvaRate}%) : ${doc.tva.toFixed(2)} €</p>`:`<p style="margin:3px 0;color:#888;font-size:11px;">TVA non applicable — art. 293B du CGI</p>`}<p style="margin:6px 0 0;font-weight:500;font-size:15px;">${doc.entreprise.assujetti_tva?"Total TTC":"Total"} : ${doc.ttc.toFixed(2)} €</p></div></div>`;
+  const e = doc.entreprise || {};
+  const c = doc.client || {};
+  const pieces = doc.pieces || [];
+  const num = n => (parseFloat(n)||0);
+  const eur = n => num(n).toFixed(2)+" €";
+  // Totaux : recalcul si absents (un devis créé sur mobile peut ne pas les stocker)
+  const moHT = doc.moHT != null ? num(doc.moHT)
+    : (doc.nb_heures && num(doc.nb_heures)>0 ? num(doc.nb_heures)*num(e.taux_horaire) : 0);
+  const piecesHT = pieces.reduce((s,p)=>s + num(p.quantite)*num(p.prix_unitaire), 0);
+  const totalHT = doc.totalHT != null ? num(doc.totalHT) : (moHT + piecesHT);
+  const tvaRate = doc.tvaRate != null ? doc.tvaRate : 0;
+  const tva = doc.tva != null ? num(doc.tva) : (e.assujetti_tva ? totalHT*num(tvaRate)/100 : 0);
+  const ttc = doc.ttc != null ? num(doc.ttc) : (totalHT + tva);
+
+  // Encart assurance (identique au PDF réel) — uniquement si renseigné
+  const hasIns = !!(e.rc_pro_assureur || e.decennale_assureur || e.certifications);
+  const insBox = hasIns ? `<div style="background:#f4f5f7;border-radius:6px;padding:10px 14px;margin:12px 0;font-size:11px;color:#555;">
+    ${e.rc_pro_assureur?`<p style="margin:2px 0;">RC Pro : ${esc(e.rc_pro_assureur)}${e.rc_pro_police?" — Pol. "+esc(e.rc_pro_police):""}</p>`:""}
+    ${e.decennale_assureur?`<p style="margin:2px 0;">Décennale : ${esc(e.decennale_assureur)}${e.decennale_police?" — Pol. "+esc(e.decennale_police):""}</p>`:""}
+    ${e.certifications?`<p style="margin:2px 0;">Certifications : ${esc(e.certifications)}</p>`:""}
+  </div>` : '';
+
+  const moRow = (doc.nb_heures && num(doc.nb_heures)>0)
+    ? `<tr><td>Temps de travail (${esc(doc.nb_heures)}h × ${eur(e.taux_horaire)}/h)</td><td style="text-align:right;">${esc(doc.nb_heures)}</td><td style="text-align:right;">${eur(e.taux_horaire)}</td><td style="text-align:right;">${eur(moHT)}</td></tr>`
+    : '';
+  const pieceRows = pieces.filter(p=>p.description).map(p=>
+    `<tr><td>${esc(p.description)}</td><td style="text-align:right;">${esc(p.quantite)}</td><td style="text-align:right;">${eur(p.prix_unitaire)}</td><td style="text-align:right;">${eur(num(p.quantite)*num(p.prix_unitaire))}</td></tr>`
+  ).join("");
+
+  const prestaLine = doc.date_prestation
+    ? "<br/>"+(doc.type==="devis"?"Prestation prévue":"Prestation réalisée")+" : "+new Date(doc.date_prestation).toLocaleDateString("fr-FR")+(doc.heure_prestation?" à "+esc(doc.heure_prestation)+(doc.heure_fin_prestation?" → "+esc(doc.heure_fin_prestation):""):"")
+    : "";
+
+  return`<div style="font-size:13px;line-height:1.7;"><div class="preview-grid"><div><p style="font-weight:500;margin-bottom:2px;">${esc(e.nom)}</p><p style="color:#888;font-size:12px;">${esc(e.adresse)}<br/>${esc(e.tel)} — ${esc(e.email)}${e.iban?"<br/>IBAN : "+esc(e.iban):""}</p></div><div style="text-align:right;"><p style="font-weight:500;font-size:16px;margin-bottom:2px;">${doc.type==="devis"?"DEVIS":"FACTURE"}</p><p style="color:#888;font-size:12px;">N° ${esc(doc.docNumber)}<br/>Date : ${esc(doc.date)}${doc.validUntil?"<br/>Valable jusqu'au : "+esc(doc.validUntil):""}${prestaLine}</p></div></div>${insBox}<div class="divider"><p style="font-size:12px;font-weight:500;color:#888;margin-bottom:3px;">CLIENT</p><p>${esc(c.nom)}<br/>${esc(c.adresse)}${c.tel?"<br/>Tél : "+esc(c.tel):""}</p></div><div style="margin-bottom:12px;"><p style="font-size:12px;font-weight:500;color:#888;margin-bottom:3px;">DESCRIPTION DE LA PRESTATION</p><p>${esc(doc.description)}</p></div><table class="preview-table"><thead><tr><th style="text-align:left;">Description</th><th style="text-align:right;">Qté</th><th style="text-align:right;">Prix unit. HT</th><th style="text-align:right;">Total HT</th></tr></thead><tbody>${moRow}${pieceRows}</tbody></table><div style="text-align:right;font-size:13px;"><p style="margin:3px 0;color:#888;">Total HT : ${eur(totalHT)}</p>${e.assujetti_tva?`<p style="margin:3px 0;color:#888;">TVA (${esc(tvaRate)}%) : ${eur(tva)}</p>`:`<p style="margin:3px 0;color:#888;font-size:11px;">TVA non applicable — art. 293B du CGI</p>`}<p style="margin:6px 0 0;font-weight:500;font-size:15px;">${e.assujetti_tva?"Total TTC":"Total"} : ${eur(ttc)}</p></div></div>`;
 }
 
 function _showReadonlyAlert(msg){
