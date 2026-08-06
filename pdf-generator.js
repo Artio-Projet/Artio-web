@@ -55,8 +55,6 @@ function _buildPDF(doc){
   pdf.setFontSize(9).setFont(undefined,"normal").text(doc.entreprise.adresse,m,y);y+=5;
   pdf.text("Tél : "+doc.entreprise.tel,m,y);y+=4;
   pdf.text("Email : "+doc.entreprise.email,m,y);y+=4;
-  pdf.text("SIRET : "+doc.entreprise.siret,m,y);y+=4;
-  if(doc.entreprise?.tva_intracom){pdf.text("TVA intracom. : "+doc.entreprise.tva_intracom,m,y);y+=4;}
   if(doc.entreprise?.iban){pdf.text("IBAN : "+doc.entreprise.iban,m,y);y+=4;}
 
   pdf.setFontSize(20).setFont(undefined,"bold").text(doc.type==="devis"?"DEVIS":"FACTURE",rX,m,{align:"right"});
