@@ -58,18 +58,6 @@ function _buildPDF(doc){
   pdf.text("SIRET : "+doc.entreprise.siret,m,y);y+=4;
   if(doc.entreprise?.tva_intracom){pdf.text("TVA intracom. : "+doc.entreprise.tva_intracom,m,y);y+=4;}
   if(doc.entreprise?.iban){pdf.text("IBAN : "+doc.entreprise.iban,m,y);y+=4;}
-  if(doc.entreprise?.rc_pro_assureur){
-    pdf.text("RC Pro : "+doc.entreprise.rc_pro_assureur+(doc.entreprise.rc_pro_police?" — Pol. "+doc.entreprise.rc_pro_police:""),m,y);
-    y+=4;
-  }
-  if(doc.entreprise?.decennale_assureur){
-    pdf.text("Décennale : "+doc.entreprise.decennale_assureur+(doc.entreprise.decennale_police?" — Pol. "+doc.entreprise.decennale_police:""),m,y);
-    y+=4;
-  }
-  if(doc.entreprise?.certifications){
-    pdf.text("Certifications : "+doc.entreprise.certifications,m,y);
-    y+=4;
-  }
 
   pdf.setFontSize(20).setFont(undefined,"bold").text(doc.type==="devis"?"DEVIS":"FACTURE",rX,m,{align:"right"});
   pdf.setFontSize(10).setFont(undefined,"normal");
@@ -92,6 +80,28 @@ function _buildPDF(doc){
   y=58;
   pdf.setDrawColor(...rgb).setLineWidth(0.4).line(m,y,W-m,y);
   pdf.setLineWidth(0.2);y+=8;
+
+  // ── Encart assurances / mentions légales (uniquement si renseigné) ──
+  const insLines=[];
+  if(doc.entreprise?.rc_pro_assureur){
+    insLines.push("RC Pro : "+doc.entreprise.rc_pro_assureur+(doc.entreprise.rc_pro_police?" — Pol. "+doc.entreprise.rc_pro_police:""));
+  }
+  if(doc.entreprise?.decennale_assureur){
+    insLines.push("Décennale : "+doc.entreprise.decennale_assureur+(doc.entreprise.decennale_police?" — Pol. "+doc.entreprise.decennale_police:""));
+  }
+  if(doc.entreprise?.certifications){
+    insLines.push("Certifications : "+doc.entreprise.certifications);
+  }
+  if(insLines.length){
+    const boxPadTop=3,boxPadBottom=3,lineH=4.2;
+    const boxH=boxPadTop+insLines.length*lineH+boxPadBottom;
+    pdf.setFillColor(244,245,247).rect(m,y,cW,boxH,"F");
+    let iy=y+boxPadTop+3.2;
+    pdf.setFontSize(8).setFont(undefined,"normal").setTextColor(85);
+    insLines.forEach(line=>{pdf.text(line,m+4,iy);iy+=lineH;});
+    pdf.setTextColor(0).setFontSize(9);
+    y+=boxH+6;
+  }
 
   pdf.setFontSize(9).setFont(undefined,"bold").text("CLIENT",m,y);y+=5;
   pdf.setFont(undefined,"normal").text(doc.client.nom,m,y);y+=4;
