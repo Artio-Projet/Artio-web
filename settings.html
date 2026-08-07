@@ -105,12 +105,12 @@ body::after {
   font-size:11px; font-weight:700; color: var(--amber); font-family: var(--fh);
 }
 .user-email { font-size:12px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.theme-toggle { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--surface); border:1px solid var(--border); border-radius:9px; cursor:pointer; color:var(--text); transition:all .2s; }
-.theme-toggle:hover { border-color:var(--amber); color:var(--amber); }
-.theme-toggle svg { width:15px; height:15px; }
-.theme-toggle .icon-sun { display:none; }
-[data-theme="light"] .theme-toggle .icon-sun { display:block; }
-[data-theme="light"] .theme-toggle .icon-moon { display:none; }
+/* ───────── THEME CHOICE (préférences) ───────── */
+.theme-choice-row { display:flex; gap:10px; }
+.theme-choice { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); color:var(--muted); cursor:pointer; font-size:14px; font-weight:600; font-family:inherit; transition:all .15s; }
+.theme-choice:hover { border-color:var(--amber); }
+.theme-choice.on { background:var(--amber-dim); border-color:var(--amber); color:var(--amber); }
+.theme-choice-ico { font-size:16px; }
 
 /* ───────── SIDEBAR APP ───────── */
 .sidebar-trigger{position:fixed;top:11px;left:14px;z-index:110;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .15s}
@@ -634,10 +634,6 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
       <div class="user-avatar">CD</div>
       <div class="user-email" id="topbar-email">—</div>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Thème">
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-    </button>
   </div>
 </header>
 
@@ -839,12 +835,22 @@ function show(target) {
 function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');}
 function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open');}
 
-/* ───────────── THEME TOGGLE ───────────── */
+/* ───────────── THEME ───────────── */
+function setThemeMode(mode){
+  const m = mode === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', m);
+  try{ localStorage.setItem('artio-theme', m); }catch(e){}
+  syncThemeButtons(m);
+}
+function syncThemeButtons(m){
+  document.querySelectorAll('.theme-choice').forEach(b => {
+    b.classList.toggle('on', b.getAttribute('data-theme-val') === m);
+  });
+}
+/* Rétrocompat : anciens appels toggleTheme() */
 function toggleTheme(){
   const cur = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try{ localStorage.setItem('artio-theme', next); }catch(e){}
+  setThemeMode(cur === 'dark' ? 'light' : 'dark');
 }
 
 /* ───────────── LOGOUT ───────────── */
@@ -1234,6 +1240,18 @@ function renderCompteHTML() {
       <div class="card-title-row">
         <div class="card-title">Préférences</div>
       </div>
+      <div style="margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">Thème de l'application</div>
+        <div class="theme-choice-row">
+          <button type="button" class="theme-choice" data-theme-val="light" onclick="setThemeMode('light')">
+            <span class="theme-choice-ico">☀️</span><span>Clair</span>
+          </button>
+          <button type="button" class="theme-choice" data-theme-val="dark" onclick="setThemeMode('dark')">
+            <span class="theme-choice-ico">🌙</span><span>Sombre</span>
+          </button>
+        </div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:16px 0;"></div>
       <div class="card-sub">Couleurs des événements Google Calendar selon leur statut.</div>
       <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px;">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -2407,6 +2425,9 @@ async function init() {
 
   // Tutoriel interactif — reprend automatiquement si actif
   if(window.ArtioTour) window.ArtioTour.autoStart();
+
+  // Synchronise l'état visuel des boutons de thème (Préférences)
+  try{ syncThemeButtons(document.documentElement.getAttribute('data-theme') || 'light'); }catch(e){}
 }
 
 document.addEventListener('DOMContentLoaded', init);

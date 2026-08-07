@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VD9XMYB6CS"></script>
@@ -86,17 +86,6 @@
       color: var(--text); letter-spacing: -0.02em; text-decoration: none;
     }
     .nav-logo img { width: 32px; height: 32px; display: block; }
-    .theme-toggle {
-      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
-      cursor: pointer; color: var(--text); transition: all .2s;
-    }
-    .theme-toggle:hover { border-color: var(--amber); color: var(--amber); }
-    .theme-toggle svg { width: 16px; height: 16px; }
-    .theme-toggle .icon-sun { display: none; }
-    .theme-toggle .icon-moon { display: block; }
-    [data-theme="light"] .theme-toggle .icon-sun { display: block; }
-    [data-theme="light"] .theme-toggle .icon-moon { display: none; }
     .nav-links { display: flex; gap: 32px; list-style: none; }
     .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
     .nav-links a:hover { color: var(--text); }
@@ -357,15 +346,7 @@
     /* ── REVEAL / FOOTER / TWEAKS ─────────────────── */
     .reveal { opacity:0; transform:translateY(22px); transition:opacity .65s ease,transform .65s ease; }
     .reveal.in { opacity:1; transform:translateY(0); }
-    #tweaks-panel { position:fixed; bottom:24px; right:24px; z-index:1000; background:var(--surface-2); border:1px solid var(--border-hi); border-radius:18px; padding:20px 22px; width:250px; box-shadow:0 24px 64px rgba(var(--shadow-color),.35); display:none; }
-    #tweaks-panel h3 { font-family:var(--fh); font-size:14px; font-weight:700; margin-bottom:16px; }
-    .tw-group { margin-bottom:14px; }
-    .tw-lbl { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px; }
-    .tw-opts { display:flex; gap:6px; flex-wrap:wrap; }
-    .tw-opt { padding:5px 12px; border-radius:7px; font-size:12px; font-weight:500; background:var(--surface); border:1px solid var(--border); cursor:pointer; color:var(--muted); transition:all .2s; font-family:var(--fb); }
-    .tw-opt.on { background:var(--amber); color:var(--on-accent); border-color:var(--amber); }
-    .tw-swatch { width:26px; height:26px; border-radius:50%; border:2px solid transparent; cursor:pointer; transition:all .2s; }
-    .tw-swatch.on { border-color:var(--text); transform:scale(1.15); }
+
     /* ── FOOTER ─────────────────────────────────── */
     footer { border-top:1px solid var(--border); padding:56px 48px 32px; color:var(--muted); font-size:13px; }
     .footer-inner { max-width:900px; margin:0 auto; }
@@ -485,10 +466,6 @@
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-    </button>
     <button class="btn-nav btn-nav-ghost" onclick="window.location='/login'">Se connecter</button>
     <button class="btn-nav" onclick="window.location='/login?tab=register'">S'inscrire</button>
   </div>
@@ -520,7 +497,7 @@
       <div class="hero-legal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"></polyline></svg>
         <div>
-          <div style="font-weight:700;font-size:13px;margin-bottom:3px;color:var(--text)">Solution compatible DGFIP 2026</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:3px;color:var(--text)">Solution compatible DGFiP 2026</div>
           <div style="font-size:12px;color:var(--muted)">Conforme à la réforme de facturation électronique obligatoire</div>
         </div>
       </div>
@@ -539,14 +516,13 @@
           <div class="waveform" id="waveform"></div>
           <p class="voice-caption">
             "Créer un devis pour
-            <span class="voice-name" id="vname">M. Dupont</span>
-            <span id="vactivity" class="activity-text">, un shoot photo…"</span>
+            <span class="voice-name" id="vname">M. Dupont</span><span id="vactivity" class="activity-text">, un shoot photo…"</span>
           </p>
         </div>
         <div class="arrow-bounce">↓</div>
         <div class="doc-card">
           <div class="doc-head">
-            <span class="doc-num">Devis #2024-089</span>
+            <span class="doc-num">Devis #2026-089</span>
             <span class="doc-chip">Généré par IA</span>
           </div>
           <div class="doc-lines">
@@ -864,7 +840,7 @@
       <ul class="p-feats">
         <li><span class="ck">✓</span><span>Génération devis &amp; factures par la voix</span></li>
         <li><span class="ck">✓</span><span>IA illimitée</span></li>
-        <li><span class="ck">✓</span><span>Facturation électronique — émission &amp; réception (DGFIP 2026)</span></li>
+        <li><span class="ck">✓</span><span>Facturation électronique — émission &amp; réception (DGFiP 2026)</span></li>
         <li><span class="ck">✓</span><span>Agenda &amp; annuaire clients</span></li>
         <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
       </ul>
@@ -1017,79 +993,9 @@
   </div><!-- /.footer-inner -->
 </footer>
 
-<div id="tweaks-panel">
-  <h3>Tweaks</h3>
-  <div class="tw-group">
-    <div class="tw-lbl">Thème</div>
-    <div class="tw-opts" id="tw-theme">
-      <button class="tw-opt on" onclick="setTheme('dark')">Sombre</button>
-      <button class="tw-opt" onclick="setTheme('light')">Clair</button>
-    </div>
-  </div>
-  <div class="tw-group">
-    <div class="tw-lbl">Variante Hero</div>
-    <div class="tw-opts" id="tw-hero">
-      <button class="tw-opt on" onclick="setVariant('a')">Voix</button>
-      <button class="tw-opt" onclick="setVariant('b')">Minimal</button>
-      <button class="tw-opt" onclick="setVariant('c')">Dashboard</button>
-    </div>
-  </div>
-  <div class="tw-group">
-    <div class="tw-lbl">Couleur d'accent</div>
-    <div class="tw-opts">
-      <div class="tw-swatch on" style="background:#f5a742" onclick="setAccent('#f5a742','rgba(245,167,66,0.13)','rgba(245,167,66,0.3)',this)"></div>
-      <div class="tw-swatch" style="background:#a77fe0" onclick="setAccent('#a77fe0','rgba(138,99,210,0.13)','rgba(138,99,210,0.28)',this)"></div>
-      <div class="tw-swatch" style="background:#3ecfcf" onclick="setAccent('#3ecfcf','rgba(62,207,207,0.12)','rgba(62,207,207,0.28)',this)"></div>
-      <div class="tw-swatch" style="background:#6ee7b7" onclick="setAccent('#6ee7b7','rgba(110,231,183,0.12)','rgba(110,231,183,0.28)',this)"></div>
-    </div>
-  </div>
-</div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
-  /* TWEAKS */
-  window.addEventListener('message', e => {
-    if (e.data?.type === '__activate_edit_mode')   document.getElementById('tweaks-panel').style.display = 'block';
-    if (e.data?.type === '__deactivate_edit_mode') document.getElementById('tweaks-panel').style.display = 'none';
-  });
-  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-
-  /* THEME */
-  function setTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('artio-theme', t); } catch(e) {}
-    document.querySelectorAll('#tw-theme .tw-opt').forEach((b,i) => b.classList.toggle('on', ['dark','light'][i] === t));
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { theme: t } }, '*');
-  }
-  function toggleTheme() {
-    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  }
-  (function() {
-    let s = 'light';
-    try { s = localStorage.getItem('artio-theme') || 'light'; } catch(e) {}
-    document.documentElement.setAttribute('data-theme', s);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('#tw-theme .tw-opt').forEach((b,i) => b.classList.toggle('on', ['dark','light'][i] === s));
-    });
-  })();
-
-  /* HERO VARIANTS */
-  function setVariant(v) {
-    ['a','b','c'].forEach(x => document.getElementById('hv-'+x).style.display = x===v ? 'flex' : 'none');
-    document.querySelectorAll('#tw-hero .tw-opt').forEach((b,i) => b.classList.toggle('on', ['a','b','c'][i]===v));
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { heroVariant: v } }, '*');
-  }
-
-  /* ACCENT */
-  function setAccent(col, dim, glow, el) {
-    document.documentElement.style.setProperty('--amber', col);
-    document.documentElement.style.setProperty('--amber-dim', dim);
-    document.documentElement.style.setProperty('--amber-glow', glow);
-    document.querySelectorAll('.tw-swatch').forEach(s => s.classList.remove('on'));
-    el.classList.add('on');
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { accent: col } }, '*');
-  }
-
   /* WAVEFORM */
   const wf = document.getElementById('waveform');
   [6,14,24,30,20,28,12,22,30,18,24,10,20,26,14].forEach((h,i) => {

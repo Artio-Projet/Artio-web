@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="artio-icon.png"/>
@@ -161,7 +161,7 @@
       max-width: 1160px; margin: 0 auto;
       padding: 0 48px 100px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 18px;
       align-items: start;
     }
@@ -194,80 +194,6 @@
     .panel-title { font-family: var(--fh); font-size: 16px; font-weight: 700; }
     .panel-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .panel-divider { height: 1px; background: var(--border); margin: 0 26px 20px; }
-
-    /* ── CHAT ── */
-    .chat-panel { border-color: rgba(245,167,66,.2); }
-    .chat-panel::before {
-      content: ''; display: block; height: 1px;
-      background: linear-gradient(90deg, transparent 10%, var(--amber) 50%, transparent 90%);
-    }
-    .chat-messages {
-      padding: 0 16px; height: 320px;
-      overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
-    }
-    .chat-messages::-webkit-scrollbar { width: 4px; }
-    .chat-messages::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
-    .msg {
-      display: flex; gap: 9px; align-items: flex-end;
-      animation: msgIn .25s ease both;
-    }
-    @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    .msg.user { flex-direction: row-reverse; }
-    .msg-av {
-      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800; font-family: var(--fh);
-    }
-    .msg-av.bot { background: var(--amber-dim); color: var(--amber); }
-    .msg-av.user { background: var(--surface-3); color: var(--muted); }
-    .msg-bubble {
-      max-width: 80%; padding: 10px 14px;
-      border-radius: 14px; font-size: 13.5px; line-height: 1.55;
-    }
-    .msg.bot .msg-bubble {
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-bottom-left-radius: 4px; color: var(--text);
-    }
-    .msg.user .msg-bubble {
-      background: var(--amber); color: #080b14;
-      border-bottom-right-radius: 4px; font-weight: 500;
-    }
-    .msg-time { font-size: 10px; color: var(--muted); padding: 0 4px; }
-    .typing-dots { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
-    .typing-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
-      animation: tdot 1.2s ease-in-out infinite;
-    }
-    .typing-dot:nth-child(2) { animation-delay: .2s; }
-    .typing-dot:nth-child(3) { animation-delay: .4s; }
-    @keyframes tdot { 0%,60%,100% { transform:translateY(0); opacity:.4; } 30% { transform:translateY(-5px); opacity:1; } }
-
-    .chat-footer { padding: 16px; border-top: 1px solid var(--border); }
-    .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .chat-sug {
-      padding: 5px 12px; border-radius: 100px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      font-size: 12px; color: var(--muted); cursor: pointer;
-      transition: all .2s; font-family: var(--fb);
-    }
-    .chat-sug:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
-    .chat-input-row { display: flex; gap: 8px; }
-    .chat-input {
-      flex: 1; padding: 10px 14px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-family: var(--fb); font-size: 14px;
-      outline: none; transition: border-color .2s;
-    }
-    .chat-input:focus { border-color: var(--amber); }
-    .chat-input::placeholder { color: var(--muted); }
-    .chat-send {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--amber); border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: opacity .2s, transform .15s;
-    }
-    .chat-send:hover { opacity: .85; transform: scale(1.05); }
-    .chat-send:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
     /* ── CONTACT ── */
     .contact-body { padding: 0 26px 26px; display: flex; flex-direction: column; gap: 14px; }
@@ -462,13 +388,6 @@
   
     /* ── FOOTER LÉGAL ── */
 
-.theme-toggle { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--surface); border:1px solid var(--border); border-radius:9px; cursor:pointer; color:var(--text); transition:all .2s; flex-shrink:0; }
-.theme-toggle:hover { border-color:var(--amber); color:var(--amber); }
-.theme-toggle svg { width:15px; height:15px; }
-.theme-toggle .icon-sun { display:none; }
-.theme-toggle .icon-moon { display:block; }
-[data-theme="light"] .theme-toggle .icon-sun { display:block; }
-[data-theme="light"] .theme-toggle .icon-moon { display:none; }
 .nav-logo { display:inline-flex !important; align-items:center; gap:8px; }
 .nav-logo img { width:28px; height:28px; display:block; flex-shrink:0; }
 
@@ -497,10 +416,6 @@
 .sidebar-sep{height:1px;background:var(--border);margin:8px 12px}
 .sidebar-logout{color:#f87171}
 .sidebar-foot{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
-.sidebar-theme-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center}
-.sidebar-theme-btn .icon-sun{display:none}
-[data-theme="dark"] .sidebar-theme-btn .icon-moon{display:none}
-[data-theme="dark"] .sidebar-theme-btn .icon-sun{display:inline-block}
 @media(max-width:767px){.sidebar.open{width:100%}}
 
 /* ── Sidebar réservée aux utilisateurs connectés ──
@@ -513,12 +428,8 @@ body.is-authed .sidebar { display:flex; }
 body.is-authed .sidebar-overlay { display:block; }
 </style>
 <script>
-  /* ── THEME INIT (head) ── */
-  (function(){
-    let t='light';
-    try{t=localStorage.getItem('artio-theme')||'light';}catch(e){}
-    document.documentElement.setAttribute('data-theme',t);
-  })();
+  /* ── THEME (figé en clair) ── */
+  document.documentElement.setAttribute('data-theme','light');
 </script>
 </head>
 <body>
@@ -535,9 +446,9 @@ body.is-authed .sidebar-overlay { display:block; }
   </div>
   <nav class="sidebar-nav">
     <a href="home.html" class="sidebar-link">🏠 Accueil</a>
-    <a href="app.html" class="sidebar-link">🎙 Creer</a>
+    <a href="app.html" class="sidebar-link">🎙 Créer</a>
     <a href="dossiers.html" class="sidebar-link">📁 Dossiers</a>
-    <a href="rediger.html" class="sidebar-link">✉️ Rediger</a>
+    <a href="rediger.html" class="sidebar-link">✉️ Rédiger</a>
     <a href="clients.html" class="sidebar-link">👥 Clients</a>
     <a href="dashboard.html" class="sidebar-link">📊 Tableau de bord</a>
     <a href="calendar.html" class="sidebar-link">📅 Calendrier</a>  </nav>
@@ -546,10 +457,6 @@ body.is-authed .sidebar-overlay { display:block; }
     <a href="settings.html" class="sidebar-link">⚙️ Paramètres</a>
     <div class="sidebar-sep" style="margin:4px 0;"></div>
     <button class="sidebar-link sidebar-logout" onclick="_sidebarLogout()">↪ Déconnexion</button>
-    <button class="sidebar-theme-btn" onclick="toggleTheme()" title="Thème" style="margin-top:8px;align-self:flex-end;">
-      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
   </div>
 </aside>
 
@@ -581,50 +488,6 @@ body.is-authed .sidebar-overlay { display:block; }
 <!-- MAIN GRID -->
 <div class="main-grid">
 
-  <!-- ① CHAT IA -->
-  <div class="panel chat-panel">
-    <div class="panel-head">
-      <div class="panel-icon amber">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
-      <div>
-        <div class="panel-title">Chat IA</div>
-        <div class="panel-sub">Réponse instantanée, 24h/24</div>
-      </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);">
-        <div class="status-dot" style="width:6px;height:6px;flex-shrink:0;"></div> En ligne
-      </div>
-    </div>
-    <div class="panel-divider"></div>
-
-    <div class="chat-messages" id="chat-messages">
-      <div class="msg bot">
-        <div class="msg-av bot">A</div>
-        <div>
-          <div class="msg-bubble">Bonjour ! Je suis Artio IA. Comment puis-je vous aider aujourd'hui ?</div>
-          <div class="msg-time">maintenant</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="chat-footer">
-      <div class="chat-suggestions" id="chat-suggestions">
-        <button class="chat-sug" onclick="sendSuggestion(this)">Créer un devis</button>
-        <button class="chat-sug" onclick="sendSuggestion(this)">Signature électronique</button>
-        <button class="chat-sug" onclick="sendSuggestion(this)">Problème de connexion</button>
-        <button class="chat-sug" onclick="sendSuggestion(this)">Facturation e-pro</button>
-      </div>
-      <div class="chat-input-row">
-        <input class="chat-input" type="text" placeholder="Posez votre question…" id="chat-input" autocomplete="off">
-        <button class="chat-send" id="chat-send" onclick="sendMessage()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#080b14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ② CONTACT -->
   <div class="panel">
     <div class="panel-head">
@@ -636,7 +499,7 @@ body.is-authed .sidebar-overlay { display:block; }
       </div>
       <div>
         <div class="panel-title">Nous contacter</div>
-        <div class="panel-sub">Réponse sous 24h ouvrées</div>
+        <div class="panel-sub">Réponse sous 48h ouvrées</div>
       </div>
     </div>
     <div class="panel-divider"></div>
@@ -668,7 +531,7 @@ body.is-authed .sidebar-overlay { display:block; }
       </div>
       <div class="contact-note">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Réponse garantie sous 24h en jours ouvrés
+        Réponse sous 48h ouvrées
       </div>
       <button class="contact-submit" onclick="submitContact()">Envoyer le message</button>
     </div>
@@ -676,7 +539,7 @@ body.is-authed .sidebar-overlay { display:block; }
     <div class="success-state" id="contact-success">
       <div class="success-icon">✓</div>
       <div class="success-title">Message envoyé !</div>
-      <div class="success-sub">Nous vous répondrons sous 24h à l'adresse indiquée.</div>
+      <div class="success-sub">Nous vous répondrons sous 48h à l'adresse indiquée.</div>
       <button onclick="resetContact()" style="margin-top:8px;padding:9px 20px;border-radius:9px;border:1px solid var(--border-hi);background:transparent;color:var(--muted);font-family:var(--fb);font-size:13px;cursor:pointer;">Envoyer un autre message</button>
     </div>
   </div>
@@ -702,7 +565,7 @@ body.is-authed .sidebar-overlay { display:block; }
       <div class="docs-top-banner-icon">🎓</div>
       <div class="docs-top-banner-text">
         <strong>Tutoriel interactif Artio</strong>
-        <span>Découvre toutes les fonctionnalités en 2 minutes, guidé pas à pas directement dans l'application.</span>
+        <span>Découvrez toutes les fonctionnalités en 2 minutes, guidé pas à pas directement dans l'application.</span>
       </div>
       <a href="home.html?tour=restart" class="docs-top-banner-btn">Lancer →</a>
     </div>
@@ -881,116 +744,6 @@ searchInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') { searchResults.classList.remove('visible'); searchInput.blur(); }
 });
 
-// ── CHAT ────────────────────────────────────────────
-const ANSWERS = {
-  default: "Je comprends votre question. Pour vous aider au mieux, pouvez-vous préciser le contexte ? Notre équipe est aussi disponible via le formulaire de contact.",
-  "devis": "Pour créer un devis vocal : ouvrez l'onglet **Devis** dans l'app, cliquez sur le micro, et dictez les infos du client et la prestation. Artio génère le document en moins de 30 secondes !",
-  "signature": "La signature électronique s'active depuis un devis généré : cliquez sur ✍️ Signature. Un lien sécurisé est envoyé au client, valable 72h. Le client reçoit un code OTP par email pour s'authentifier avant de signer.",
-  "connexion": "Si vous ne pouvez pas vous connecter, vérifiez d'abord votre email de confirmation. Vous pouvez aussi réinitialiser votre mot de passe depuis la page de connexion.",
-  "facturation": "Artio est **Solution Compatible** avec la réforme DGFiP 2026. La facturation électronique Pro se configure dans Paramètres → Mon entreprise → Token FactPulse.",
-  "gmail": "Pour connecter Gmail : allez dans Paramètres → Gmail → cliquez sur \"Connecter Gmail\" et autorisez l'accès depuis Google. Un guide complet est disponible dans la documentation.",
-};
-
-function getAnswer(msg) {
-  const m = msg.toLowerCase();
-  if (m.includes('devis') || m.includes('vocal') || m.includes('voix')) return ANSWERS.devis;
-  if (m.includes('sign')) return ANSWERS.signature;
-  if (m.includes('connect') || m.includes('connexion') || m.includes('mot de passe')) return ANSWERS.connexion;
-  if (m.includes('factur') || m.includes('dgfip') || m.includes('électronique')) return ANSWERS.facturation;
-  if (m.includes('gmail') || m.includes('email') || m.includes('mail')) return ANSWERS.gmail;
-  return ANSWERS.default;
-}
-
-const messagesEl = document.getElementById('chat-messages');
-const chatInput = document.getElementById('chat-input');
-const chatSend = document.getElementById('chat-send');
-
-function now() {
-  return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function addMessage(text, role) {
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  div.innerHTML = role === 'bot'
-    ? `<div class="msg-av bot">A</div><div><div class="msg-bubble">${formatted}</div><div class="msg-time">${now()}</div></div>`
-    : `<div class="msg-av user">Vous</div><div><div class="msg-bubble">${formatted}</div><div class="msg-time">${now()}</div></div>`;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function showTyping() {
-  const div = document.createElement('div');
-  div.className = 'msg bot'; div.id = 'typing-indicator';
-  div.innerHTML = `<div class="msg-av bot">A</div><div class="msg-bubble" style="padding:12px 14px;"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function removeTyping() {
-  const t = document.getElementById('typing-indicator');
-  if (t) t.remove();
-}
-
-async function sendMessage() {
-  const msg = chatInput.value.trim();
-  if (!msg) return;
-  chatInput.value = '';
-  chatSend.disabled = true;
-  document.getElementById('chat-suggestions').style.display = 'none';
-  addMessage(msg, 'user');
-  showTyping();
-  
-  let answer;
-  
-  // Si clé API disponible, appeler Claude
-  if (userToken) {
-    try {
-      const res = await fetch(FUNCTIONS_URL + "/claude-proxy", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + userToken
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          feature: "aide",
-          max_tokens: 512,
-          messages: [{
-            role: "user",
-            content: `Tu es l'assistant IA d'Artio, une app d'administration pour artisans et indépendants français. Réponds de façon concise (2-3 phrases max) et utile à cette question : "${msg}". Réponds en français, sois bienveillant et pratique.`
-          }]
-        })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        answer = data.content?.[0]?.text || getAnswer(msg);
-      } else {
-        answer = getAnswer(msg);
-      }
-    } catch(e) {
-      console.warn("Erreur Claude:", e.message);
-      answer = getAnswer(msg);
-    }
-  } else {
-    // Fallback: réponses locales
-    answer = getAnswer(msg);
-  }
-  
-  removeTyping();
-  addMessage(answer, 'bot');
-  chatSend.disabled = false;
-}
-
-function sendSuggestion(btn) {
-  chatInput.value = btn.textContent;
-  sendMessage();
-}
-
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
-
 // ── CONTACT ─────────────────────────────────────────
 async function submitContact() {
   const inputs = document.querySelectorAll('.field-input, .field-select, .field-textarea');
@@ -1025,7 +778,7 @@ async function submitContact() {
       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
         <div style="font-size:32px">✓</div>
         <div style="font-family:var(--fh);font-size:16px;font-weight:700">Message envoyé !</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.6">Merci pour votre message. Nous vous répondrons dans les 24h.</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6">Merci pour votre message. Nous vous répondrons sous 48h.</div>
         <button onclick="resetContact()" style="margin-top:12px;padding:8px 16px;background:var(--amber);border:none;border-radius:8px;color:#080b14;font-weight:600;cursor:pointer;">Fermer</button>
       </div>
     `;
@@ -1395,12 +1148,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticle
   function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open');}
   function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open');}
   async function _sidebarLogout(){await sb.auth.signOut();location.href='index.html';}
-  function toggleTheme(){
-    const cur=document.documentElement.getAttribute('data-theme')||'dark';
-    const next=cur==='dark'?'light':'dark';
-    document.documentElement.setAttribute('data-theme',next);
-    try{localStorage.setItem('artio-theme',next);}catch(e){}
-  }
 </script>
 </body>
 </html>

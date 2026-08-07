@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VD9XMYB6CS"></script>
@@ -422,26 +422,6 @@
     .reveal { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s ease; }
     .reveal.in { opacity: 1; transform: translateY(0); }
 
-    /* ── TWEAKS ──────────────────────────────────── */
-    #tweaks-panel {
-      position: fixed; bottom: 24px; right: 24px; z-index: 1000;
-      background: var(--surface-2); border: 1px solid var(--border-hi);
-      border-radius: 18px; padding: 20px 22px; width: 250px;
-      box-shadow: 0 24px 64px rgba(0,0,0,.55); display: none;
-    }
-    #tweaks-panel h3 { font-family: var(--fh); font-size: 14px; font-weight: 700; margin-bottom: 16px; }
-    .tw-group { margin-bottom: 14px; }
-    .tw-lbl { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
-    .tw-opts { display: flex; gap: 6px; flex-wrap: wrap; }
-    .tw-opt {
-      padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500;
-      background: var(--surface); border: 1px solid var(--border);
-      cursor: pointer; color: var(--muted); transition: all .2s; font-family: var(--fb);
-    }
-    .tw-opt.on { background: var(--amber); color: #080b14; border-color: var(--amber); }
-    .tw-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all .2s; }
-    .tw-swatch.on { border-color: white; transform: scale(1.15); }
-
     @media (max-width: 860px) {
       nav { padding: 0 20px; }
       .nav-links { display: none; }
@@ -499,18 +479,6 @@
       .ts-bottom { grid-template-columns: 1fr; }
     }
   
-    /* ── THEME TOGGLE ─────────────────────────────── */
-    .theme-toggle {
-      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
-      cursor: pointer; color: var(--text); transition: all .2s; flex-shrink: 0;
-    }
-    .theme-toggle:hover { border-color: var(--amber); color: var(--amber); }
-    .theme-toggle svg { width: 16px; height: 16px; }
-    .theme-toggle .icon-sun { display: none; }
-    .theme-toggle .icon-moon { display: block; }
-    [data-theme="light"] .theme-toggle .icon-sun { display: block; }
-    [data-theme="light"] .theme-toggle .icon-moon { display: none; }
 
     /* ── LIGHT MODE OVERRIDES ─────────────────────── */
     [data-theme="light"] nav {
@@ -592,10 +560,6 @@
     <li><a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème" title="Changer de thème">
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-    </button>
     <button class="btn-login" onclick="window.location='/login'" data-fr="Se connecter" data-en="Log in">Se connecter</button>
     <button class="btn-nav" onclick="window.location='/login'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
   </div>
@@ -626,7 +590,7 @@
       <div class="hero-legal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
         <div>
-          <div style="font-weight: 700; font-size: 13px; margin-bottom: 3px; color: var(--text);" data-fr="Solution compatible DGFIP 2026" data-en="Compatible solution DGFIP 2026">Solution compatible DGFIP 2026</div>
+          <div style="font-weight: 700; font-size: 13px; margin-bottom: 3px; color: var(--text);" data-fr="Solution compatible DGFiP 2026" data-en="Compatible solution DGFiP 2026">Solution compatible DGFiP 2026</div>
           <div style="font-size: 12px; color: var(--muted);" data-fr="Conforme à la réforme de facturation électronique obligatoire" data-en="Compliant with mandatory e-invoicing reform">Conforme à la réforme de facturation électronique obligatoire</div>
         </div>
       </div>
@@ -652,7 +616,7 @@
         <div class="arrow-bounce">↓</div>
         <div class="doc-card">
           <div class="doc-head">
-            <span class="doc-num" data-fr="Devis #2024-089" data-en="Quote #2024-089">Devis #2024-089</span>
+            <span class="doc-num" data-fr="Devis #2026-089" data-en="Quote #2026-089">Devis #2026-089</span>
             <span class="doc-chip" data-fr="Généré par IA" data-en="AI Generated">Généré par IA</span>
           </div>
           <div class="doc-lines">
@@ -1131,35 +1095,8 @@
 </footer>
 
 <!-- TWEAKS -->
-<div id="tweaks-panel">
-  <h3>Tweaks</h3>
-  <div class="tw-group">
-    <div class="tw-lbl" data-fr="Variante Hero" data-en="Hero Variant">Variante Hero</div>
-    <div class="tw-opts" id="tw-hero">
-      <button class="tw-opt on" onclick="setVariant('a')" data-fr="Voix" data-en="Voice">Voix</button>
-      <button class="tw-opt" onclick="setVariant('b')">Minimal</button>
-      <button class="tw-opt" onclick="setVariant('c')">Dashboard</button>
-    </div>
-  </div>
-  <div class="tw-group">
-    <div class="tw-lbl" data-fr="Couleur d'accent" data-en="Accent color">Couleur d'accent</div>
-    <div class="tw-opts">
-      <div class="tw-swatch on" style="background:#f5a742" onclick="setAccent('#f5a742','rgba(245,167,66,0.13)','rgba(245,167,66,0.3)',this)" title="Amber"></div>
-      <div class="tw-swatch" style="background:#a77fe0" onclick="setAccent('#a77fe0','rgba(138,99,210,0.13)','rgba(138,99,210,0.28)',this)" title="Violet"></div>
-      <div class="tw-swatch" style="background:#3ecfcf" onclick="setAccent('#3ecfcf','rgba(62,207,207,0.12)','rgba(62,207,207,0.28)',this)" title="Teal"></div>
-      <div class="tw-swatch" style="background:#6ee7b7" onclick="setAccent('#6ee7b7','rgba(110,231,183,0.12)','rgba(110,231,183,0.28)',this)" title="Mint"></div>
-    </div>
-  </div>
-</div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  /* ── TWEAKS PROTOCOL ── */
-  window.addEventListener('message', e => {
-    if (e.data?.type === '__activate_edit_mode') document.getElementById('tweaks-panel').style.display = 'block';
-    if (e.data?.type === '__deactivate_edit_mode') document.getElementById('tweaks-panel').style.display = 'none';
-  });
-  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-
   /* ── LANG ── */
   let lang = 'fr';
   function setLang(l) {
@@ -1169,23 +1106,6 @@
     const activeBtn = document.querySelector('.lang-btn[onclick="setLang(\'' + l + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
     document.documentElement.lang = l;
-  }
-
-  /* ── HERO VARIANTS ── */
-  function setVariant(v) {
-    ['a','b','c'].forEach(x => document.getElementById('hv-' + x).style.display = x === v ? 'flex' : 'none');
-    document.querySelectorAll('#tw-hero .tw-opt').forEach((b, i) => b.classList.toggle('on', ['a','b','c'][i] === v));
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { heroVariant: v } }, '*');
-  }
-
-  /* ── ACCENT COLOR ── */
-  function setAccent(col, dim, glow, el) {
-    document.documentElement.style.setProperty('--amber', col);
-    document.documentElement.style.setProperty('--amber-dim', dim);
-    document.documentElement.style.setProperty('--amber-glow', glow);
-    document.querySelectorAll('.tw-swatch').forEach(s => s.classList.remove('on'));
-    el.classList.add('on');
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { accent: col } }, '*');
   }
 
   /* ── WAVEFORM ── */
@@ -1285,15 +1205,6 @@
     }
     // Rafraîchit les autres éléments data-fr/data-en sans toucher aux lang-btn
     document.querySelectorAll('[data-' + lang + ']').forEach(el => el.innerHTML = el.getAttribute('data-' + lang));
-  }
-</script>
-<script>
-  /* ── THEME TOGGLE ── */
-  function toggleTheme(){
-    const cur=document.documentElement.getAttribute('data-theme')||'light';
-    const next=cur==='dark'?'light':'dark';
-    document.documentElement.setAttribute('data-theme',next);
-    try{localStorage.setItem('artio-theme',next);}catch(e){}
   }
 </script>
 </body>

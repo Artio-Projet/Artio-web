@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="artio-icon.png"/>
@@ -295,13 +295,6 @@
       .contact-info { flex-direction: column; }
     }
   
-.theme-toggle { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--surface); border:1px solid var(--border); border-radius:9px; cursor:pointer; color:var(--text); transition:all .2s; flex-shrink:0; }
-.theme-toggle:hover { border-color:var(--amber); color:var(--amber); }
-.theme-toggle svg { width:15px; height:15px; }
-.theme-toggle .icon-sun { display:none; }
-.theme-toggle .icon-moon { display:block; }
-[data-theme="light"] .theme-toggle .icon-sun { display:block; }
-[data-theme="light"] .theme-toggle .icon-moon { display:none; }
 .nav-logo { display:inline-flex !important; align-items:center; gap:8px; }
 .nav-logo img { width:28px; height:28px; display:block; flex-shrink:0; }
 
@@ -313,12 +306,8 @@
 }
 </style>
 <script>
-  /* ── THEME INIT (head) ── */
-  (function(){
-    let t='light';
-    try{t=localStorage.getItem('artio-theme')||'light';}catch(e){}
-    document.documentElement.setAttribute('data-theme',t);
-  })();
+  /* ── THEME (figé en clair) ── */
+  document.documentElement.setAttribute('data-theme','light');
 </script>
 </head>
 <body>
@@ -390,7 +379,7 @@
     <div class="contact-success" id="contact-success">
       <div class="success-icon">✓</div>
       <div class="success-title">Message envoyé !</div>
-      <p class="success-sub">Merci pour votre message. Notre équipe vous répondra dans les 24h à l'adresse indiquée.</p>
+      <p class="success-sub">Merci pour votre message. Notre équipe vous répondra sous 48h à l'adresse indiquée.</p>
       <a class="btn-back" href="index.html">Retour à l'accueil</a>
     </div>
 
@@ -448,18 +437,6 @@
     }
   }
 
-  /* ── THEME ── */
-  function toggleTheme() {
-    const cur = document.documentElement.getAttribute('data-theme') || 'light';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('artio-theme', next); } catch(e) {}
-  }
-  (function initTheme() {
-    let saved = 'light';
-    try { saved = localStorage.getItem('artio-theme') || 'light'; } catch(e) {}
-    document.documentElement.setAttribute('data-theme', saved);
-  })();
 </script>
 <style>
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
