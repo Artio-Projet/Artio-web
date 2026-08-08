@@ -4,9 +4,17 @@
   <!-- Landing page — priorité maximale -->
   <url>
     <loc>https://monartio.fr/</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+
+  <!-- Aide — contenu utile, indexable -->
+  <url>
+    <loc>https://monartio.fr/aide.html</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- Roadmap publique -->
@@ -14,7 +22,7 @@
     <loc>https://monartio.fr/roadmap.html</loc>
     <lastmod>2026-06-20</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
 
   <!-- Contact -->

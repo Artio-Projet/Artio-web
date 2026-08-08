@@ -10,6 +10,7 @@
     gtag('config', 'G-VD9XMYB6CS');
   </script>
   <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
   <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Artio — Accueil</title>
@@ -141,7 +142,8 @@
     [data-theme="light"] .theme-toggle .icon-moon { display:none; }
 
     /* ── SIDEBAR ── */
-    .sidebar-trigger{position:fixed;top:11px;left:14px;z-index:110;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .15s}
+    .sidebar-trigger{position:fixed;top:11px;left:14px;z-index:110;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:none;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .15s}
+    .sidebar-trigger.visible{display:flex}
     .sidebar-trigger:hover{background:var(--surface-3)}
     .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:120;opacity:0;pointer-events:none;transition:opacity .2s}
     .sidebar-overlay.open{opacity:1;pointer-events:auto}
@@ -832,6 +834,10 @@ function updateTodayDate() {
     document.getElementById('user-chip').style.display = 'flex';
     document.getElementById('greeting-name').textContent = profil?.pseudo?.trim() || email.split('@')[0];
     document.getElementById('nav-auth').style.display = 'flex';
+    // La sidebar (menu latéral) n'a de sens que pour l'utilisateur connecté :
+    // en mode guest, ses liens redirigent vers login sans contexte, ce qui
+    // désoriente (bug remonté : sidebar visible sur home.html en accès public).
+    document.querySelector('.sidebar-trigger')?.classList.add('visible');
 
     // Compteur des pièces de dépense en attente de transmission, repris
     // plus bas dans la pastille contextuelle.

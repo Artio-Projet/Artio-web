@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+
+# Pages internes (espace connecté) — ne pas indexer
+Disallow: /home
+Disallow: /home.html
+Disallow: /app
+Disallow: /app.html
+Disallow: /dossiers.html
+Disallow: /clients
+Disallow: /clients.html
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /calendar
+Disallow: /calendar.html
+Disallow: /comptabilite.html
+Disallow: /rediger.html
+Disallow: /rediger_complet.html
+Disallow: /settings
+Disallow: /settings.html
+Disallow: /profil
+Disallow: /profil.html
+Disallow: /onboarding.html
+Disallow: /login
+Disallow: /login.html
+Disallow: /reset-password.html
+Disallow: /sign
+Disallow: /sign.html
+Disallow: /admin.html
+Disallow: /test.html
+Disallow: /meet.html
+
+Sitemap: https://monartio.fr/sitemap.xml
