@@ -54,7 +54,7 @@
       desc:"Voici le menu latéral, ouvert pour toi.<br><br>Tu y trouveras toutes les sections d'Artio : Créer, Dossiers, Rédiger, Clients, Tableau de bord, Calendrier, Paramètres…<br><br>Il s'ouvre depuis n'importe quelle page via l'icône <strong>☰</strong> en haut à gauche.",
       mobileDesc:"Toutes les sections d'Artio sont dans le menu latéral : Créer, Dossiers, Rédiger, Clients, Tableau de bord, Calendrier, Paramètres…<br><br>Appuie sur l'icône <strong>☰</strong> encadrée en haut à gauche pour l'ouvrir, jette un œil, puis referme-la et continue.",
       target:".sidebar", pos:"right",
-      mobileTarget:".sidebar-trigger", mobilePos:"bottom",
+      mobileTarget:".sidebar-trigger", mobilePos:"bottom", menuStep:true,
       onEnter: _openSidebar,
       onLeave: _closeSidebar
     },
@@ -330,6 +330,52 @@
     el.addEventListener('click', _forceClickHandler, true);
   }
 
+  // ── Menu step (mobile) : à l'ouverture du menu, on cache la carte tutoriel
+  //    (elle masquerait le menu plein écran) ; à la fermeture (croix ✕ ou
+  //    overlay), on la ré-affiche. L'utilisateur voit donc réellement le menu.
+  let _menuStepListeners = [];
+  function _detachMenuStep(){
+    _menuStepListeners.forEach(function(l){
+      try { l.el.removeEventListener(l.type, l.fn, true); } catch(e){}
+    });
+    _menuStepListeners = [];
+  }
+  function _hideCardForMenu(){
+    const card = document.getElementById('tour-card');
+    if(card){ card.style.opacity = '0'; card.style.pointerEvents = 'none'; }
+    // On efface le voile (backdrop + spotlight) pour voir le menu en clair.
+    const bd = document.getElementById('artio-tour-backdrop');
+    if(bd){ bd.dataset.peekPrev = bd.className; bd.classList.remove('active'); }
+    const sp = document.getElementById('artio-tour-spotlight');
+    if(sp){ sp.style.visibility = 'hidden'; }
+  }
+  function _showCardAfterMenu(){
+    const sp = document.getElementById('artio-tour-spotlight');
+    if(sp){ sp.style.visibility = ''; }
+    const card = document.getElementById('tour-card');
+    if(card){ card.style.pointerEvents = ''; }
+    // Re-render pour repositionner proprement la carte sur le bouton ☰
+    // (ré-active aussi le backdrop via le flux normal de _position).
+    if(state.active) _render();
+  }
+  function _attachMenuStep(){
+    _detachMenuStep();
+    const trigger = document.querySelector('.sidebar-trigger');
+    const closeBtn = document.querySelector('.sidebar-close');
+    const overlay  = document.querySelector('.sidebar-overlay');
+    if(trigger){
+      const fn = function(){ _hideCardForMenu(); };
+      trigger.addEventListener('click', fn, true);
+      _menuStepListeners.push({ el: trigger, type: 'click', fn: fn });
+    }
+    [closeBtn, overlay].forEach(function(el){
+      if(!el) return;
+      const fn = function(){ setTimeout(_showCardAfterMenu, 60); };
+      el.addEventListener('click', fn, true);
+      _menuStepListeners.push({ el: el, type: 'click', fn: fn });
+    });
+  }
+
   // ── Tracking scroll/resize ──
   let _activeTargets = null;
   let _activePos = null;
@@ -427,6 +473,9 @@
   }
 
   function _position(card, primaryEl, pos, allTargets){
+    // Reset des contraintes de hauteur d'un éventuel rendu mobile précédent.
+    card.style.maxHeight = '';
+    card.style.overflowY = '';
     if(!primaryEl || pos === 'center'){
       _showFlatBackdrop();
       card.style.top = '50%';
@@ -458,10 +507,62 @@
     const rect = anchorRect;
     const vw = window.innerWidth, vh = window.innerHeight;
     const cw = Math.min(340, vw - 24);
-    const ch = card.offsetHeight || 260;
     const gap = isMobile ? 16 : 24;
     card.style.transform = '';
     card.style.position = 'fixed';
+
+    // ── MOBILE : moitié pour la cible, moitié pour la carte (jamais de recouvrement).
+    if(isMobile && pos !== 'right' && pos !== 'left'){
+      // Réinitialise toute contrainte de hauteur d'un rendu précédent.
+      card.style.maxHeight = '';
+      card.style.overflowY = '';
+
+      const targetMid = rect.top + rect.height / 2;
+      // La cible est-elle plutôt en haut ou en bas de l'écran ?
+      const targetInTopHalf = targetMid < vh / 2;
+      // La carte va dans la moitié OPPOSÉE à la cible.
+      const placeAbove = !targetInTopHalf;
+
+      // Espace vertical disponible dans la moitié réservée à la carte.
+      let avail;
+      if(placeAbove){
+        // Carte au-dessus de la cible : de 12px jusqu'au haut de la cible - gap.
+        avail = rect.top - gap - 12;
+      } else {
+        // Carte en dessous : du bas de la cible + gap jusqu'à 12px du bas d'écran.
+        avail = vh - (rect.bottom + gap) - 12;
+      }
+      avail = Math.max(120, avail); // garde-fou : jamais moins de 120px
+
+      let ch = card.offsetHeight || 260;
+      // Si la carte est trop haute pour sa moitié, on la rend scrollable.
+      if(ch > avail){
+        card.style.maxHeight = avail + 'px';
+        card.style.overflowY = 'auto';
+        ch = avail;
+      }
+
+      let topVal;
+      if(placeAbove){
+        topVal = rect.top - gap - ch;
+      } else {
+        topVal = rect.bottom + gap;
+      }
+      // Sécurité : rester dans l'écran sans jamais empiéter sur la cible.
+      topVal = Math.max(12, topVal);
+      if(placeAbove && topVal + ch > rect.top - gap){
+        topVal = Math.max(12, rect.top - gap - ch);
+      }
+      card.style.top = topVal + 'px';
+
+      let leftVal = rect.left + rect.width / 2 - cw / 2;
+      leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
+      card.style.left = leftVal + 'px';
+      card.style.opacity = '1';
+      return;
+    }
+
+    const ch = card.offsetHeight || 260;
 
     if(pos === 'right' || pos === 'left'){
       let leftVal;
@@ -518,15 +619,20 @@
     // que d'avancer le step. En phase 2, spotlight + forceClick normal.
     const twoPhase = mobile && !!step.mobileTwoPhase;
     const inPhase1 = twoPhase && _mobilePhase1;
+    const inPhase2 = twoPhase && !_mobilePhase1; // phase 2 = mini-carte forceClick
 
     // Cible et position : versions mobiles si fournies.
     let effTarget = (mobile && step.mobileTarget) ? step.mobileTarget : step.target;
     let effPos    = (mobile && step.mobilePos) ? step.mobilePos : step.pos;
     // En phase 1, pas de cible : carte centrée, aucun spotlight gênant.
     if(inPhase1){ effTarget = null; effPos = 'center'; }
+    // En phase 2, on ne cible QUE le bouton "remplir manuellement" (jamais l'orbe),
+    // pour ne pas relancer une dictée vocale.
+    if(inPhase2){ effTarget = step.forceClick; effPos = 'top'; }
 
-    // Texte : version mobile si fournie.
-    const effDesc = (mobile && step.mobileDesc) ? step.mobileDesc : step.desc;
+    // Texte : version mobile si fournie. En phase 2, pas de gros texte du tout
+    // (mini-carte : seule l'instruction forceClick est affichée plus bas).
+    const effDesc = inPhase2 ? '' : ((mobile && step.mobileDesc) ? step.mobileDesc : step.desc);
 
     const targetEls = [];
     if(effTarget){
@@ -579,9 +685,9 @@
       nextBlock = '<div class="tour-actions">' + prevBtn + nextBtn + '</div>';
     }
 
-    // L'action "Pré-remplir un exemple" n'a pas de sens en phase 1 (on n'a pas
-    // encore montré où agir) : on la masque tant qu'on est en phase 1.
-    if(inPhase1) actionBtn = '';
+    // L'action "Pré-remplir un exemple" n'a de sens ni en phase 1 (on n'a pas
+    // encore montré où agir) ni en phase 2 (mini-carte épurée) : on la masque.
+    if(inPhase1 || inPhase2) actionBtn = '';
 
     const skipBtn = state.step < TOUR_STEPS.length - 1
       ? '<button class="tour-btn-skip" onclick="window.ArtioTour.end()">Quitter le tutoriel (Échap)</button>'
@@ -611,14 +717,17 @@
     _activePos = effPos;
     _activePrimary = primaryEl;
 
-    // onEnter (ex : afficher l'orbe) : on le saute en phase 1 pour ne pas
-    // ré-illuminer l'orbe pendant que la carte-texte est centrée.
-    const hasOnEnter = !!step.onEnter && !inPhase1;
+    // onEnter (ex : afficher l'orbe) : on saute son délai en phase 1 ET phase 2
+    // (l'orbe n'est jamais (ré)affiché dans le mode 2 temps mobile).
+    const hasOnEnter = !!step.onEnter && !inPhase1 && !inPhase2;
     const delay = hasOnEnter ? 320 : 30;
     setTimeout(function(){
       if(!state.active || TOUR_STEPS[state.step] !== step) return;
       _position(card, primaryEl, effPos, targetEls);
       if(isForceClick) _attachForceClick(step.forceClick);
+      // Menu-step mobile : listeners pour cacher/réafficher la carte au menu.
+      _detachMenuStep();
+      if(mobile && step.menuStep) _attachMenuStep();
       _attachTrackingListeners();
     }, delay);
   }
@@ -712,6 +821,7 @@
     if(state.step >= TOUR_STEPS.length - 1){ end(); return; }
     _removeHighlight();
     _detachForceClick();
+    _detachMenuStep();
     _detachTrackingListeners();
     const curStep = TOUR_STEPS[state.step];
     _callHook(curStep && curStep.onLeave);
@@ -735,6 +845,7 @@
     if(state.step <= 0) return;
     _removeHighlight();
     _detachForceClick();
+    _detachMenuStep();
     _detachTrackingListeners();
     const curStep = TOUR_STEPS[state.step];
     _callHook(curStep && curStep.onLeave);
@@ -757,6 +868,7 @@
   function end(){
     _removeHighlight();
     _detachForceClick();
+    _detachMenuStep();
     _detachTrackingListeners();
     _detachKeydown();
     const curStep = TOUR_STEPS[state.step];
@@ -851,13 +963,11 @@
     rerender: _render,
     _runAction: _runAction,
     _toPhase2: function(){
-      // Bascule phase 1 → phase 2 pour un step "2 temps" mobile :
-      // on active le spotlight + forceClick sur la cible réelle.
+      // Bascule phase 1 → phase 2 pour un step "2 temps" mobile.
+      // On NE rappelle PAS onEnter (ex : _tourShowOrb) : en phase 2 on ne
+      // montre que le bouton « remplir manuellement » encadré, jamais l'orbe
+      // (pas de dictée vocale déclenchée pendant le tutoriel).
       _mobilePhase1 = false;
-      const step = TOUR_STEPS[state.step];
-      // Déclenche l'onEnter maintenant (ex : afficher l'orbe) puisqu'on l'avait
-      // sauté en phase 1.
-      _callHook(step && step.onEnter);
       _render();
     },
     isActive: function(){ return state.active; },
