@@ -531,16 +531,39 @@
       return;
     }
 
-    const spaceBelow = vh - rect.bottom - gap;
-    const spaceAbove = rect.top - gap;
+    let spaceBelow = vh - rect.bottom - gap;
+    let spaceAbove = rect.top - gap;
 
     let ch = card.offsetHeight || 260;
-    // ── FIX 12/17 (mobile) : si la carte est trop haute pour l'espace de son
-    //    côté, on la plafonne (scroll interne) au lieu de la laisser recouvrir
-    //    la cible. On ne touche PAS à la logique de placement d'origine.
+
+    // ── MOBILE : garantir que la carte ne recouvre jamais la cible.
+    //    Si pos:'top' mais la cible est trop basse pour que la carte tienne
+    //    au-dessus, on scrolle la cible dans le haut de l'écran et on bascule
+    //    la carte EN DESSOUS (cible visible en haut, carte en bas).
+    let forceBelow = false;
     if(isMobile){
-      const placeAbovePre = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
-      const availSide = Math.max(120, (placeAbovePre ? spaceAbove : spaceBelow) - 4);
+      const wantAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+      if(wantAbove && spaceAbove < ch + 8){
+        // Pas assez de place au-dessus : amener la cible vers ~18% du haut.
+        const targetTopWanted = Math.max(12, vh * 0.18);
+        const d = rect.top - targetTopWanted;
+        if(d > 4){
+          try { window.scrollBy({ top: d, behavior: 'auto' }); } catch(e){ window.scrollBy(0, d); }
+          anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
+          _showSpotlight(anchorRect);
+        }
+        forceBelow = true;
+      }
+    }
+
+    const rect2 = anchorRect;
+    spaceBelow = vh - rect2.bottom - gap;
+    spaceAbove = rect2.top - gap;
+
+    // Plafonnement hauteur : la carte ne dépasse jamais l'espace de son côté.
+    if(isMobile){
+      const willPlaceAbove = !forceBelow && ((pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8));
+      const availSide = Math.max(120, (willPlaceAbove ? spaceAbove : spaceBelow) - 4);
       if(ch > availSide){
         card.style.maxHeight = availSide + 'px';
         card.style.overflowY = 'auto';
@@ -548,18 +571,18 @@
       }
     }
 
-    const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+    const placeAbove = !forceBelow && ((pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8));
 
     let topVal;
     if(placeAbove){
-      topVal = rect.top - ch - gap;
+      topVal = rect2.top - ch - gap;
     } else {
-      topVal = rect.bottom + gap;
+      topVal = rect2.bottom + gap;
     }
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
     card.style.top = topVal + 'px';
 
-    let leftVal = rect.left + rect.width / 2 - cw / 2;
+    let leftVal = rect2.left + rect2.width / 2 - cw / 2;
     leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
     card.style.left = leftVal + 'px';
     card.style.opacity = '1';
