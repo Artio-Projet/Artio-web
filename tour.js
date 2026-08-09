@@ -549,17 +549,44 @@
     const spaceBelow = vh - rect.bottom - gap;
     const spaceAbove = rect.top - gap;
 
-    const ch = card.offsetHeight || 260;
+    let ch = card.offsetHeight || 260;
 
-    // Placement : au-dessus si pos:'top' ou si pas de place en dessous.
-    // Le scroll a déjà été géré par _scrollTargetIntoView (qui gère aussi les
-    // conteneurs internes et ancre la cible du bon côté selon pos).
-    const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+    let placeAbove;
+    if(isMobile){
+      // On IGNORE le pos demandé si la carte y recouvrirait la cible : on choisit
+      // le côté avec le plus de place réelle. Si aucun côté ne suffit pour la
+      // carte entière, on plafonne (scroll interne) DU CÔTÉ LE PLUS GRAND —
+      // c'est le seul moyen de ne jamais recouvrir la cible.
+      const fitsAbove = spaceAbove >= ch + 8;
+      const fitsBelow = spaceBelow >= ch + 8;
+      if(fitsAbove || fitsBelow){
+        // Au moins un côté suffit : on prend celui qui suffit (préférence au pos).
+        if(pos === 'top') placeAbove = fitsAbove || !fitsBelow;
+        else if(pos === 'bottom') placeAbove = !fitsBelow && fitsAbove;
+        else placeAbove = fitsAbove && (spaceAbove >= spaceBelow);
+      } else {
+        // Aucun côté ne suffit : on prend le plus grand et on plafonne la carte.
+        placeAbove = spaceAbove >= spaceBelow;
+        const avail = Math.max(140, (placeAbove ? spaceAbove : spaceBelow) - 4);
+        card.style.maxHeight = avail + 'px';
+        card.style.overflowY = 'auto';
+        ch = avail;
+      }
+    } else {
+      placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+    }
 
     let topVal;
     if(placeAbove){
       topVal = rect.top - ch - gap;
     } else {
+      topVal = rect.bottom + gap;
+    }
+    // Garde-fou : ne jamais chevaucher la cible.
+    if(placeAbove && topVal + ch > rect.top - gap + 1){
+      topVal = rect.top - gap - ch;
+    }
+    if(!placeAbove && topVal < rect.bottom + gap - 1){
       topVal = rect.bottom + gap;
     }
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
