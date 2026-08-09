@@ -144,7 +144,7 @@
     {
       page:"settings",
       title:"⚙️ Paramètres",
-      desc:"Configure tout ce qui personnalise ton expérience :<br>• Profil entreprise (SIRET, TVA, IBAN)<br>• Connexion <strong>Gmail & Google Calendar</strong> (un seul clic, scopes unifiés)<br>• <strong>Contexte IA</strong> — pour des emails et descriptions plus pertinents<br>• Abonnement et facturation Stripe",
+      desc:"Configure tout ce qui personnalise ton expérience :<br>• Profil entreprise (SIRET, TVA, IBAN)<br>• Connexion <strong>Gmail & Google Agenda</strong> en un seul clic<br>• <strong>Contexte IA</strong> — pour des emails et descriptions plus pertinents<br>• Abonnement et facturation Stripe",
       target:null, pos:"center"
     },
     {
@@ -540,33 +540,44 @@
     const spaceBelow = vh - rect.bottom - gap;
     const spaceAbove = rect.top - gap;
 
-    let ch = card.offsetHeight || 260;
-    // ── FIX 12/17 (mobile) uniquement : si la carte est trop haute pour l'espace
-    //    de son côté, on la plafonne (scroll interne) pour qu'elle ne recouvre
-    //    pas la cible. On ne touche À RIEN d'autre : le scroll vers la cible et
-    //    le placement au-dessus/en-dessous restent ceux d'origine.
-    if(isMobile){
-      const placeAbovePre = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
-      const availSide = Math.max(160, (placeAbovePre ? spaceAbove : spaceBelow) - 4);
-      if(ch > availSide){
-        card.style.maxHeight = availSide + 'px';
-        card.style.overflowY = 'auto';
-        ch = availSide;
+    const ch = card.offsetHeight || 260;
+
+    // ── MOBILE : si la carte entière ne tient ni au-dessus ni en dessous sans
+    //    recouvrir la cible, on scrolle la cible plus haut pour dégager de la
+    //    place en dessous, puis on affiche la carte ENTIÈRE dessous (jamais
+    //    coupée/scrollable).
+    let placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+    if(isMobile && !placeAbove && spaceBelow < ch + 8){
+      // Pas assez de place en dessous : amener le bas de la cible vers ~30% du haut.
+      const wantBottom = Math.max(60, vh * 0.30);
+      const d = rect.bottom - wantBottom;
+      if(d > 4){
+        try { primaryEl.scrollIntoView({ block:'start', behavior:'auto' }); } catch(e){}
+        window.scrollBy({ top: -(vh * 0.20), behavior:'auto' });
       }
+      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
+      _showSpotlight(anchorRect);
+    }
+    // Idem si pos:'top' mais pas la place au-dessus : bascule en dessous après scroll.
+    if(isMobile && placeAbove && spaceAbove < ch + 8){
+      try { primaryEl.scrollIntoView({ block:'start', behavior:'auto' }); } catch(e){}
+      window.scrollBy({ top: -(vh * 0.18), behavior:'auto' });
+      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
+      _showSpotlight(anchorRect);
+      placeAbove = false;
     }
 
-    const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
-
+    const r = anchorRect;
     let topVal;
     if(placeAbove){
-      topVal = rect.top - ch - gap;
+      topVal = r.top - ch - gap;
     } else {
-      topVal = rect.bottom + gap;
+      topVal = r.bottom + gap;
     }
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
     card.style.top = topVal + 'px';
 
-    let leftVal = rect.left + rect.width / 2 - cw / 2;
+    let leftVal = r.left + r.width / 2 - cw / 2;
     leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
     card.style.left = leftVal + 'px';
     card.style.opacity = '1';
