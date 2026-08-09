@@ -434,23 +434,29 @@
 
   function _esc(s){ return String(s == null ? '' : s); }
 
-  function _scrollTargetIntoView(rect, pos, isMobile){
+  function _scrollTargetIntoView(el, rect, pos, isMobile){
+    // La cible peut être dans un conteneur scrollable interne (ex : .cf-form-col
+    // a overflow-y:auto). window.scrollBy ne l'atteindrait pas. scrollIntoView,
+    // lui, remonte toute la chaîne de parents scrollables. On l'utilise d'abord.
+    if(el && typeof el.scrollIntoView === 'function'){
+      try {
+        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+      } catch(e){
+        try { el.scrollIntoView(false); } catch(e2){}
+      }
+    }
+    // Puis un ajustement fin au niveau window pour réserver la place à la carte
+    // (calcul basé sur le rect APRÈS scrollIntoView : on le relit).
+    const r = (el && el.getBoundingClientRect) ? el.getBoundingClientRect() : rect;
     const vh = window.innerHeight;
-    // Sur mobile, on réserve davantage de place pour la card (qui peut faire ~50% de l'écran).
-    // pos:'top' = card AU-DESSUS de la cible → on veut la cible en bas → marge = haut du viewport
-    // pos:'bottom' = card EN DESSOUS de la cible → on veut la cible en haut
     const margin = isMobile ? Math.round(vh * 0.45) : 90;
     let delta = 0;
     if(pos === 'bottom'){
-      // Cible doit être suffisamment haut pour laisser la place à la card dessous
-      delta = rect.top - 90;
+      delta = r.top - 90;
     } else if(pos === 'top'){
-      // Cible doit être suffisamment bas pour laisser la place à la card dessus
-      delta = rect.bottom - (vh - margin);
-    } else if(pos === 'right' || pos === 'left'){
-      delta = rect.top + rect.height / 2 - vh / 2;
+      delta = r.bottom - (vh - margin);
     } else {
-      delta = rect.top + rect.height / 2 - vh / 2;
+      delta = r.top + r.height / 2 - vh / 2;
     }
     if(Math.abs(delta) > 4){
       window.scrollBy({ top: delta, behavior: 'auto' });
@@ -497,7 +503,7 @@
       pos = (anchorRect.top + anchorRect.height / 2) < vhPre / 2 ? 'bottom' : 'top';
     }
 
-    _scrollTargetIntoView(anchorRect, pos, isMobile);
+    _scrollTargetIntoView(primaryEl, anchorRect, pos, isMobile);
 
     anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
     _showSpotlight(anchorRect);
