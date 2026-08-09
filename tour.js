@@ -435,25 +435,34 @@
   function _esc(s){ return String(s == null ? '' : s); }
 
   function _scrollTargetIntoView(el, rect, pos, isMobile){
-    // La cible peut être dans un conteneur scrollable interne (ex : .cf-form-col
-    // a overflow-y:auto). window.scrollBy ne l'atteindrait pas. scrollIntoView,
-    // lui, remonte toute la chaîne de parents scrollables. On l'utilise d'abord.
+    // La cible peut être dans un conteneur scrollable interne (ex : .cf-form-col,
+    // ou la liste compta). window.scrollBy ne l'atteindrait pas. scrollIntoView
+    // remonte toute la chaîne de parents scrollables.
+    // Le point d'ancrage dépend de où ira la carte :
+    //   pos:'bottom' → carte SOUS la cible → cible vers le HAUT (block:'start')
+    //   pos:'top'    → carte SUR la cible  → cible vers le BAS  (block:'end')
+    //   autres       → cible centrée
+    let block = 'center';
+    if(pos === 'bottom') block = 'start';
+    else if(pos === 'top') block = 'end';
     if(el && typeof el.scrollIntoView === 'function'){
       try {
-        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+        el.scrollIntoView({ block: block, inline: 'nearest', behavior: 'auto' });
       } catch(e){
         try { el.scrollIntoView(false); } catch(e2){}
       }
     }
-    // Puis un ajustement fin au niveau window pour réserver la place à la carte
-    // (calcul basé sur le rect APRÈS scrollIntoView : on le relit).
+    // Ajustement fin au niveau window pour réserver la place à la carte,
+    // basé sur le rect APRÈS scrollIntoView.
     const r = (el && el.getBoundingClientRect) ? el.getBoundingClientRect() : rect;
     const vh = window.innerHeight;
     const margin = isMobile ? Math.round(vh * 0.45) : 90;
     let delta = 0;
     if(pos === 'bottom'){
+      // Cible vers le haut : viser ~90px du haut pour laisser la carte dessous.
       delta = r.top - 90;
     } else if(pos === 'top'){
+      // Cible vers le bas : laisser la place à la carte au-dessus.
       delta = r.bottom - (vh - margin);
     } else {
       delta = r.top + r.height / 2 - vh / 2;
@@ -542,42 +551,21 @@
 
     const ch = card.offsetHeight || 260;
 
-    // ── MOBILE : si la carte entière ne tient ni au-dessus ni en dessous sans
-    //    recouvrir la cible, on scrolle la cible plus haut pour dégager de la
-    //    place en dessous, puis on affiche la carte ENTIÈRE dessous (jamais
-    //    coupée/scrollable).
-    let placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
-    if(isMobile && !placeAbove && spaceBelow < ch + 8){
-      // Pas assez de place en dessous : amener le bas de la cible vers ~30% du haut.
-      const wantBottom = Math.max(60, vh * 0.30);
-      const d = rect.bottom - wantBottom;
-      if(d > 4){
-        try { primaryEl.scrollIntoView({ block:'start', behavior:'auto' }); } catch(e){}
-        window.scrollBy({ top: -(vh * 0.20), behavior:'auto' });
-      }
-      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
-      _showSpotlight(anchorRect);
-    }
-    // Idem si pos:'top' mais pas la place au-dessus : bascule en dessous après scroll.
-    if(isMobile && placeAbove && spaceAbove < ch + 8){
-      try { primaryEl.scrollIntoView({ block:'start', behavior:'auto' }); } catch(e){}
-      window.scrollBy({ top: -(vh * 0.18), behavior:'auto' });
-      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
-      _showSpotlight(anchorRect);
-      placeAbove = false;
-    }
+    // Placement : au-dessus si pos:'top' ou si pas de place en dessous.
+    // Le scroll a déjà été géré par _scrollTargetIntoView (qui gère aussi les
+    // conteneurs internes et ancre la cible du bon côté selon pos).
+    const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
 
-    const r = anchorRect;
     let topVal;
     if(placeAbove){
-      topVal = r.top - ch - gap;
+      topVal = rect.top - ch - gap;
     } else {
-      topVal = r.bottom + gap;
+      topVal = rect.bottom + gap;
     }
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
     card.style.top = topVal + 'px';
 
-    let leftVal = r.left + r.width / 2 - cw / 2;
+    let leftVal = rect.left + rect.width / 2 - cw / 2;
     leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
     card.style.left = leftVal + 'px';
     card.style.opacity = '1';
