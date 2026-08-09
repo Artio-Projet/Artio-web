@@ -340,22 +340,20 @@
     });
     _menuStepListeners = [];
   }
+  let _menuIsOpen = false;
   function _hideCardForMenu(){
-    const card = document.getElementById('tour-card');
-    if(card){ card.style.opacity = '0'; card.style.pointerEvents = 'none'; }
-    // On efface le voile (backdrop + spotlight) pour voir le menu en clair.
-    const bd = document.getElementById('artio-tour-backdrop');
-    if(bd){ bd.dataset.peekPrev = bd.className; bd.classList.remove('active'); }
-    const sp = document.getElementById('artio-tour-spotlight');
-    if(sp){ sp.style.visibility = 'hidden'; }
+    // Le menu vient de s'ouvrir : on garde une carte-guide courte et on
+    // déplace le spotlight sur la CROIX de fermeture (c'est l'action suivante).
+    _menuIsOpen = true;
+    if(state.active) _render();
   }
   function _showCardAfterMenu(){
+    // Le menu vient d'être fermé : retour à l'état normal (spotlight sur ☰).
+    _menuIsOpen = false;
     const sp = document.getElementById('artio-tour-spotlight');
     if(sp){ sp.style.visibility = ''; }
     const card = document.getElementById('tour-card');
     if(card){ card.style.pointerEvents = ''; }
-    // Re-render pour repositionner proprement la carte sur le bouton ☰
-    // (ré-active aussi le backdrop via le flux normal de _position).
     if(state.active) _render();
   }
   function _attachMenuStep(){
@@ -511,31 +509,35 @@
     card.style.transform = '';
     card.style.position = 'fixed';
 
-    // ── MOBILE : moitié pour la cible, moitié pour la carte (jamais de recouvrement).
+    // ── MOBILE : la carte ne recouvre jamais la cible. On la met du côté
+    //    (au-dessus/en dessous) qui a le plus de place, plafonnée à cette place
+    //    (scrollable si besoin). Jamais de minimum forcé qui ferait déborder.
     if(isMobile && pos !== 'right' && pos !== 'left'){
-      // Réinitialise toute contrainte de hauteur d'un rendu précédent.
       card.style.maxHeight = '';
       card.style.overflowY = '';
 
-      const targetMid = rect.top + rect.height / 2;
-      // La cible est-elle plutôt en haut ou en bas de l'écran ?
-      const targetInTopHalf = targetMid < vh / 2;
-      // La carte va dans la moitié OPPOSÉE à la cible.
-      const placeAbove = !targetInTopHalf;
+      const MARGIN = 12;
+      let spaceAbove = rect.top - gap - MARGIN;      // place réelle au-dessus
+      let spaceBelow = vh - rect.bottom - gap - MARGIN; // place réelle en dessous
 
-      // Espace vertical disponible dans la moitié réservée à la carte.
-      let avail;
-      if(placeAbove){
-        // Carte au-dessus de la cible : de 12px jusqu'au haut de la cible - gap.
-        avail = rect.top - gap - 12;
-      } else {
-        // Carte en dessous : du bas de la cible + gap jusqu'à 12px du bas d'écran.
-        avail = vh - (rect.bottom + gap) - 12;
+      // Si les deux côtés sont trop petits, on scrolle la cible vers le haut
+      // pour dégager de la place en dessous, puis on recalcule.
+      const MIN_CARD = 180;
+      if(spaceAbove < MIN_CARD && spaceBelow < MIN_CARD){
+        const desired = rect.top - Math.max(MARGIN, (vh * 0.28));
+        try { window.scrollBy({ top: desired, behavior: 'auto' }); } catch(e){ window.scrollBy(0, desired); }
+        anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
+        _showSpotlight(anchorRect);
       }
-      avail = Math.max(120, avail); // garde-fou : jamais moins de 120px
+      const r = anchorRect;
+      spaceAbove = r.top - gap - MARGIN;
+      spaceBelow = vh - r.bottom - gap - MARGIN;
+
+      // On choisit le côté avec le plus d'espace.
+      const placeAbove = spaceAbove > spaceBelow;
+      const avail = Math.max(80, placeAbove ? spaceAbove : spaceBelow);
 
       let ch = card.offsetHeight || 260;
-      // Si la carte est trop haute pour sa moitié, on la rend scrollable.
       if(ch > avail){
         card.style.maxHeight = avail + 'px';
         card.style.overflowY = 'auto';
@@ -544,18 +546,18 @@
 
       let topVal;
       if(placeAbove){
-        topVal = rect.top - gap - ch;
+        topVal = r.top - gap - ch;
+        if(topVal < MARGIN) topVal = MARGIN;
       } else {
-        topVal = rect.bottom + gap;
-      }
-      // Sécurité : rester dans l'écran sans jamais empiéter sur la cible.
-      topVal = Math.max(12, topVal);
-      if(placeAbove && topVal + ch > rect.top - gap){
-        topVal = Math.max(12, rect.top - gap - ch);
+        topVal = r.bottom + gap;
+        // Ne jamais déborder du bas : si ça dépasse, on remonte et on plafonne.
+        if(topVal + ch > vh - MARGIN){
+          topVal = Math.max(MARGIN, vh - MARGIN - ch);
+        }
       }
       card.style.top = topVal + 'px';
 
-      let leftVal = rect.left + rect.width / 2 - cw / 2;
+      let leftVal = r.left + r.width / 2 - cw / 2;
       leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
       card.style.left = leftVal + 'px';
       card.style.opacity = '1';
@@ -630,9 +632,20 @@
     // pour ne pas relancer une dictée vocale.
     if(inPhase2){ effTarget = step.forceClick; effPos = 'top'; }
 
+    // Menu-step mobile, menu ouvert : on pointe la CROIX de fermeture.
+    const menuOpenPhase = mobile && step.menuStep && _menuIsOpen;
+    if(menuOpenPhase){ effTarget = '.sidebar-close'; effPos = 'bottom'; }
+
     // Texte : version mobile si fournie. En phase 2, pas de gros texte du tout
     // (mini-carte : seule l'instruction forceClick est affichée plus bas).
-    const effDesc = inPhase2 ? '' : ((mobile && step.mobileDesc) ? step.mobileDesc : step.desc);
+    let effDesc;
+    if(inPhase2){
+      effDesc = '';
+    } else if(menuOpenPhase){
+      effDesc = "Parfait, voilà toutes tes sections.<br><br>Quand tu as fini de regarder, appuie sur la <strong>croix ✕</strong> encadrée pour refermer le menu et continuer le tutoriel.";
+    } else {
+      effDesc = (mobile && step.mobileDesc) ? step.mobileDesc : step.desc;
+    }
 
     const targetEls = [];
     if(effTarget){
@@ -813,6 +826,7 @@
     _mount();
     _attachKeydown();
     _mobilePhase1 = !!(step && step.mobileTwoPhase);
+    _menuIsOpen = false;
     _callHook(step && step.onEnter);
     _render();
   }
@@ -837,6 +851,7 @@
 
     try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
     _mobilePhase1 = !!nextStep.mobileTwoPhase;
+    _menuIsOpen = false;
     _callHook(nextStep.onEnter);
     _render();
   }
@@ -861,6 +876,7 @@
 
     try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
     _mobilePhase1 = !!prevStep.mobileTwoPhase;
+    _menuIsOpen = false;
     _callHook(prevStep.onEnter);
     _render();
   }
