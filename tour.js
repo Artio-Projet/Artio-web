@@ -512,7 +512,9 @@
       pos = (anchorRect.top + anchorRect.height / 2) < vhPre / 2 ? 'bottom' : 'top';
     }
 
-    _scrollTargetIntoView(primaryEl, anchorRect, pos, isMobile);
+    if(!isMobile){
+      _scrollTargetIntoView(primaryEl, anchorRect, pos, isMobile);
+    }
 
     anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
     _showSpotlight(anchorRect);
@@ -553,46 +555,70 @@
 
     let placeAbove;
     if(isMobile){
-      // On IGNORE le pos demandé si la carte y recouvrirait la cible : on choisit
-      // le côté avec le plus de place réelle. Si aucun côté ne suffit pour la
-      // carte entière, on plafonne (scroll interne) DU CÔTÉ LE PLUS GRAND —
-      // c'est le seul moyen de ne jamais recouvrir la cible.
-      const fitsAbove = spaceAbove >= ch + 8;
-      const fitsBelow = spaceBelow >= ch + 8;
-      if(fitsAbove || fitsBelow){
-        // Au moins un côté suffit : on prend celui qui suffit (préférence au pos).
-        if(pos === 'top') placeAbove = fitsAbove || !fitsBelow;
-        else if(pos === 'bottom') placeAbove = !fitsBelow && fitsAbove;
-        else placeAbove = fitsAbove && (spaceAbove >= spaceBelow);
-      } else {
-        // Aucun côté ne suffit : on prend le plus grand et on plafonne la carte.
-        placeAbove = spaceAbove >= spaceBelow;
-        const avail = Math.max(140, (placeAbove ? spaceAbove : spaceBelow) - 4);
-        card.style.maxHeight = avail + 'px';
+      // La carte doit tenir ENTIÈRE (jamais scrollable). On choisit le côté qui,
+      // après un éventuel scroll de la page, pourra contenir la carte entière.
+      // Espace maximal atteignable de chaque côté = tout l'écran moins la cible
+      // moins les marges (car on peut scroller la cible vers l'autre bord).
+      const targetH = rect.height;
+      const maxUsable = vh - targetH - gap - 24; // place max pour la carte d'un côté
+
+      // Si la carte ne rentre même pas en plein écran, on la plafonne (cas rare,
+      // carte vraiment énorme). Sinon on garantit l'entièreté.
+      if(ch > maxUsable){
+        card.style.maxHeight = Math.max(160, maxUsable) + 'px';
         card.style.overflowY = 'auto';
-        ch = avail;
+        ch = Math.max(160, maxUsable);
       }
+
+      // Côté préféré selon pos, mais on vérifie la faisabilité par scroll.
+      const preferAbove = (pos === 'top');
+      placeAbove = preferAbove;
+
+      // Position cible voulue pour que la carte entière tienne du côté choisi :
+      //  - carte au-dessus  → cible doit être basse : cible.top ≥ ch + gap + 12
+      //  - carte en dessous → cible doit être haute : cible.bottom ≤ vh - ch - gap - 12
+      let scrollDelta = 0;
+      if(placeAbove){
+        const wantTargetTop = ch + gap + 12;
+        scrollDelta = rect.top - wantTargetTop; // >0 : scroller vers le bas (cible descend dans la vue)
+      } else {
+        const wantTargetBottom = vh - ch - gap - 12;
+        scrollDelta = rect.bottom - wantTargetBottom;
+      }
+      // scrollBy positif => la vue descend => la cible MONTE. Pour faire descendre
+      // la cible dans la vue (placeAbove), il faut scroller vers le HAUT (négatif).
+      if(placeAbove && scrollDelta < 0){
+        window.scrollBy({ top: scrollDelta, behavior: 'auto' }); // remonte la vue → cible descend
+      } else if(!placeAbove && scrollDelta > 0){
+        window.scrollBy({ top: scrollDelta, behavior: 'auto' }); // descend la vue → cible monte
+      }
+
+      // Recalcul après scroll.
+      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
+      _showSpotlight(anchorRect);
+
+      // Vérif finale : si le côté choisi ne suffit toujours pas (page trop courte
+      // pour scroller assez), on bascule sur l'autre côté s'il est meilleur.
+      const r2 = anchorRect;
+      const sAbove = r2.top - gap;
+      const sBelow = vh - r2.bottom - gap;
+      if(placeAbove && sAbove < ch){ if(sBelow >= ch || sBelow > sAbove) placeAbove = false; }
+      else if(!placeAbove && sBelow < ch){ if(sAbove >= ch || sAbove > sBelow) placeAbove = true; }
     } else {
       placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
     }
 
+    const rf = anchorRect;
     let topVal;
     if(placeAbove){
-      topVal = rect.top - ch - gap;
+      topVal = rf.top - ch - gap;
     } else {
-      topVal = rect.bottom + gap;
-    }
-    // Garde-fou : ne jamais chevaucher la cible.
-    if(placeAbove && topVal + ch > rect.top - gap + 1){
-      topVal = rect.top - gap - ch;
-    }
-    if(!placeAbove && topVal < rect.bottom + gap - 1){
-      topVal = rect.bottom + gap;
+      topVal = rf.bottom + gap;
     }
     topVal = Math.max(12, Math.min(topVal, vh - ch - 12));
     card.style.top = topVal + 'px';
 
-    let leftVal = rect.left + rect.width / 2 - cw / 2;
+    let leftVal = rf.left + rf.width / 2 - cw / 2;
     leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
     card.style.left = leftVal + 'px';
     card.style.opacity = '1';
