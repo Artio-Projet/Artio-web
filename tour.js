@@ -18,6 +18,11 @@
   // HELPERS — Sidebar ouverte/fermée pour les étapes "menu"
   // ═══════════════════════════════════════════════════════════
   function _openSidebar(){
+    // Sur mobile, la sidebar s'ouvre en plein écran (width:100%) et recouvre
+    // la carte du tutoriel, ce qui déroute (elle semble s'ouvrir "toute seule").
+    // On ne l'ouvre donc PAS automatiquement sur mobile : la carte pointe le
+    // bouton ☰ et l'utilisateur l'ouvre lui-même (cf. _stepTargetFor / step menu).
+    if(window.innerWidth < 760) return;
     const sb = document.querySelector('.sidebar');
     const ov = document.querySelector('.sidebar-overlay');
     if(sb) sb.classList.add('open');
@@ -47,7 +52,9 @@
       page:"home",
       title:"🧭 Le menu — tout commence ici",
       desc:"Voici le menu latéral, ouvert pour toi.<br><br>Tu y trouveras toutes les sections d'Artio : Créer, Dossiers, Rédiger, Clients, Tableau de bord, Calendrier, Paramètres…<br><br>Il s'ouvre depuis n'importe quelle page via l'icône <strong>☰</strong> en haut à gauche.",
+      mobileDesc:"Toutes les sections d'Artio sont dans le menu latéral : Créer, Dossiers, Rédiger, Clients, Tableau de bord, Calendrier, Paramètres…<br><br>Appuie sur l'icône <strong>☰</strong> encadrée en haut à gauche pour l'ouvrir, jette un œil, puis referme-la et continue.",
       target:".sidebar", pos:"right",
+      mobileTarget:".sidebar-trigger", mobilePos:"bottom",
       onEnter: _openSidebar,
       onLeave: _closeSidebar
     },
@@ -61,8 +68,10 @@
       page:"app",
       title:"🎙 Créer un document",
       desc:"Deux façons de remplir un devis ou une facture :<br><br>• 🎙 <strong>À la voix</strong> — clique sur l'orbe et dicte :<br><span class=\"tour-example\">« Devis pour M. Martin, coaching sportif mardi 14h, 3 heures, matériel 30 € »</span>• 📝 <strong>Manuellement</strong> — clique sur le bouton « ou remplir manuellement → » sous l'orbe.<br><br>Pour explorer un exemple complet, tu peux aussi utiliser le bouton ci-dessous.",
+      mobileDesc:"Deux façons de remplir un devis ou une facture :<br><br>• 🎙 <strong>À la voix</strong> — appuie sur l'orbe et dicte :<br><span class=\"tour-example\">« Devis pour M. Martin, coaching sportif mardi 14h, 3 heures, matériel 30 € »</span>• 📝 <strong>Manuellement</strong> — via le bouton « ou remplir manuellement → » sous l'orbe.<br><br>Appuie sur <strong>Suivant</strong> : on t'indiquera où continuer.",
       target:[".create-orb-wrap", ".create-manual"],
       pos:"right",
+      mobileTwoPhase:true,
       onEnter:"_tourShowOrb",
       forceClick:".create-manual",
       forceClickHint:"👉 Clique sur « ou remplir manuellement → » pour continuer",
@@ -171,6 +180,11 @@
   const MAX_REDIRECTS_SAME_PAGE = 2;
 
   const state = { active:false, step:0 };
+
+  // Mode "2 temps" mobile (ex : step Créer) : phase 1 = texte centré lisible,
+  // phase 2 = spotlight + forceClick sur la cible. Réinitialisé à chaque step.
+  let _mobilePhase1 = false;
+  function _isMobile(){ return window.innerWidth < 760; }
 
   // ═══════════════════════════════════════════════════════════
   // DÉTECTION DE PAGE
@@ -497,9 +511,26 @@
     _removeHighlight();
     _detachForceClick();
 
+    const mobile = _isMobile();
+
+    // Mode 2 temps mobile : en phase 1, on affiche le texte centré sans
+    // spotlight (lisible), et le bouton Suivant bascule en phase 2 plutôt
+    // que d'avancer le step. En phase 2, spotlight + forceClick normal.
+    const twoPhase = mobile && !!step.mobileTwoPhase;
+    const inPhase1 = twoPhase && _mobilePhase1;
+
+    // Cible et position : versions mobiles si fournies.
+    let effTarget = (mobile && step.mobileTarget) ? step.mobileTarget : step.target;
+    let effPos    = (mobile && step.mobilePos) ? step.mobilePos : step.pos;
+    // En phase 1, pas de cible : carte centrée, aucun spotlight gênant.
+    if(inPhase1){ effTarget = null; effPos = 'center'; }
+
+    // Texte : version mobile si fournie.
+    const effDesc = (mobile && step.mobileDesc) ? step.mobileDesc : step.desc;
+
     const targetEls = [];
-    if(step.target){
-      const selectors = Array.isArray(step.target) ? step.target : [step.target];
+    if(effTarget){
+      const selectors = Array.isArray(effTarget) ? effTarget : [effTarget];
       selectors.forEach(function(sel){
         let el = null;
         try { el = document.querySelector(sel); } catch(e){}
@@ -527,9 +558,14 @@
       ? '<button class="tour-btn-prev" onclick="window.ArtioTour.prev()">←</button>'
       : '';
 
-    const isForceClick = !!step.forceClick;
+    // forceClick actif seulement hors phase 1 (en phase 1 on montre juste le texte).
+    const isForceClick = !!step.forceClick && !inPhase1;
     let nextBlock;
-    if(isForceClick){
+    if(inPhase1){
+      // Phase 1 : bouton "Suivant" qui bascule en phase 2 (spotlight + forceClick).
+      const nextBtn = '<button class="tour-btn-next" onclick="window.ArtioTour._toPhase2()">Suivant →</button>';
+      nextBlock = '<div class="tour-actions">' + prevBtn + nextBtn + '</div>';
+    } else if(isForceClick){
       const hintText = step.forceClickHint || '👉 Clique sur l\'élément encadré pour continuer';
       nextBlock =
         '<div class="tour-forceclick-hint">'
@@ -542,6 +578,10 @@
       const nextBtn = '<button class="tour-btn-next" onclick="window.ArtioTour.next()">' + nextLabel + '</button>';
       nextBlock = '<div class="tour-actions">' + prevBtn + nextBtn + '</div>';
     }
+
+    // L'action "Pré-remplir un exemple" n'a pas de sens en phase 1 (on n'a pas
+    // encore montré où agir) : on la masque tant qu'on est en phase 1.
+    if(inPhase1) actionBtn = '';
 
     const skipBtn = state.step < TOUR_STEPS.length - 1
       ? '<button class="tour-btn-skip" onclick="window.ArtioTour.end()">Quitter le tutoriel (Échap)</button>'
@@ -558,7 +598,7 @@
         + '</div>'
         + '<div class="tour-progress">' + dots + '</div>'
         + proBadge
-        + '<div class="tour-card-desc">' + step.desc + '</div>'
+        + '<div class="tour-card-desc">' + effDesc + '</div>'
         + actionBtn
         + nextBlock
         + skipBtn
@@ -568,14 +608,16 @@
     if(!card) return;
 
     _activeTargets = targetEls;
-    _activePos = step.pos;
+    _activePos = effPos;
     _activePrimary = primaryEl;
 
-    const hasOnEnter = !!step.onEnter;
+    // onEnter (ex : afficher l'orbe) : on le saute en phase 1 pour ne pas
+    // ré-illuminer l'orbe pendant que la carte-texte est centrée.
+    const hasOnEnter = !!step.onEnter && !inPhase1;
     const delay = hasOnEnter ? 320 : 30;
     setTimeout(function(){
       if(!state.active || TOUR_STEPS[state.step] !== step) return;
-      _position(card, primaryEl, step.pos, targetEls);
+      _position(card, primaryEl, effPos, targetEls);
       if(isForceClick) _attachForceClick(step.forceClick);
       _attachTrackingListeners();
     }, delay);
@@ -661,6 +703,7 @@
     _injectCSS();
     _mount();
     _attachKeydown();
+    _mobilePhase1 = !!(step && step.mobileTwoPhase);
     _callHook(step && step.onEnter);
     _render();
   }
@@ -683,6 +726,7 @@
     }
 
     try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
+    _mobilePhase1 = !!nextStep.mobileTwoPhase;
     _callHook(nextStep.onEnter);
     _render();
   }
@@ -705,6 +749,7 @@
     }
 
     try { localStorage.setItem(LS_STEP, String(state.step)); } catch(e){}
+    _mobilePhase1 = !!prevStep.mobileTwoPhase;
     _callHook(prevStep.onEnter);
     _render();
   }
@@ -805,6 +850,16 @@
     autoStart: autoStart,
     rerender: _render,
     _runAction: _runAction,
+    _toPhase2: function(){
+      // Bascule phase 1 → phase 2 pour un step "2 temps" mobile :
+      // on active le spotlight + forceClick sur la cible réelle.
+      _mobilePhase1 = false;
+      const step = TOUR_STEPS[state.step];
+      // Déclenche l'onEnter maintenant (ex : afficher l'orbe) puisqu'on l'avait
+      // sauté en phase 1.
+      _callHook(step && step.onEnter);
+      _render();
+    },
     isActive: function(){ return state.active; },
     reset: function(){
       _cleanupStorage();
