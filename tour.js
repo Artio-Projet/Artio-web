@@ -497,12 +497,7 @@
       pos = (anchorRect.top + anchorRect.height / 2) < vhPre / 2 ? 'bottom' : 'top';
     }
 
-    // Sur mobile (top/bottom), on NE lance PAS l'ancien scroll : le bloc mobile
-    // ci-dessous gère lui-même scroll + placement de façon cohérente.
-    const mobileManaged = isMobile && pos !== 'right' && pos !== 'left';
-    if(!mobileManaged){
-      _scrollTargetIntoView(anchorRect, pos, isMobile);
-    }
+    _scrollTargetIntoView(anchorRect, pos, isMobile);
 
     anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
     _showSpotlight(anchorRect);
@@ -513,66 +508,12 @@
     const gap = isMobile ? 16 : 24;
     card.style.transform = '';
     card.style.position = 'fixed';
-
-    // ── MOBILE : la carte ne recouvre jamais la cible et ne déborde jamais.
-    if(mobileManaged){
-      card.style.maxHeight = '';
-      card.style.overflowY = '';
-
-      const MARGIN = 12;
-      let ch0 = card.offsetHeight || 260;
-
-      // Idéal : amener la cible dans la moitié basse de l'écran pour libérer
-      // de la place AU-DESSUS où poser la carte. On vise le haut de la cible
-      // à ~ (hauteur carte souhaitée + gap + marge) depuis le haut du viewport.
-      let r0 = anchorRect;
-      const desiredTargetTop = Math.min(
-        vh - r0.height - MARGIN,               // ne pas pousser hors écran
-        Math.min(ch0, vh * 0.55) + gap + MARGIN // place voulue au-dessus
-      );
-      const delta = r0.top - desiredTargetTop;
-      if(Math.abs(delta) > 4){
-        try { window.scrollBy({ top: delta, behavior: 'auto' }); } catch(e){ window.scrollBy(0, delta); }
-      }
-
-      // Recalcul après scroll.
-      anchorRect = useUnion ? _unionRect(allTargets) : primaryEl.getBoundingClientRect();
-      _showSpotlight(anchorRect);
-      const r = anchorRect;
-
-      let spaceAbove = r.top - gap - MARGIN;
-      let spaceBelow = vh - r.bottom - gap - MARGIN;
-
-      // Côté avec le plus de place.
-      const placeAbove = spaceAbove >= spaceBelow;
-      const avail = Math.max(80, placeAbove ? spaceAbove : spaceBelow);
-
-      let ch = card.offsetHeight || 260;
-      if(ch > avail){
-        card.style.maxHeight = avail + 'px';
-        card.style.overflowY = 'auto';
-        ch = avail;
-      }
-
-      let topVal;
-      if(placeAbove){
-        topVal = Math.max(MARGIN, r.top - gap - ch);
-      } else {
-        topVal = r.bottom + gap;
-        if(topVal + ch > vh - MARGIN) topVal = Math.max(MARGIN, vh - MARGIN - ch);
-      }
-      card.style.top = topVal + 'px';
-
-      let leftVal = r.left + r.width / 2 - cw / 2;
-      leftVal = Math.max(12, Math.min(leftVal, vw - cw - 12));
-      card.style.left = leftVal + 'px';
-      card.style.opacity = '1';
-      return;
-    }
-
-    const ch = card.offsetHeight || 260;
+    // Reset d'un éventuel plafonnement précédent.
+    card.style.maxHeight = '';
+    card.style.overflowY = '';
 
     if(pos === 'right' || pos === 'left'){
+      const ch = card.offsetHeight || 260;
       let leftVal;
       if(pos === 'right'){
         leftVal = rect.right + gap;
@@ -592,6 +533,21 @@
 
     const spaceBelow = vh - rect.bottom - gap;
     const spaceAbove = rect.top - gap;
+
+    let ch = card.offsetHeight || 260;
+    // ── FIX 12/17 (mobile) : si la carte est trop haute pour l'espace de son
+    //    côté, on la plafonne (scroll interne) au lieu de la laisser recouvrir
+    //    la cible. On ne touche PAS à la logique de placement d'origine.
+    if(isMobile){
+      const placeAbovePre = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
+      const availSide = Math.max(120, (placeAbovePre ? spaceAbove : spaceBelow) - 4);
+      if(ch > availSide){
+        card.style.maxHeight = availSide + 'px';
+        card.style.overflowY = 'auto';
+        ch = availSide;
+      }
+    }
+
     const placeAbove = (pos === 'top') || (spaceBelow < ch + 8 && spaceAbove >= ch + 8);
 
     let topVal;
