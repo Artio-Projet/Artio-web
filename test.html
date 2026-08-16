@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Test Artio</title>
+<style>
+  body{font-family:sans-serif;padding:20px;background:#f5f5f3;max-width:500px;margin:0 auto}
+  input,textarea{width:100%;padding:10px;font-size:14px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;margin-bottom:10px;background:#fff}
+  button{width:100%;padding:12px;font-size:15px;font-weight:bold;border:none;border-radius:8px;cursor:pointer;margin-bottom:10px}
+  .btn-blue{background:#378ADD;color:#fff}
+  .btn-red{background:#E24B4A;color:#fff}
+  .btn-green{background:#3B6D11;color:#fff}
+  .result{background:#fff;border:1px solid #ccc;border-radius:8px;padding:12px;font-size:13px;white-space:pre-wrap;min-height:60px;margin-bottom:10px}
+  .ok{color:#3B6D11;font-weight:bold}
+  .err{color:#A32D2D;font-weight:bold}
+  h2{font-size:16px;margin:16px 0 8px}
+</style>
+</head>
+<body>
+<h1 style="font-size:20px;">🔧 Test Artio</h1>
+
+<h2>1. Test API Claude</h2>
+<input id="apikey" type="password" placeholder="Colle ta clé API sk-ant-..." />
+<button class="btn-blue" onclick="testAPI()">Tester l'API Claude</button>
+<div class="result" id="api-result">En attente...</div>
+
+<h2>2. Test Micro</h2>
+<button class="btn-green" id="mic-btn" onclick="startMic()">🎙 Démarrer le micro</button>
+<button class="btn-red" onclick="stopMic()" style="display:none" id="stop-btn">⏹ Arrêter</button>
+<div class="result" id="mic-result">En attente...</div>
+
+<h2>3. Test Micro → Claude</h2>
+<p style="font-size:12px;color:#666;">Parle, arrête, et on envoie à Claude</p>
+<button class="btn-green" id="full-btn" onclick="startFull()">🎙 Parler et analyser</button>
+<button class="btn-red" onclick="stopFull()" style="display:none" id="stop-full-btn">⏹ Arrêter et analyser</button>
+<div class="result" id="full-result">En attente...</div>
+
+<script>
+let rec=null, recFull=null;
+let bufferFull="", lastIdx=0;
+
+async function testAPI(){
+  const key=document.getElementById("apikey").value.trim();
+  const el=document.getElementById("api-result");
+  if(!key){el.innerHTML='<span class="err">Entre ta clé API d\'abord</span>';return}
+  el.innerHTML="Appel en cours...";
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:50,messages:[{role:"user",content:"Réponds juste: API OK"}]})
+    });
+    const d=await res.json();
+    if(d.error) el.innerHTML='<span class="err">ERREUR API: '+d.error.message+'</span>';
+    else el.innerHTML='<span class="ok">✓ API OK — Réponse: '+d.content[0].text+'</span>';
+  }catch(e){
+    el.innerHTML='<span class="err">ERREUR RÉSEAU: '+e.message+'</span>';
+  }
+}
+
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const el=document.getElementById("mic-result");
+  if(!SR){el.innerHTML='<span class="err">Micro non supporté sur ce navigateur</span>';return}
+  rec=new SR();
+  rec.lang="fr-FR";rec.continuous=true;rec.interimResults=true;
+  rec.onstart=()=>{
+    el.innerHTML='<span class="ok">Micro actif — parle...</span>';
+    document.getElementById("mic-btn").style.display="none";
+    document.getElementById("stop-btn").style.display="block";
+  };
+  rec.onresult=e=>{
+    let txt="";
+    for(let i=0;i<e.results.length;i++) txt+=e.results[i][0].transcript+" ";
+    el.innerHTML="Capturé: "+txt.trim();
+  };
+  rec.onerror=e=>el.innerHTML='<span class="err">Erreur: '+e.error+'</span>';
+  rec.onend=()=>{
+    document.getElementById("mic-btn").style.display="block";
+    document.getElementById("stop-btn").style.display="none";
+  };
+  rec.start();
+}
+function stopMic(){
+  if(rec){rec.stop()}
+  document.getElementById("mic-btn").style.display="block";
+  document.getElementById("stop-btn").style.display="none";
+}
+
+function startFull(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const el=document.getElementById("full-result");
+  const key=document.getElementById("apikey").value.trim();
+  if(!key){el.innerHTML='<span class="err">Entre ta clé API en haut d\'abord</span>';return}
+  if(!SR){el.innerHTML='<span class="err">Micro non supporté</span>';return}
+  bufferFull="";lastIdx=0;
+  recFull=new SR();
+  recFull.lang="fr-FR";recFull.continuous=true;recFull.interimResults=false;
+  recFull.onstart=()=>{
+    el.innerHTML='<span class="ok">Micro actif — dis: "Devis pour M. Dupont, remplacement chauffe-eau, 3 heures, TVA 10"</span>';
+    document.getElementById("full-btn").style.display="none";
+    document.getElementById("stop-full-btn").style.display="block";
+  };
+  recFull.onresult=e=>{
+    for(let i=lastIdx;i<e.results.length;i++){
+      if(e.results[i].isFinal){bufferFull+=" "+e.results[i][0].transcript;lastIdx=i+1;}
+    }
+    el.innerHTML="Capturé: "+bufferFull.trim();
+  };
+  recFull.onerror=e=>el.innerHTML='<span class="err">Erreur micro: '+e.error+'</span>';
+  recFull.onend=()=>{};
+  recFull.start();
+}
+
+async function stopFull(){
+  const el=document.getElementById("full-result");
+  const key=document.getElementById("apikey").value.trim();
+  if(recFull){recFull.onend=null;try{recFull.stop()}catch(e){}}
+  document.getElementById("full-btn").style.display="block";
+  document.getElementById("stop-full-btn").style.display="none";
+  const t=bufferFull.trim();
+  if(!t){el.innerHTML='<span class="err">Aucun texte capturé</span>';return}
+  el.innerHTML="Texte capturé: "+t+"\n\nEnvoi à Claude...";
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,messages:[{role:"user",content:'Extrait les infos de cette dictée et retourne UNIQUEMENT un JSON: {"client_nom":null,"travaux":null,"nb_heures":null,"tva":null}\nDictée: "'+t+'"'}]})
+    });
+    const d=await res.json();
+    if(d.error) el.innerHTML="Texte: "+t+"\n\nERREUR API: "+d.error.message;
+    else el.innerHTML="Texte capturé: "+t+"\n\nRéponse Claude:\n"+d.content[0].text;
+  }catch(e){
+    el.innerHTML="Texte: "+t+"\n\nERREUR RÉSEAU: "+e.message;
+  }
+}
+</script>
+</body>
+</html>
