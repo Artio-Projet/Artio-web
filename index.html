@@ -311,8 +311,8 @@
 
     /* ── PRICING ─────────────────────────────────── */
     #pricing { padding: 120px 48px; max-width: 1200px; margin: 0 auto; text-align: center; }
-    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 780px; margin: 48px auto 0; }
-    .pc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 36px; text-align: left; position: relative; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 1080px; margin: 48px auto 0; }
+    .pc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 36px; text-align: left; position: relative; display: flex; flex-direction: column; }
     .pc.pop { border-color: rgba(245,167,66,.4); background: linear-gradient(145deg,rgba(245,167,66,.07) 0%,var(--surface) 70%); }
     .pop-label { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:var(--amber); color:var(--on-accent); font-size:11px; font-weight:700; padding:4px 16px; border-radius:100px; white-space:nowrap; letter-spacing:.04em; }
     .eb-ribbon { position:absolute; top:16px; right:16px; background:rgba(62,207,207,.14); color:var(--teal); border:1px solid rgba(62,207,207,.3); font-size:10px; font-weight:700; letter-spacing:.06em; padding:3px 9px; border-radius:100px; text-transform:uppercase; }
@@ -327,7 +327,7 @@
     .p-feats { list-style: none; display: flex; flex-direction: column; gap: 9px; }
     .p-feats li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
     .ck { color: var(--teal); font-size: 15px; }
-    .btn-plan { width: 100%; margin-top: 24px; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--fb); transition: all .2s; border: none; }
+    .btn-plan { width: 100%; margin-top: auto; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--fb); transition: all .2s; border: none; }
     .btn-plan.prim { background: var(--amber); color: var(--on-accent); }
     .btn-plan.prim:hover { box-shadow: 0 6px 30px var(--amber-glow); transform: translateY(-1px); }
     .btn-plan.out { background: transparent; color: var(--text); border: 1px solid var(--border-hi); }
@@ -492,7 +492,7 @@ const SB_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "ey
     <div>
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        <span>⚡ Tarif de lancement · Disponible maintenant</span>
+        <span>🎁 Premier mois offert · Sans engagement</span>
       </div>
       <h1>
         Dictez.<br>
@@ -838,6 +838,23 @@ const SB_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "ey
   </div>
 
   <div class="pricing-grid">
+    <!-- GRATUIT -->
+    <div class="pc">
+      <span class="eb-ribbon" style="background:rgba(217,119,6,.14);color:var(--amber);border-color:rgba(217,119,6,.3);">Gratuit</span>
+      <div class="p-name">Réception PDP</div>
+      <div class="p-desc">Pour recevoir vos factures fournisseurs, sans engagement</div>
+      <div class="p-price">
+        <span class="p-amount">0 €</span>
+        <span class="p-suf">/ mois</span>
+      </div>
+      <div class="p-monthly">gratuit, sans limite de durée</div>
+      <div class="p-div"></div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span><span>Facturation électronique — réception (obligatoire dès le 1<sup>er</sup> septembre 2026)</span></li>
+      </ul>
+      <button class="btn-plan out" onclick="window.location='login.html?tab=register'">Commencer gratuitement</button>
+    </div>
+
     <!-- SOLO -->
     <div class="pc">
       <span class="eb-ribbon">Lancement</span>
@@ -853,7 +870,7 @@ const SB_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "ey
       <ul class="p-feats">
         <li><span class="ck">✓</span><span>Génération devis &amp; factures par la voix</span></li>
         <li><span class="ck">✓</span><span>IA illimitée</span></li>
-        <li><span class="ck">✓</span><span>Facturation électronique — émission &amp; réception (DGFiP 2026)</span></li>
+        <li><span class="ck">✓</span><span>Facturation électronique — émission (DGFiP 2026)</span></li>
         <li><span class="ck">✓</span><span>Agenda &amp; annuaire clients</span></li>
         <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
       </ul>
