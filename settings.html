@@ -2,7 +2,6 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-  <meta name="robots" content="noindex, nofollow"/>
 <link rel="icon" type="image/png" href="artio-icon.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Artio — Paramètres (refonte)</title>
@@ -388,6 +387,42 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
 .btn-pro { background: var(--purple); color: #fff; box-shadow: 0 8px 24px var(--purple-dim); }
 .btn-pro:hover { transform: translateY(-1px); filter: brightness(1.05); }
 
+/* Boutons section Parrainage — orange moderne, arrondi, relief doux */
+.parrain-btn {
+  flex: 1; min-width: 140px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 14px 20px; border-radius: 14px;
+  font-family: var(--fb); font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  cursor: pointer; border: none; outline: none;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease, filter .2s ease, background .2s ease;
+}
+.parrain-btn svg { flex-shrink: 0; }
+.parrain-btn-main {
+  color: #fff;
+  background: linear-gradient(135deg, #f5a742 0%, var(--amber) 55%, #e08c1f 100%);
+  box-shadow: 0 6px 20px rgba(217,119,6,0.32), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.parrain-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(217,119,6,0.42), inset 0 1px 0 rgba(255,255,255,0.3);
+  filter: brightness(1.03);
+}
+.parrain-btn-main:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 12px rgba(217,119,6,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.parrain-btn-alt {
+  color: var(--amber);
+  background: var(--amber-dim);
+  box-shadow: inset 0 0 0 1.5px var(--amber-dim);
+}
+.parrain-btn-alt:hover {
+  transform: translateY(-2px);
+  background: var(--amber-dim);
+  box-shadow: inset 0 0 0 1.5px var(--amber), 0 6px 18px rgba(217,119,6,0.14);
+}
+.parrain-btn-alt:active { transform: translateY(0); }
+
 /* Account hero stat grid */
 .hero-stats {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
@@ -702,6 +737,10 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
         Abonnement
       </button>
+      <button class="sec-link" data-target="parrainage" onclick="show('parrainage')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Parrainage
+      </button>
     </nav>
 
     <!-- CONTENT -->
@@ -742,6 +781,13 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
         </div>
       </section>
 
+      <!-- ============ PARRAINAGE ============ -->
+      <section class="section" id="sec-parrainage" hidden>
+        <div id="parrainage-content">
+          <div class="card"><div class="card-sub">Chargement…</div></div>
+        </div>
+      </section>
+
     </div>
   </div>
 </main>
@@ -759,10 +805,23 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
 <script src="tour.js?v=3"></script>
 
 <script>
-/* ───────────── CONFIG ───────────── */
-const SB_URL  = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
-const FUNCTIONS_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1";
+/* ───────────── CONFIG (auto local/prod) ───────────── */
+/* Détecte l'environnement selon l'URL du navigateur :
+   - 127.0.0.1 / localhost → base Supabase LOCALE (tests)
+   - tout le reste (monartio.fr, vercel) → base PROD
+   La bascule dépend de l'origine réelle, jamais d'un réglage manuel :
+   impossible de pousser une config de test active en prod. */
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+
+const SB_URL  = IS_LOCAL
+  ? "http://127.0.0.1:54321"
+  : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+
+const SB_KEY  = IS_LOCAL
+  ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
+  : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+
+const FUNCTIONS_URL = SB_URL + "/functions/v1";
 const GOOGLE_CLIENT_ID = "965910280816-t40167i3uq9n5sap4mc2nv67tj2f44cj.apps.googleusercontent.com";
 const { createClient } = supabase;
 const sb = window.sb = createClient(SB_URL, SB_KEY);
@@ -774,6 +833,7 @@ const CONDITIONS = ["Paiement à réception","Paiement à 30 jours","Paiement à
 let user = null;
 let profil = {};
 let subscriptionStatus = "free";
+let parrainageStats = { total: 0, en_attente: 0, credites: 0 };
 let subscriptionEndDate = null;
 let isAdmin = false;
 let isFounder = false;
@@ -820,7 +880,8 @@ const LABELS = {
   compte: 'Compte',
   google: 'Google',
   facturation: 'Facturation électronique',
-  abonnement: 'Abonnement'
+  abonnement: 'Abonnement',
+  parrainage: 'Parrainage'
 };
 function show(target) {
   document.querySelectorAll('.sec-link').forEach(b => b.classList.toggle('active', b.dataset.target === target));
@@ -952,10 +1013,29 @@ async function loadAll() {
   paintGoogle();
   paintFacturation();
   paintAbonnement();
+  paintParrainage();
+  // Charger les stats de parrainage en arrière-plan puis rafraîchir la section
+  loadParrainageStats().then(() => paintParrainage()).catch(() => {});
   // Vérifier statut SuperPDP en arrière-plan si un client_uid est connu
   if (profil.factpulse_client_uid) {
     checkSuperPDPStatus().then(() => paintFacturation()).catch(() => {});
   }
+}
+
+/* Charge le décompte des filleuls du parrain courant (RLS : il ne voit que les siens) */
+async function loadParrainageStats() {
+  try {
+    const { data, error } = await sb
+      .from('parrainages')
+      .select('statut')
+      .eq('parrain_user_id', user.id);
+    if (error || !data) return;
+    parrainageStats = {
+      total:      data.length,
+      en_attente: data.filter(p => p.statut === 'en_attente').length,
+      credites:   data.filter(p => p.statut === 'credit_applique').length,
+    };
+  } catch(e) { /* non bloquant */ }
 }
 
 
@@ -2197,6 +2277,98 @@ function renderAbonnementHTML() {
 function paintAbonnement() {
   const el = document.getElementById('abonnement-content');
   if (el) el.innerHTML = renderAbonnementHTML();
+}
+
+/* ───────────── PARRAINAGE ───────────── */
+function renderParrainageHTML() {
+  const code = (profil.code_parrainage || '').trim();
+  const shareUrl = 'https://monartio.fr/login.html';
+
+  // Message de partage prérempli
+  const shareText = `Je te recommande Artio pour gérer tes devis et factures à la voix. `
+    + `Utilise mon code parrainage ${code} à l'inscription et profite de -50% sur ton premier mois ! ${shareUrl}`;
+
+  if (!code) {
+    return `
+      <div class="card">
+        <div class="card-head"><div class="card-title-row">
+          <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="card-title">Parrainage</div>
+        </div></div>
+        <div class="card-sub">Votre code de parrainage n'est pas encore disponible. Réessayez dans quelques instants.</div>
+      </div>`;
+  }
+
+  return `
+    <div class="card amber">
+      <div class="card-head"><div class="card-title-row">
+        <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <div class="card-title">Parrainez, gagnez un mois offert</div>
+      </div></div>
+      <div class="card-sub">
+        Partagez votre code. Quand votre filleul devient client, il profite de
+        <strong>-50% sur son premier mois</strong> et vous recevez
+        <strong>un mois gratuit</strong> sur votre prochaine facture.
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:var(--text);">${parrainageStats.total}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Filleul${parrainageStats.total > 1 ? 's' : ''}</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:var(--amber);">${parrainageStats.en_attente}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">En attente</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:var(--amber);">${parrainageStats.credites}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Mois gagné${parrainageStats.credites > 1 ? 's' : ''}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface-2);border:1px dashed var(--amber);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px;">Votre code de parrainage</div>
+        <div style="font-family:var(--fm,monospace);font-size:28px;font-weight:700;letter-spacing:0.12em;color:var(--amber);">${esc(code)}</div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="parrain-btn parrain-btn-main" onclick="copyParrainCode('${esc(code)}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copier le code
+        </button>
+        <button class="parrain-btn parrain-btn-alt" onclick="shareParrain('${esc(shareText.replace(/'/g, "\\'"))}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Partager
+        </button>
+      </div>
+    </div>`;
+}
+
+function paintParrainage() {
+  const el = document.getElementById('parrainage-content');
+  if (el) el.innerHTML = renderParrainageHTML();
+}
+
+async function copyParrainCode(code) {
+  try {
+    await navigator.clipboard.writeText(code);
+    toast('Code copié !');
+  } catch(e) {
+    toast('Impossible de copier — code : ' + code);
+  }
+}
+
+async function shareParrain(text) {
+  // Web Share API si dispo (mobile), sinon copie du message
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch(e) { /* annulé, on ne fait rien */ if (e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Message de parrainage copié !');
+  } catch(e) {
+    toast('Partage indisponible sur cet appareil.');
+  }
 }
 
 async function startCheckout(plan) {
