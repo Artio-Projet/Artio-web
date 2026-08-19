@@ -10,7 +10,6 @@
     gtag('config', 'G-VD9XMYB6CS');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="robots" content="noindex, nofollow"/>
   <link rel="icon" type="image/png" href="artio-icon.png"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Artio — Connexion</title>
@@ -315,8 +314,14 @@
 <div class="auth-wrap" id="root"></div>
 
 <script>
-const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+/* CONFIG (auto local/prod) — voir settings.html pour le détail */
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL
+  ? "http://127.0.0.1:54321"
+  : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL
+  ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
+  : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -452,10 +457,11 @@ async function handleAuth() {
   const pass  = document.getElementById('auth-pass')?.value || '';
   const pass2 = document.getElementById('auth-pass2')?.value || '';
   const legalOk = !!document.getElementById('legal-accept')?.checked;
+  const parrainCode = (document.getElementById('auth-parrain')?.value || '').trim().toUpperCase();
 
   // On persiste la saisie AVANT toute sortie en erreur : sans ça
   // le re-render efface les champs déjà remplis.
-  S.email = email; S.pass = pass; S.pass2 = pass2; S.legalOk = legalOk;
+  S.email = email; S.pass = pass; S.pass2 = pass2; S.legalOk = legalOk; S.parrainCode = parrainCode;
 
   if (!email || !pass) { set({ error: L('err_required') }); return; }
 
@@ -479,7 +485,10 @@ async function handleAuth() {
     const { data, error } = await sb.auth.signUp({
       email,
       password: pass,
-      options: { data: { cgv_version: CGV_VERSION } },
+      options: { data: {
+        cgv_version: CGV_VERSION,
+        ...(parrainCode ? { code_parrainage: parrainCode } : {}),
+      } },
     });
     if (error) { set({ loading: false, error: error.message }); return; }
 
@@ -630,6 +639,14 @@ function render() {
         <div class="pwd-match${S.pass2 ? (S.pass === S.pass2 ? ' ok' : ' ko') : ''}" id="pwd-match">${
           S.pass2 ? (S.pass === S.pass2 ? L('pwd_match_ok') : L('err_pass_mismatch')) : ''
         }</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Code de parrainage <span style="color:var(--muted);font-weight:400">(optionnel)</span></label>
+        <input id="auth-parrain" class="field-input" type="text" placeholder="Ex : 2FP5QD2V"
+          maxlength="8"
+          autocapitalize="characters"
+          value="${esc(S.parrainCode || '')}"
+          oninput="S.parrainCode=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
       </div>
       <label class="legal-accept" for="legal-accept">
         <input type="checkbox" id="legal-accept" ${S.legalOk ? 'checked' : ''}
