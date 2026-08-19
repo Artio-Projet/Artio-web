@@ -644,6 +644,11 @@
       </div>
     </section>
 
+    <!-- 2. BANDEAU PDP (affiché conditionnellement au chargement selon
+         subscription_status / pdp_reception_free / factpulse_superpdp_connected).
+         Piloté par renderPdpBanner() dans le script principal. -->
+    <div id="pdp-banner" style="display:none;"></div>
+
     <!-- 3. CTA VOIX (hero) -->
     <a href="app.html" class="cta">
       <div class="cta-body">
@@ -783,8 +788,10 @@
 
 <script>
 /* ── SUPABASE ── */
-const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -823,10 +830,25 @@ function updateTodayDate() {
     const email = session.user.email;
     const uid = session.user.id;
 
+    // SELECT essentiel : détermine la redirection vers onboarding.
+    // Doit rester minimal et robuste — toute erreur ici bloque l'accès au dashboard.
     const { data: profil } = await sb.from('profils').select('nom, onboarding_done, pseudo').eq('user_id', uid).single();
     if (!profil?.nom || !profil?.onboarding_done) {
       window.location.href = 'onboarding.html'; return;
     }
+
+    // SELECT optionnel : champs additionnels pour le bandeau PDP. En cas
+    // d'échec (colonnes absentes en local par exemple, migration pas encore
+    // appliquée), on continue silencieusement — le bandeau ne s'affichera
+    // pas mais le dashboard reste utilisable.
+    let profilExt = {};
+    try {
+      const { data: ext } = await sb.from('profils')
+        .select('subscription_status, pdp_reception_free, factpulse_superpdp_connected')
+        .eq('user_id', uid).single();
+      if (ext) profilExt = ext;
+    } catch (e) { /* silencieux : colonnes optionnelles */ }
+    Object.assign(profil, profilExt);
 
     const initials = email.slice(0, 2).toUpperCase();
     document.getElementById('user-initials').textContent = initials;
@@ -834,6 +856,17 @@ function updateTodayDate() {
     document.getElementById('user-chip').style.display = 'flex';
     document.getElementById('greeting-name').textContent = profil?.pseudo?.trim() || email.split('@')[0];
     document.getElementById('nav-auth').style.display = 'flex';
+
+    // Bandeau "Réception PDP" : proposé sur le dashboard aux comptes qui n'ont
+    // pas encore activé la réception électronique. Vise deux cas d'usage :
+    //   1. Free non-abonné : découvre l'offre gratuite (obligation légale
+    //      1er sept. 2026), active pdp_reception_free en 1 clic.
+    //   2. Solo/Pro pas encore connecté à SuperPDP : rappel qu'il faut
+    //      finaliser la connexion (bouton renvoie vers settings.html section
+    //      réception).
+    // Masqué si superpdp est déjà connecté (rien à proposer) OU si l'utilisateur
+    // a déjà activé pdp_reception_free (il est déjà côté settings ou en cours).
+    renderPdpBanner(profil);
     // La sidebar (menu latéral) n'a de sens que pour l'utilisateur connecté :
     // en mode guest, ses liens redirigent vers login sans contexte, ce qui
     // désoriente (bug remonté : sidebar visible sur home.html en accès public).
@@ -932,6 +965,95 @@ function updateTodayDate() {
 async function doLogout() {
   await sb.auth.signOut();
   window.location.href = 'index.html';
+}
+
+/* ── BANDEAU RÉCEPTION PDP ─────────────────────────────────────
+   Deux variantes selon le profil :
+   - free non-abonné, pas de pdp_reception_free → propose l'offre gratuite
+     "réception seule" (obligation légale 1er septembre 2026)
+   - solo/pro connecté mais pas encore SuperPDP → rappelle de finaliser
+     la connexion, renvoie vers settings.html#reception
+   Masqué dans tous les autres cas (superpdp déjà connecté).
+─────────────────────────────────────────────────────────────── */
+function renderPdpBanner(profil) {
+  const el = document.getElementById('pdp-banner');
+  if (!el || !profil) return;
+
+  // Cas 0 : déjà connecté à SuperPDP → rien à proposer
+  if (profil.factpulse_superpdp_connected === true) { el.style.display = 'none'; return; }
+
+  const plan = profil.subscription_status || 'free';
+  const isPaid = plan === 'solo' || plan === 'pro';
+  const receptionGratuiteActive = profil.pdp_reception_free === true;
+
+  // Cas Solo/Pro sans SuperPDP → bandeau "finalise ta connexion"
+  if (isPaid) {
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,rgba(62,207,207,.10),rgba(62,207,207,.04));border:1px solid rgba(62,207,207,.28);border-radius:16px;padding:18px 20px;margin:16px 0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:240px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">↙ Réception PDP</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.4;">Connectez SuperPDP pour recevoir vos factures fournisseurs dans Artio</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Obligatoire depuis le 1<sup>er</sup> septembre 2026 pour toute entreprise assujettie à la TVA.</div>
+        </div>
+        <a href="settings.html?tab=facturation#reception" style="background:var(--teal);color:#080b14;padding:11px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;white-space:nowrap;">Finaliser →</a>
+      </div>`;
+    el.style.display = 'block';
+    return;
+  }
+
+  // Cas free avec pdp_reception_free déjà true → l'utilisateur a activé mais
+  // pas encore connecté SuperPDP. Renvoi direct vers settings.
+  if (receptionGratuiteActive) {
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,rgba(62,207,207,.10),rgba(62,207,207,.04));border:1px solid rgba(62,207,207,.28);border-radius:16px;padding:18px 20px;margin:16px 0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:240px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">↙ Dernière étape</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.4;">Connectez votre compte SuperPDP pour recevoir vos factures</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Un dernier clic pour finaliser votre inscription à la réception électronique.</div>
+        </div>
+        <a href="settings.html?tab=facturation#reception" style="background:var(--teal);color:#080b14;padding:11px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;white-space:nowrap;">Connecter SuperPDP →</a>
+      </div>`;
+    el.style.display = 'block';
+    return;
+  }
+
+  // Cas free sans rien → bandeau d'accroche "réception gratuite"
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(217,119,6,.10),rgba(217,119,6,.03));border:1px solid rgba(217,119,6,.28);border-radius:16px;padding:20px 22px;margin:16px 0 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:260px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;margin-bottom:6px;">⚡ Offre gratuite</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.35;">Activez la facturation électronique — c'est gratuit</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">
+          Depuis le 1<sup>er</sup> septembre 2026, votre entreprise doit être capable de <strong>recevoir</strong> ses factures fournisseurs au format électronique via une PDP. Artio vous inscrit gratuitement, aucune obligation d'abonnement.
+        </div>
+      </div>
+      <button onclick="activerReceptionGratuite(this)" style="background:var(--amber);color:#080b14;padding:12px 20px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">Activer gratuitement →</button>
+    </div>`;
+  el.style.display = 'block';
+}
+
+async function activerReceptionGratuite(btn) {
+  if (!btn) return;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Activation…';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) throw new Error('Session expirée');
+    // Écriture directe : la RLS de profils autorise l'utilisateur à modifier
+    // sa propre ligne (auth.uid() = user_id). pdp_reception_free est un flag
+    // client-facing, aucune raison de passer par une Edge Function.
+    const { error } = await sb.from('profils')
+      .update({ pdp_reception_free: true })
+      .eq('user_id', session.user.id);
+    if (error) throw error;
+    // Redirection vers settings, section réception, pour connecter SuperPDP.
+    window.location.href = 'settings.html?tab=facturation#reception';
+  } catch (e) {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    alert('Erreur : ' + (e.message || 'activation impossible'));
+  }
 }
 
 /* THEME / SIDEBAR */

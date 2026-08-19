@@ -509,8 +509,10 @@ body::after {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="plan-guard.js"></script>
 <script>
-const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 

@@ -19,8 +19,19 @@
 
 window.PlanGuard = (() => {
 
-  const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+  // Auto-switch local/prod : en développement (127.0.0.1 / localhost),
+  // pointer sur la Supabase locale Docker. Sinon prod. Doit rester
+  // strictement aligné avec la logique IS_LOCAL de login.html et des
+  // autres pages, sinon deux clients Supabase pointent vers deux URLs
+  // différentes avec la même storage key → "Multiple GoTrueClient
+  // instances detected" et redirection en boucle après login.
+  const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+  const SB_URL = IS_LOCAL
+    ? "http://127.0.0.1:54321"
+    : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+  const SB_KEY = IS_LOCAL
+    ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
+    : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
 
   const PLAN_RANK = { free: 0, restricted: 0, solo: 1, pro: 2 };
 

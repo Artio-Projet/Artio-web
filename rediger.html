@@ -372,8 +372,10 @@ main{padding:90px 28px 60px;max-width:820px;margin:0 auto;position:relative;z-in
 
 <script>
 /* ════ CONFIG ════ */
-const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
 const FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
 const { createClient } = supabase;
 const sb = window.sb = createClient(SUPABASE_URL, SUPABASE_KEY);

@@ -1850,7 +1850,7 @@ function renderFacturationHTML() {
       <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:var(--teal);flex-shrink:0;">→</span><span>Artio récupère et affiche vos factures reçues automatiquement</span></div>
     </div>
     <div style="background:rgba(245,167,66,0.07);border:1px solid rgba(245,167,66,0.20);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.55;margin-top:12px;">
-      ⚠️ Avant de connecter, vous devez avoir <strong>créé un compte FactPulse</strong> et enregistré vos credentials AFNOR sur <a href="https://factpulse.fr" target="_blank" style="color:var(--amber);">factpulse.fr</a>.
+      ⚠️ Avant de connecter, vérifiez que votre <strong>SIRET</strong> est bien renseigné dans votre <a href="settings.html?tab=profil" style="color:var(--amber);">profil</a>.
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="connectSuperPDP()" ${card5ConnectDisabled} style="background:var(--teal);border-color:var(--teal);">
@@ -1893,7 +1893,7 @@ function renderFacturationHTML() {
     </div>` : '';
 
   const card5 = `
-    <div class="card" style="${card5BorderStyle}">
+    <div id="reception" class="card" style="scroll-margin-top:80px;${card5BorderStyle}">
       <div class="card-title-row">
         <div class="card-title">Réception des factures fournisseurs</div>
         ${card5BadgeHtml}
@@ -2591,10 +2591,21 @@ async function init() {
     try { history.replaceState(null, '', location.pathname + '?tab=abonnement'); } catch(e) {}
   }
 
-  if (!['profil','compte','google','facturation','abonnement'].includes(tab)) {
+  if (!['profil','compte','google','facturation','abonnement','parrainage'].includes(tab)) {
     tab = 'profil';
   }
   show(tab);
+
+  // Scroll vers une ancre transmise dans l'URL (ex: #reception, arrivée
+  // depuis le bandeau PDP de home.html). Le natif ne suffit pas ici car
+  // les onglets sont rendus dynamiquement par show() : on attend un tick.
+  if (location.hash) {
+    const anchor = location.hash.slice(1);
+    setTimeout(() => {
+      const el = document.getElementById(anchor);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }
 
   // Tutoriel interactif — reprend automatiquement si actif
   if(window.ArtioTour) window.ArtioTour.autoStart();

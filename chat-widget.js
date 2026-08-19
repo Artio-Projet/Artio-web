@@ -6,9 +6,11 @@
 
 (function () {
   // ── CONFIG ────────────────────────────────────────────
-  const SUPABASE_URL  = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-  const SUPABASE_KEY  = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
-  const FUNCTIONS_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1";
+  // Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+  const FUNCTIONS_URL = (IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co") + "/functions/v1";
   const STORAGE_KEY   = "artio_chat_history";
   const MODEL         = "claude-sonnet-4-20250514";
   const MAX_TOKENS    = 512;

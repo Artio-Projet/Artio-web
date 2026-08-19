@@ -700,8 +700,10 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 <div id="toast" class="toast"></div>
 
 <script>
-const SUPABASE_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let user = null, dossiers = [], clients = [], templates = [], search = "", selectedClientId = null;

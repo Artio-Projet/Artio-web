@@ -239,8 +239,10 @@ button{font-family:var(--fb);cursor:pointer}
 </div>
 
 <script>
-const SUPABASE_URL="https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SUPABASE_KEY="sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "sb_publishable_dbf0DrGQr377jyftcE-rYw_SK5nzZJw";
 const FUNCTIONS_URL=SUPABASE_URL+"/functions/v1";
 const{createClient}=supabase;
 const sb=window.sb=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -605,13 +607,11 @@ async function _doConvert(dosId,docNum,dateFacture){
   checkDevisAConvertir();
   // Générer le label lisible de la facture en arrière-plan
   setTimeout(()=>genererLabelDoc(dosId,factNum),500);
-  // Auto-émission FactPulse — déclenchée UNIQUEMENT si l'utilisateur a activé
-  // la facturation électronique dans Paramètres → Facturation électronique.
-  // La garde d'idempotence côté Edge Function empêche les doubles appels.
-  if(S.entreprise?.facturation_electronique_active===true && S.entreprise?.siret){
-    try { await window.emettreFacture(dosId,factNum,{silent:true}); }
-    catch(e){ console.warn("Auto-émission FactPulse:",e.message); }
-  }
+  // Émission FactPulse désormais VOLONTAIRE (décision du 19/08/2026) :
+  // plus d'auto-émission à la conversion, pour ne pas consommer de crédits
+  // FactPulse (500 émissions/mois) sur des factures dont le client n'a pas
+  // encore besoin de recevoir au format électronique obligatoire.
+  // L'utilisateur clique sur "⚡ Émettre" dans la liste des documents.
 }
 window.startRename=function(id){const dos=S.dossiers.find(d=>d.id===id);if(!dos)return;set({renamingDossierId:id,renamingDossierVal:dos.nom||""});};
 window.renameDossier=async function(id){
@@ -751,18 +751,18 @@ function renderDossierCard(dos){
           ${doc.type==="facture"?`${doc.paye?`<span class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3);cursor:default;">✓ Payée le ${doc.date_paye}</span>`:`<button class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border-color:rgba(74,222,128,.3);" onclick="markPaye('${dos.id}','${doc.docNumber}')">💶 Marquer payée</button>`}${!doc.paye?(S.rappelLoadingId===doc.docNumber?`<button class="btn-small" disabled>⏳ Génération...</button>`:isPro?`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);" onclick="genererRappelPaiement('${dos.id}','${doc.docNumber}')">📨 Rappel</button>`:`<button class="btn-small" style="background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.25);opacity:.45;" onclick="window.PlanGuard?.showProModal('Rappels de paiement IA')">🔒 Rappel</button>`):""}
           ${!doc.paye&&Array.isArray(doc.relances_paiement)&&doc.relances_paiement.includes(30)?(isPro?`<button class="btn-small" style="background:rgba(220,38,38,.12);color:#dc2626;border-color:rgba(220,38,38,.3);" onclick="showMiseEnDemeureModal('${dos.id}','${doc.docNumber}')">⚖️ Mise en demeure</button>`:""):""}
           ${(() => {
-            const autoActive = S.entreprise?.facturation_electronique_active === true;
+            const feActive = S.entreprise?.facturation_electronique_active === true;
             // Si la facturation électronique n'est pas activée → rien (feature désactivée)
-            if (!autoActive) return "";
+            if (!feActive) return "";
             const isEmise = !!doc.factpulse_id;
             const isLoading = S.emettreId === doc.docNumber;
-            // 2 états quand auto activée :
+            // 2 états, émission désormais volontaire (plus d'auto-émission) :
             //   1. Émise → badge vert "✅ Émise" (non cliquable, statut)
-            //   2. Non émise → bouton orange "⚠️ Réémettre" (l'auto a échoué, action corrective)
+            //   2. Non émise → bouton ambre "⚡ Émettre" (action volontaire de l'utilisateur)
             if (isEmise) {
               return `<span class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3);cursor:default;">✅ Émise</span>`;
             }
-            return `<button class="btn-small" style="background:rgba(255,160,40,.12);color:var(--amber);border-color:rgba(255,160,40,.3);" onclick="emettreFacture('${dos.id}','${doc.docNumber}')" title="L’émission automatique a échoué — cliquer pour réessayer">${isLoading?"⏳ Envoi...":"⚠️ Réémettre"}</button>`;
+            return `<button class="btn-small" style="background:rgba(255,160,40,.12);color:var(--amber);border-color:rgba(255,160,40,.3);" onclick="emettreFacture('${dos.id}','${doc.docNumber}')" title="Émettre cette facture au format électronique via FactPulse">${isLoading?"⏳ Envoi...":"⚡ Émettre"}</button>`;
           })()}`:""  }
           ${S.deleteConfirm===doc.docNumber?`<button class="btn-small btn-red" onclick="confirmDeleteDoc('${dos.id}','${doc.docNumber}')">Confirmer</button><button class="btn-small" onclick="set({deleteConfirm:null})">Annuler</button>`:`<button class="btn-small" style="color:#A32D2D;border-color:#F09595;" onclick="set({deleteConfirm:'${doc.docNumber}'})">🗑</button>`}
         </div>

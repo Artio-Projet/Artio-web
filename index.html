@@ -438,8 +438,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   (async () => {
-    const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+    // Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SB_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SB_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
     const hash  = new URLSearchParams(window.location.hash.slice(1));
     const query = new URLSearchParams(window.location.search);
     const type  = hash.get("type") || query.get("type");
@@ -477,8 +479,8 @@
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <button class="btn-nav btn-nav-ghost" onclick="window.location='/login'">Se connecter</button>
-    <button class="btn-nav" onclick="window.location='/login?tab=register'">S'inscrire</button>
+    <button class="btn-nav btn-nav-ghost" onclick="window.location='login.html'">Se connecter</button>
+    <button class="btn-nav" onclick="window.location='login.html?tab=register'">S'inscrire</button>
   </div>
 </nav>
 
@@ -501,7 +503,7 @@
         Devis, factures, relances — générés par votre voix en 30 secondes. Démarrez maintenant au <strong style="color:var(--amber)">tarif de lancement</strong> — valable jusqu'à la rentrée de septembre.
       </p>
       <div class="hero-ctas" style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;">
-        <button class="btn-primary" onclick="window.location='/login?tab=register'">Démarrer maintenant →</button>
+        <button class="btn-primary" onclick="window.location='login.html?tab=register'">Démarrer maintenant →</button>
         <a href="#pricing" style="display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border:1px solid var(--border-hi);border-radius:12px;font-family:var(--fh);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border-hi)'">Voir les tarifs</a>
       </div>
       <p style="margin-top:14px;font-size:12px;color:var(--muted);">Sans engagement · Résiliable à tout moment · Offre valable jusqu'à la rentrée</p>
@@ -855,7 +857,7 @@
         <li><span class="ck">✓</span><span>Agenda &amp; annuaire clients</span></li>
         <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
       </ul>
-      <button class="btn-plan out" onclick="window.location='/login?tab=register'">Démarrer à ce tarif</button>
+      <button class="btn-plan out" onclick="window.location='login.html?tab=register'">Démarrer à ce tarif</button>
     </div>
 
     <!-- PRO -->
@@ -883,7 +885,7 @@
         <li><span class="ck">✓</span><span>Statistiques de conversion</span></li>
         <li><span class="ck">✓</span><span>Templates de devis sauvegardés</span></li>
       </ul>
-      <button class="btn-plan prim" onclick="window.location='/login?tab=register'">Démarrer à ce tarif</button>
+      <button class="btn-plan prim" onclick="window.location='login.html?tab=register'">Démarrer à ce tarif</button>
     </div>
   </div>
   <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:22px;line-height:1.6;max-width:620px;margin-left:auto;margin-right:auto;">
