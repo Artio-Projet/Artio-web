@@ -758,9 +758,11 @@ textarea.field-input { resize: vertical; min-height: 110px; line-height: 1.55; f
 
 <script>
 /* ───────────── CONFIG ───────────── */
-const SB_URL  = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-const SB_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
-const FUNCTIONS_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co/functions/v1";
+// Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SB_URL  = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SB_KEY  = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+const FUNCTIONS_URL = (IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co") + "/functions/v1";
 const GOOGLE_CLIENT_ID = "965910280816-t40167i3uq9n5sap4mc2nv67tj2f44cj.apps.googleusercontent.com";
 const { createClient } = supabase;
 const sb = window.sb = createClient(SB_URL, SB_KEY);
@@ -781,6 +783,14 @@ let googleCalendarConnected = false;
 let facturationElectroniqueActive = false;
 let facturationElectroniqueActivatedAt = null;
 let facturationElectroniqueMandatAccepte = false;
+let superpdpConnected = false;
+let superpdpConnectedAt = null;
+let superpdpSandbox = false;
+let superpdpLoading = false;
+let facturesRecues = [];
+let facturesRecuesTotal = 0;
+let inboxLoading = false;
+let pdpGraceUntil = null;
 let factures = [];
 let billingPeriod = "monthly";
 let cancellationRequested = false;
@@ -897,6 +907,7 @@ async function loadAll() {
   isAdmin = !!profil.is_admin;
   isFounder = !!profil.is_founder;
   cancellationRequested = !!profil.cancellation_requested;
+  pdpGraceUntil = profil.pdp_grace_until || null;
 
   // Google OAuth state (depuis profil)
   gmailEmail = profil.google_email || profil.gmail_email || null;
@@ -908,6 +919,9 @@ async function loadAll() {
   facturationElectroniqueActive = !!profil.facturation_electronique_active;
   facturationElectroniqueActivatedAt = profil.facturation_electronique_activated_at || null;
   facturationElectroniqueMandatAccepte = !!profil.facturation_electronique_mandat_accepte;
+  superpdpConnected = !!profil.factpulse_superpdp_connected;
+  superpdpConnectedAt = profil.factpulse_superpdp_connected_at || null;
+  superpdpSandbox = !!profil.factpulse_superpdp_sandbox;
 
   // Logo PDF
   logoBase64 = profil.logo_base64 || null;
@@ -928,6 +942,10 @@ async function loadAll() {
   paintGoogle();
   paintFacturation();
   paintAbonnement();
+  // Vérifier statut SuperPDP en arrière-plan si un client_uid est connu
+  if (profil.factpulse_client_uid) {
+    checkSuperPDPStatus().then(() => paintFacturation()).catch(() => {});
+  }
 }
 
 
@@ -1604,7 +1622,125 @@ function renderFacturationHTML() {
   `;
 
   // Si déjà activé : pas besoin d'afficher le mandat/vérif SIRET
-  return isActive ? card1 + card2 + card4 : card1 + card2 + card3 + card4;
+  const emissionCards = isActive ? card1 + card2 + card4 : card1 + card2 + card3 + card4;
+
+  // ── CARTE 5 : RÉCEPTION (SuperPDP) ──
+  const connectedDate = superpdpConnectedAt
+    ? new Date(superpdpConnectedAt).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    : null;
+  const card5BorderStyle = superpdpConnected ? 'border-color:rgba(62,207,207,0.22);' : '';
+  const card5BadgeHtml = superpdpConnected
+    ? '<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(62,207,207,0.12);color:var(--teal);border:1px solid rgba(62,207,207,0.25);">Connecté</span>'
+    : '<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface-3);color:var(--muted);border:1px solid var(--border);">Non connecté</span>';
+  const card5EnvLabel = superpdpSandbox ? ' (sandbox)' : ' (production)';
+  const card5DateHtml = connectedDate
+    ? '<div style="font-size:12px;color:var(--muted);margin-top:2px;">Depuis le ' + connectedDate + '</div>'
+    : '';
+  const card5CounterHtml = facturesRecuesTotal > 0
+    ? '<span style="background:var(--teal);color:#000;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;">' + facturesRecuesTotal + '</span>'
+    : '';
+  const card5SyncLabel = inboxLoading ? '⏳ Synchronisation…' : '🔄 Synchroniser les factures reçues';
+  const card5SyncDisabled = inboxLoading ? 'disabled' : '';
+  const card5ConnectLabel = superpdpLoading ? '⏳ Connexion en cours…' : '🔗 Connecter SuperPDP (FactPulse)';
+  const card5ConnectDisabled = superpdpLoading ? 'disabled' : '';
+
+  const card5BodyConnected = `
+    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(62,207,207,0.08);border:1px solid rgba(62,207,207,0.20);border-radius:10px;margin-top:12px;">
+      <div style="font-size:18px;">✅</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--teal);">SuperPDP connecté${card5EnvLabel}</div>
+        ${card5DateHtml}
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="syncFacturesRecues()" ${card5SyncDisabled} style="background:var(--teal);border-color:var(--teal);">
+        ${card5SyncLabel}
+      </button>
+      <a href="comptabilite.html?tab=recues" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+        📥 Voir mes factures reçues ${card5CounterHtml}
+      </a>
+      <button class="btn" onclick="disconnectSuperPDP()" style="color:var(--red);border-color:rgba(248,113,113,0.3);background:transparent;font-size:12px;">
+        Déconnecter
+      </button>
+    </div>`;
+
+  const card5BodyDisconnected = `
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:var(--teal);flex-shrink:0;">→</span><span>Votre fournisseur déclare sa PDP sur impots.gouv.fr</span></div>
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:var(--teal);flex-shrink:0;">→</span><span>Vous connectez votre PDP FactPulse ici (OAuth, 1 clic)</span></div>
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:var(--teal);flex-shrink:0;">→</span><span>Artio récupère et affiche vos factures reçues automatiquement</span></div>
+    </div>
+    <div style="background:rgba(245,167,66,0.07);border:1px solid rgba(245,167,66,0.20);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.55;margin-top:12px;">
+      ⚠️ Avant de connecter, vérifiez que votre <strong>SIRET</strong> est bien renseigné dans votre <a href="settings_a_remettre_.html?tab=profil" style="color:var(--amber);">profil</a>.
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="connectSuperPDP()" ${card5ConnectDisabled} style="background:var(--teal);border-color:var(--teal);">
+        ${card5ConnectLabel}
+      </button>
+      <button class="btn" onclick="verifySuperPDP()" style="color:var(--teal);border-color:rgba(62,207,207,0.3);background:transparent;">
+        ✓ Vérifier la connexion
+      </button>
+    </div>`;
+
+  // Bandeau de fin de réception : déclenché par la présence de
+  // pdp_grace_until (posé par l'Edge Function de résiliation, source de
+  // vérité). Aligné sur comptabilite.html — ne dépend pas de
+  // cancellation_requested, pour éviter toute désynchro entre les deux pages.
+  const _graceDate = pdpGraceUntil ? new Date(pdpGraceUntil) : null;
+  const _graceStr = _graceDate
+    ? _graceDate.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    : null;
+  const _daysLeft = _graceDate
+    ? Math.max(0, Math.ceil((_graceDate - new Date()) / 86400000))
+    : null;
+
+  const card5GraceBanner = pdpGraceUntil ? `
+    <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:14px;margin:14px 0;">
+      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;">
+        ⚠️ Fin de réception programmée${_daysLeft !== null ? ` — ${_daysLeft} jour${_daysLeft > 1 ? 's' : ''} restant${_daysLeft > 1 ? 's' : ''}` : ''}
+      </div>
+      <div style="font-size:12px;line-height:1.6;color:var(--muted);">
+        ${_graceStr
+          ? `Votre résiliation est enregistrée. La réception de vos factures fournisseurs via Artio cessera le <strong style="color:var(--text);">${_graceStr}</strong>, et votre SIRET sera retiré de l'annuaire de facturation.`
+          : `Votre résiliation est enregistrée. La réception de vos factures fournisseurs via Artio cessera à l'issue de la période de grâce d'un mois.`}
+        <br><br>
+        <strong style="color:var(--text);">Avant cette date, vous devez :</strong><br>
+        → souscrire à une autre plateforme conforme et vous y référencer<br>
+        → informer vos fournisseurs de vos nouvelles coordonnées de facturation<br>
+        → exporter vos factures reçues depuis la page Comptabilité<br>
+        <br>
+        Détail des conditions : <a href="cgv.html#" style="color:var(--red);">article 7ter des CGV</a>.
+      </div>
+    </div>` : '';
+
+  const card5 = `
+    <div id="reception" class="card" style="scroll-margin-top:80px;${card5BorderStyle}">
+      <div class="card-title-row">
+        <div class="card-title">Réception des factures fournisseurs</div>
+        ${card5BadgeHtml}
+      </div>
+      <div class="card-sub">À partir du <strong>1ᵉʳ septembre 2026</strong>, toute entreprise assujettie à la TVA doit être capable de <strong>recevoir</strong> des factures électroniques de ses fournisseurs via une PDP. Connectez votre compte FactPulse SuperPDP pour centraliser vos factures reçues directement dans Artio.</div>
+      ${card5GraceBanner}
+      ${superpdpConnected ? card5BodyConnected : card5BodyDisconnected}
+    </div>
+  `;
+
+  // Sous-titres de regroupement visuel (fusion émission / réception).
+  const sectionTitle = `
+    <div style="margin:0 0 4px;">
+      <div class="card-title" style="font-size:17px;">Facturation électronique</div>
+      <div class="card-sub" style="margin-top:2px;">Émission et réception de vos factures via votre plateforme partenaire FactPulse (PDP).</div>
+    </div>`;
+  const labelEmission = `
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:18px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="color:var(--teal);">↗</span> Émission — mes factures sortantes
+    </div>`;
+  const labelReception = `
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:22px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="color:var(--teal);">↙</span> Réception — factures de mes fournisseurs
+    </div>`;
+
+  return sectionTitle + labelEmission + emissionCards + labelReception + card5;
 }
 
 function paintFacturation() {
@@ -1636,6 +1772,112 @@ async function activerFacturationElectronique() {
   toast('✅ Facturation électronique activée — vos prochaines factures seront transmises automatiquement.');
   renderHero();
   paintFacturation();
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION 4b — RÉCEPTION SUPERPDP
+   ═══════════════════════════════════════════════════ */
+
+async function callInbox(action, extra = {}) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(`${FUNCTIONS_URL}/factpulse-inbox`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  return res.json();
+}
+
+async function connectSuperPDP() {
+  if (!user) return;
+  superpdpLoading = true; paintFacturation();
+  try {
+    const data = await callInbox('connect', { sandbox: false });
+    if (!data.success || !data.authorizeUrl) {
+      toast('❌ Erreur connexion SuperPDP : ' + (data.error || 'Réponse inattendue'));
+      superpdpLoading = false; paintFacturation(); return;
+    }
+    // Ouvrir l'autorisation SuperPDP dans un nouvel onglet (flow OAuth géré côté FactPulse)
+    window.open(data.authorizeUrl, '_blank');
+    superpdpLoading = false;
+    // Afficher un message invitant à vérifier après autorisation
+    toast('↗️ Autorisez la connexion sur FactPulse, puis cliquez "Vérifier la connexion".');
+    paintFacturation();
+  } catch(e) {
+    toast('❌ Erreur : ' + e.message);
+    superpdpLoading = false; paintFacturation();
+  }
+}
+
+async function disconnectSuperPDP() {
+  if (!user) return;
+  if (!confirm('Déconnecter SuperPDP ? Vous ne recevrez plus de factures fournisseurs dans Artio.')) return;
+  superpdpLoading = true; paintFacturation();
+  try {
+    const data = await callInbox('disconnect');
+    if (data.success) {
+      superpdpConnected = false;
+      superpdpConnectedAt = null;
+      toast('✅ SuperPDP déconnecté.');
+    } else {
+      toast('❌ Erreur déconnexion : ' + (data.error || ''));
+    }
+  } catch(e) {
+    toast('❌ Erreur : ' + e.message);
+  }
+  superpdpLoading = false; paintFacturation();
+}
+
+async function syncFacturesRecues() {
+  if (!user) return;
+  inboxLoading = true; paintFacturation();
+  try {
+    const data = await callInbox('sync');
+    if (data.success) {
+      toast(`✅ ${data.message}`);
+      // Recharger le total
+      const listData = await callInbox('list', { limit: 1 });
+      facturesRecuesTotal = listData.total || 0;
+    } else {
+      toast('❌ Erreur sync : ' + (data.error || ''));
+    }
+  } catch(e) {
+    toast('❌ Erreur : ' + e.message);
+  }
+  inboxLoading = false; paintFacturation();
+}
+
+async function verifySuperPDP() {
+  if (!user) return;
+  superpdpLoading = true; paintFacturation();
+  await checkSuperPDPStatus();
+  superpdpLoading = false; paintFacturation();
+  if (superpdpConnected) {
+    toast('✅ SuperPDP connecté — vos factures fournisseurs arrivent dans Artio.');
+  } else {
+    toast('⚠️ Connexion non détectée — assurez-vous d\'avoir autorisé sur FactPulse.');
+  }
+}
+
+async function checkSuperPDPStatus() {
+  if (!user) return;
+  try {
+    const data = await callInbox('status');
+    if (data.success) {
+      superpdpConnected = !!data.connected;
+      superpdpConnectedAt = data.connectedAt || null;
+      superpdpSandbox = !!data.modeSandbox;
+    }
+    if (superpdpConnected) {
+      const listData = await callInbox('list', { limit: 1 });
+      facturesRecuesTotal = listData.total || 0;
+    }
+  } catch(e) {
+    console.warn('[SuperPDP] checkStatus error:', e);
+  }
 }
 
 
@@ -2006,6 +2248,17 @@ async function init() {
     tab = 'profil';
   }
   show(tab);
+
+  // Scroll vers une ancre transmise dans l'URL (ex: #reception, arrivée
+  // depuis le bandeau PDP de home.html). Le natif ne suffit pas ici car
+  // les onglets sont rendus dynamiquement par show() : on attend un tick.
+  if (location.hash) {
+    const anchor = location.hash.slice(1);
+    setTimeout(() => {
+      const el = document.getElementById(anchor);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

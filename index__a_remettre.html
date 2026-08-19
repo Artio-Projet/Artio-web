@@ -337,12 +337,13 @@
     /* ── PRICING ─────────────────────────────────── */
     #pricing { padding: 120px 48px; max-width: 1200px; margin: 0 auto; text-align: center; }
     .pricing-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-      max-width: 780px; margin: 48px auto 0;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+      max-width: 1080px; margin: 48px auto 0;
     }
     .pc {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--r); padding: 36px; text-align: left; position: relative;
+      display: flex; flex-direction: column;
     }
     .pc.pop {
       border-color: rgba(245,167,66,.4);
@@ -367,7 +368,7 @@
     .p-feats li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
     .ck { color: var(--teal); font-size: 15px; }
     .btn-plan {
-      width: 100%; margin-top: 24px; padding: 13px;
+      width: 100%; margin-top: auto; padding: 13px;
       border-radius: 10px; font-size: 14px; font-weight: 600;
       cursor: pointer; font-family: var(--fb); transition: all .2s; border: none;
     }
@@ -492,8 +493,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   (async () => {
-    const SB_URL = "https://mwmexkoeqeyueqgdkkni.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+    // Auto-switch local/prod (voir plan-guard.js pour la logique canonique)
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SB_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SB_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
 
     // Lire les params dans le hash (#) et la query (?)
     const hash  = new URLSearchParams(window.location.hash.slice(1));
@@ -560,8 +563,8 @@
     <li><a href="contact.html" data-fr="Contact" data-en="Contact">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <button class="btn-login" onclick="window.location='/login'" data-fr="Se connecter" data-en="Log in">Se connecter</button>
-    <button class="btn-nav" onclick="window.location='/login'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
+    <button class="btn-login" onclick="window.location='login.html'" data-fr="Se connecter" data-en="Log in">Se connecter</button>
+    <button class="btn-nav" onclick="window.location='login.html'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
   </div>
 </nav>
 
@@ -584,7 +587,7 @@
         Devis, factures, relances — générés par votre voix en 30 secondes. Pour que vous puissiez vous concentrer sur votre vrai métier.
       </p>
       <div class="hero-ctas">
-        <button class="btn-primary" onclick="window.location='/login'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
+        <button class="btn-primary" onclick="window.location='login.html'" data-fr="S'inscrire gratuitement" data-en="Sign up free">S'inscrire gratuitement</button>
 
       </div>
       <div class="hero-legal">
@@ -935,6 +938,22 @@
   </div>
 
   <div class="pricing-grid">
+    <!-- GRATUIT -->
+    <div class="pc">
+      <div class="p-name" data-fr="Réception PDP" data-en="PDP Reception">Réception PDP</div>
+      <div class="p-desc" data-fr="Pour recevoir vos factures fournisseurs, sans engagement" data-en="To receive your supplier invoices, no commitment">Pour recevoir vos factures fournisseurs, sans engagement</div>
+      <div class="p-price">
+        <span class="p-amount">0 €</span>
+        <span class="p-suf" data-fr="/ mois" data-en="/ mo">/ mois</span>
+      </div>
+      <div class="p-monthly" data-fr="gratuit, sans limite de durée" data-en="free, no time limit">gratuit, sans limite de durée</div>
+      <div class="p-div"></div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span><span data-fr="Facturation électronique — réception (obligatoire dès le 1ᵉʳ septembre 2026)" data-en="E-invoicing — reception (mandatory from September 1, 2026)">Facturation électronique — réception (obligatoire dès le 1<sup>er</sup> septembre 2026)</span></li>
+      </ul>
+      <button class="btn-plan out" onclick="window.location='login.html'" data-fr="Commencer gratuitement" data-en="Start for free">Commencer gratuitement</button>
+    </div>
+
     <!-- SOLO -->
     <div class="pc">
       <div class="p-name">Solo</div>
@@ -953,7 +972,7 @@
         <li><span class="ck">✓</span><span>Annuaire clients + lookup SIRET</span></li>
         <li><span class="ck">✓</span><span>Dashboard financier complet</span></li>
       </ul>
-      <button class="btn-plan out" onclick="window.location='/login'" data-fr="Démarrer en Solo" data-en="Start with Solo">Démarrer en Solo</button>
+      <button class="btn-plan out" onclick="window.location='login.html'" data-fr="Démarrer en Solo" data-en="Start with Solo">Démarrer en Solo</button>
     </div>
 
     <!-- PRO -->
@@ -978,7 +997,7 @@
         <li><span class="ck">✓</span><span>Templates de devis sauvegardés</span></li>
         <li><span class="ck">✓</span><span>Export comptable CSV</span></li>
       </ul>
-      <button class="btn-plan prim" onclick="window.location='/login'" data-fr="Choisir Pro" data-en="Choose Pro">Choisir Pro</button>
+      <button class="btn-plan prim" onclick="window.location='login.html'" data-fr="Choisir Pro" data-en="Choose Pro">Choisir Pro</button>
     </div>
   </div>
 </section>
