@@ -1442,7 +1442,7 @@ function renderCompteHTML() {
           <p style="font-size:12px;color:var(--muted);line-height:1.7;">Assurez-vous d'avoir <strong style="color:var(--text)">sauvegardé vos documents importants</strong> avant de continuer.</p>
           ${(superpdpConnected || facturationElectroniqueActive) ? `
           <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:10px;padding-top:10px;border-top:1px solid rgba(248,113,113,0.15);">
-            <strong style="color:var(--red)">Facturation électronique :</strong> la réception de vos factures fournisseurs sera maintenue <strong style="color:var(--text)">un mois</strong> après la suppression, puis votre SIRET sera retiré de l'annuaire de facturation. Vous devez d'ici là vous référencer sur une autre plateforme conforme et prévenir vos fournisseurs (<a href="cgv.html" style="color:var(--red)">art. 7ter des CGV</a>).
+            <strong style="color:var(--red)">Facturation électronique :</strong> la réception de vos factures fournisseurs sera maintenue <strong style="color:var(--text)">un mois</strong> après la suppression, puis votre SIRET sera retiré de l'annuaire de facturation. Vous devez d'ici là vous référencer sur une autre plateforme conforme et prévenir vos fournisseurs (<a href="cgv.html" style="color:var(--red)">art. 9 des CGV</a>).
           </p>` : ''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -1888,7 +1888,7 @@ function renderFacturationHTML() {
         → informer vos fournisseurs de vos nouvelles coordonnées de facturation<br>
         → exporter vos factures reçues depuis la page Comptabilité<br>
         <br>
-        Détail des conditions : <a href="cgv.html#" style="color:var(--red);">article 7ter des CGV</a>.
+        Détail des conditions : <a href="cgv.html#facturation-electronique" style="color:var(--red);">article 9 des CGV</a>.
       </div>
     </div>` : '';
 
@@ -2344,7 +2344,7 @@ function renderParrainageHTML() {
 
       <div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">
         <sup>*</sup> Offre réservée aux abonnements mensuels. Voir les conditions du programme
-        (<a href="/cgv.html#parrainage" style="color:var(--amber);text-decoration:underline;">CGV, Article 7quater</a>).
+        (<a href="/cgv.html#parrainage" style="color:var(--amber);text-decoration:underline;">CGV, Article 10</a>).
       </div>
     </div>`;
 }
@@ -2399,7 +2399,7 @@ async function requestCancellation() {
 
   // Si la réception de factures électroniques est active, l'utilisateur
   // doit être averti de la période de grâce et de la désinscription de
-  // l'annuaire PDP (CGV art. 7ter). Double confirmation dans ce cas.
+  // l'annuaire PDP (CGV art. 9). Double confirmation dans ce cas.
   const receptionActive = superpdpConnected || facturationElectroniqueActive;
 
   let msg = `Confirmer la résiliation du plan ${planName} ?\n\nVotre accès reste actif jusqu'au ${_endStr}, puis sera automatiquement désactivé.`;
@@ -2414,7 +2414,7 @@ async function requestCancellation() {
          + `• Passé cette date, votre SIRET sera retiré de l'annuaire de facturation au titre d'Artio.\n`
          + `• Vous devez, avant cette échéance, souscrire à une autre plateforme conforme, vous y référencer, et prévenir vos fournisseurs.\n`
          + `• Pensez à exporter vos factures reçues avant la coupure.\n\n`
-         + `Sans ces démarches, vous risquez de ne plus recevoir vos factures. Voir l'article 7ter des CGV.`;
+         + `Sans ces démarches, vous risquez de ne plus recevoir vos factures. Voir l'article 9 des CGV.`;
   }
 
   if (!confirm(msg)) return;
