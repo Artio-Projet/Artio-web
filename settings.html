@@ -1850,7 +1850,7 @@ function renderFacturationHTML() {
       <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;"><span style="color:var(--teal);flex-shrink:0;">→</span><span>Artio récupère et affiche vos factures reçues automatiquement</span></div>
     </div>
     <div style="background:rgba(245,167,66,0.07);border:1px solid rgba(245,167,66,0.20);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.55;margin-top:12px;">
-      ⚠️ Avant de connecter, vérifiez que votre <strong>SIRET</strong> est bien renseigné dans votre <a href="settings.html?tab=profil" style="color:var(--amber);">profil</a>.
+      ⚠️ Avant de connecter, vous devez avoir <strong>créé un compte FactPulse</strong> et enregistré vos credentials AFNOR sur <a href="https://factpulse.fr" target="_blank" style="color:var(--amber);">factpulse.fr</a>.
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="connectSuperPDP()" ${card5ConnectDisabled} style="background:var(--teal);border-color:var(--teal);">
@@ -1893,7 +1893,7 @@ function renderFacturationHTML() {
     </div>` : '';
 
   const card5 = `
-    <div id="reception" class="card" style="scroll-margin-top:80px;${card5BorderStyle}">
+    <div class="card" style="${card5BorderStyle}">
       <div class="card-title-row">
         <div class="card-title">Réception des factures fournisseurs</div>
         ${card5BadgeHtml}
@@ -2303,12 +2303,12 @@ function renderParrainageHTML() {
     <div class="card amber">
       <div class="card-head"><div class="card-title-row">
         <div class="card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
-        <div class="card-title">Parrainez, gagnez un mois offert</div>
+        <div class="card-title">Parrainez, gagnez un mois à 1€</div>
       </div></div>
       <div class="card-sub">
         Partagez votre code. Quand votre filleul devient client, il profite de
-        <strong>-50% sur son premier mois</strong> et vous recevez
-        <strong>un mois gratuit</strong> sur votre prochaine facture.
+        <strong>-50% sur son premier mois</strong> et votre prochaine facture
+        passe à <strong>1€</strong>.<sup>*</sup>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
@@ -2340,6 +2340,11 @@ function renderParrainageHTML() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Partager
         </button>
+      </div>
+
+      <div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">
+        <sup>*</sup> Offre réservée aux abonnements mensuels. Voir les conditions du programme
+        (<a href="/cgv.html#parrainage" style="color:var(--amber);text-decoration:underline;">CGV, Article 7quater</a>).
       </div>
     </div>`;
 }
@@ -2591,21 +2596,10 @@ async function init() {
     try { history.replaceState(null, '', location.pathname + '?tab=abonnement'); } catch(e) {}
   }
 
-  if (!['profil','compte','google','facturation','abonnement','parrainage'].includes(tab)) {
+  if (!['profil','compte','google','facturation','abonnement'].includes(tab)) {
     tab = 'profil';
   }
   show(tab);
-
-  // Scroll vers une ancre transmise dans l'URL (ex: #reception, arrivée
-  // depuis le bandeau PDP de home.html). Le natif ne suffit pas ici car
-  // les onglets sont rendus dynamiquement par show() : on attend un tick.
-  if (location.hash) {
-    const anchor = location.hash.slice(1);
-    setTimeout(() => {
-      const el = document.getElementById(anchor);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 200);
-  }
 
   // Tutoriel interactif — reprend automatiquement si actif
   if(window.ArtioTour) window.ArtioTour.autoStart();
