@@ -5,6 +5,7 @@
  */
 (function () {
   const LINKS = [
+    { label: 'Mentions légales',         href: '/mentions-legales.html' },
     { label: 'CGU',                      href: '/cgu.html' },
     { label: 'CGV',                      href: '/cgv.html' },
     { label: 'Politique de confidentialité', href: '/confidentialite.html' },
