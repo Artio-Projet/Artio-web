@@ -1210,9 +1210,13 @@ async function handleLogout(){
 
 // ——— API CLAUDE ———
 async function callClaude(prompt,maxTokens=400,retries=5){
-  // ── Plan Guard : bloque l'IA pour les non-abonnés ──
-  if(window.PlanGuard && window.PlanGuard.isFree()){
-    _showReadonlyAlert("La génération par IA nécessite un abonnement actif.");
+  // ── Plan Guard : seuls les ex-abonnés (lecture seule) sont bloqués ──
+  // Les Free "jamais abonnés" ont droit à l'IA pour créer leurs documents
+  // (dans la limite du quota de 5/mois, appliqué en amont dans handleGenerate)
+  // et pour le chat de support. Les fonctions réservées (email, reformulation)
+  // sont gatées séparément sur leurs pages (Solo+), pas ici.
+  if(window.PlanGuard && window.PlanGuard.isReadOnly && window.PlanGuard.isReadOnly()){
+    _showReadonlyAlert("La création de documents nécessite un abonnement actif.");
     throw new Error("plan_required");
   }
   const{data:{session}}=await sb.auth.getSession();
@@ -1763,13 +1767,13 @@ window.markTermine=async id=>{
   dos.statut="termine";await upsertDossier(dos);set({});
 };
 window.markAccepte=async(dosId,docNum)=>{
-    if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+    if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   dos.statut="devis_accepte";dos.documents=dos.documents.map(d=>d.docNumber===docNum?{...d,accepte:true}:d);
   await upsertDossier(dos);set({});
 };
 window.markPaye=async(dosId,docNum)=>{
-    if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+    if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const datePaye=new Date().toLocaleDateString("fr-FR");
   dos.documents=dos.documents.map(d=>d.docNumber===docNum?{...d,paye:true,date_paye:datePaye}:d);
@@ -1910,7 +1914,7 @@ function isoToFR(iso){
 }
 
 convertToFacture=async(dosId,docNum)=>{
-    if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+    if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const devis=dos.documents.find(d=>d.docNumber===docNum);if(!devis)return;
   // Option C : date prestation presente -> on l'utilise, sinon -> popup
@@ -2012,7 +2016,7 @@ window.copyText=text=>{navigator.clipboard.writeText(text);set({copied:true});se
 window.setTab=t=>{
   if(t==="historique"){location.href="dossiers.html";return;}
   if(t==="email"||t==="emails_gmail"){location.href="rediger.html";return;}
-  if(window.PlanGuard&&window.PlanGuard.isFree()&&["devis","facture"].includes(t)){
+  if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()&&["devis","facture"].includes(t)){
     _showReadonlyAlert("La création de documents nécessite un abonnement actif. Consultez votre historique ci-dessous.");
     return;
   }
@@ -2648,7 +2652,7 @@ initAuth();
 
 // ── Aperçu design (#demo) : données fictives, aucune connexion Supabase ──
 function mountDemo(){
-  window.PlanGuard={isPro:()=>true,isFree:()=>false,isSolo:()=>true,showProModal:(f)=>alert("Fonction Pro : "+(f||""))};
+  window.PlanGuard={isPro:()=>true,isFree:()=>false,isSolo:()=>true,isReadOnly:()=>false,showProModal:(f)=>alert("Fonction Pro : "+(f||""))};
   S.user={id:"demo"};
   S.entreprise={nom:"Jean-Marc Lefèvre",adresse:"22 rue des Lilas, 75011 Paris",tel:"06 81 24 19 02",email:"jm.lefevre@artio.fr",siret:"81234567800019",taux_horaire:"55",assujetti_tva:true,secteur:"Plombier",conditions_paiement:"30_jours",delai_paiement:"30",validite_devis:30,onboarding_done:true};
   S.profilSaved=true;
