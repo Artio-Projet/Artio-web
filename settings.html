@@ -2108,6 +2108,14 @@ function renderAbonnementHTML() {
     'Branding PDF personnalisé (logo & couleurs)',
     'Relances & rappels de paiement par IA'
   ];
+  const features_free = [
+    '5 créations de documents / mois',
+    'Devis & factures (voix ou saisie)',
+    'Conversion devis → facture illimitée',
+    'Carnet clients & historique complet',
+    'Consultation de la facturation électronique',
+    'Assistant d\'aide intégré'
+  ];
 
   // ── Bandeaux d'état ──
   const banner = isRestricted ? `
@@ -2120,10 +2128,10 @@ function renderAbonnementHTML() {
     </div>
   ` : isFree ? `
     <div style="background:rgba(62,207,207,0.08);border:1px solid rgba(62,207,207,0.22);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;">
-      <div style="font-size:20px;">👋</div>
+      <div style="font-size:20px;">✨</div>
       <div>
-        <div style="font-size:13px;font-weight:700;color:#3ECFCF;">Aucun abonnement actif</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Choisissez un plan pour accéder à toutes les fonctionnalités d'Artio.</div>
+        <div style="font-size:13px;font-weight:700;color:#3ECFCF;">Vous êtes sur le plan Gratuit</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Vous pouvez créer jusqu'à 5 documents par mois et consulter tout votre historique. Passez à Solo ou Pro pour des documents illimités et l'émission de factures électroniques.</div>
       </div>
     </div>
   ` : '';
@@ -2139,6 +2147,21 @@ function renderAbonnementHTML() {
   `;
 
   // ── Cartes Solo & Pro ──
+  const gratuitCard = `
+    <div class="card" style="${isFree ? 'border-color:rgba(62,207,207,0.35);' : ''}">
+      <div class="card-title-row">
+        <div class="card-title">Gratuit</div>
+        ${isFree ? `<span style="background:#3ECFCF;color:#052b2b;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.05em;margin-left:auto;">PLAN ACTUEL</span>` : ''}
+      </div>
+      <div style="font-family:var(--fh,'Space Grotesk');font-size:34px;font-weight:700;letter-spacing:-0.02em;margin:6px 0 4px;">0 €<span style="font-size:14px;color:var(--muted);font-weight:500;"> / mois</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Pour découvrir Artio et gérer l'essentiel</div>
+      <ul style="list-style:none;padding:0;margin:0 0 16px 0;display:flex;flex-direction:column;gap:8px;">
+        ${features_free.map(f=>`<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;"><span style="color:#3ECFCF;flex-shrink:0;font-weight:700;">✓</span><span>${f}</span></li>`).join('')}
+      </ul>
+      <div style="padding:10px;border-radius:9px;background:var(--surface-2);text-align:center;font-size:12px;color:var(--muted);">${isFree ? 'Votre plan actuel — aucune action requise' : 'Inclus dans tous les comptes'}</div>
+    </div>
+  `;
+
   const soloCard = `
     <div class="card" style="${isSolo ? 'border-color:rgba(167,139,250,0.35);' : ''}">
       <div class="card-title-row">
@@ -2214,7 +2237,7 @@ function renderAbonnementHTML() {
         <div style="flex:1;">
           <div style="font-family:var(--fh,'Space Grotesk');font-size:18px;font-weight:700;">${isPro?'Plan Pro':isSolo?'Plan Solo':isRestricted?'Accès restreint':'Plan gratuit'}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px;">
-            ${isFree ? 'Aucun abonnement actif' :
+            ${isFree ? 'Plan gratuit — 5 documents / mois' :
               cancellationRequested ? `Résiliation en cours — fin d'accès le ${endDate}` :
               endDateRaw ? `Prochain prélèvement le ${endDate}` : 'Abonnement actif'}
           </div>
@@ -2265,6 +2288,7 @@ function renderAbonnementHTML() {
       <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(217,119,6,0.10);border:1px solid rgba(217,119,6,0.25);border-radius:8px;font-size:12px;color:var(--amber);font-weight:600;margin-bottom:14px;">⏱ Tarif de lancement — valable jusqu'au 1er septembre 2026</div>
       ${toggle}
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:10px;">
+        ${gratuitCard}
         ${soloCard}
         ${proCard}
       </div>

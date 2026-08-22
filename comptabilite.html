@@ -600,11 +600,12 @@ function renderBanner(){
   }
 
   if(readOnly){
+    const wasSub = !!(window.PlanGuard && window.PlanGuard.wasSubscribed && window.PlanGuard.wasSubscribed());
     el.innerHTML = `
       <div class="banner">
         <div style="font-size:18px;">🔒</div>
-        <div style="flex:1;">Votre abonnement est inactif. Vous conservez l'accès à l'ensemble de vos factures et pouvez les consulter et les télécharger, mais l'ajout et la synchronisation sont désactivés.</div>
-        <a href="settings.html?tab=abonnement">Se réabonner →</a>
+        <div style="flex:1;">Vous consultez et téléchargez librement toutes vos factures. <strong>Transmettre au comptable et gérer vos pièces</strong> nécessite un abonnement Solo ou Pro.</div>
+        <a href="settings.html?tab=abonnement">${wasSub ? 'Se réabonner →' : 'Voir les offres →'}</a>
       </div>`;
     return;
   }
@@ -857,7 +858,7 @@ function renderList(){
 }
 
 async function doSync(){
-  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(readOnly){ toast('🔒 La transmission au comptable nécessite un abonnement Solo ou Pro.'); return; }
   if(syncing) return;
   syncing = true;
   const btn = document.getElementById('btn-action');
@@ -978,7 +979,7 @@ function renderUploadQueue(items){
 }
 
 async function handleFiles(fileList){
-  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(readOnly){ toast('🔒 La transmission au comptable nécessite un abonnement Solo ou Pro.'); return; }
   if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const files = Array.from(fileList || []);
   if(!files.length) return;
@@ -1085,7 +1086,7 @@ async function downloadManual(id, name){
 }
 
 async function deleteManual(id){
-  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(readOnly){ toast('🔒 La transmission au comptable nécessite un abonnement Solo ou Pro.'); return; }
   if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
@@ -1102,7 +1103,7 @@ async function deleteManual(id){
 }
 
 function openMetaModal(id){
-  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(readOnly){ toast('🔒 La transmission au comptable nécessite un abonnement Solo ou Pro.'); return; }
   if(!isProPlan){ toast('🔒 Le registre des achats est réservé au plan Pro.'); return; }
   const f = facturesAjoutees.find(x => x.id === id);
   if(!f) return;
@@ -1203,7 +1204,7 @@ function transmissionBadge(f){
 }
 
 async function toggleTransmise(id){
-  if(readOnly){ toast('ℹ️ Votre abonnement est inactif — consultation uniquement.'); return; }
+  if(readOnly){ toast('🔒 La transmission au comptable nécessite un abonnement Solo ou Pro.'); return; }
   const list = currentList();
   const f = list.find(x => x.id === id);
   if(!f) return;
@@ -1442,7 +1443,10 @@ async function init(){
     const timeout = setTimeout(resolve, 3000);   // ne jamais bloquer la page
     window.PlanGuard.onReady(() => { clearTimeout(timeout); resolve(); });
   });
-  readOnly = !!(window.PlanGuard && window.PlanGuard.isFree());
+  // Transmission au comptable + gestion des pièces = Solo+.
+  // Le Free consulte librement (obligation légale de conservation) mais ne
+  // peut pas transmettre/modifier : readOnly reflète « pas d'abonnement Solo+ ».
+  readOnly = !(window.PlanGuard && window.PlanGuard.isSolo());
   isProPlan = !!(window.PlanGuard && window.PlanGuard.isPro());
 
   // Période de grâce PDP : affichée en bannière si une résiliation est en cours.

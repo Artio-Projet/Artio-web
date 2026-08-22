@@ -1542,6 +1542,29 @@ window.handleGenerate=async()=>{
   const req=["client_nom","travaux"].concat(S.entreprise.assujetti_tva?["tva"]:[]);
   const miss=req.filter(id=>!(f[id]||"").trim());
   if(miss.length){alert("Champs manquants : "+miss.join(", "));return}
+  // ── Quota plan gratuit : 5 documents / mois (vocal OU manuel) ──────
+  // Vérifié + incrémenté atomiquement côté serveur AVANT toute création.
+  // Solo/Pro/admin = illimité (la RPC renvoie allowed:true, unlimited).
+  // En cas d'échec de génération plus bas, on rembourse (refund) dans le catch.
+  let quotaIncremented=false;
+  try{
+    const{data:q,error:qErr}=await sb.rpc("check_and_increment_document_quota");
+    if(qErr) throw qErr;
+    if(q&&q.allowed===false){
+      // Quota atteint : proposer l'abonnement, ne pas créer le document.
+      if(window.PlanGuard&&PlanGuard.showQuotaModal){
+        PlanGuard.showQuotaModal(q.used,q.limit);
+      }else{
+        alert("Vous avez utilisé vos "+(q.limit||5)+" créations gratuites ce mois-ci. Passez à Solo ou Pro pour créer sans limite.");
+      }
+      return;
+    }
+    if(q&&q.unlimited!==true&&q.allowed===true) quotaIncremented=true;
+  }catch(quotaErr){
+    console.error("Quota RPC:",quotaErr);
+    alert("Impossible de vérifier votre quota pour le moment. Réessayez dans un instant.");
+    return;
+  }
   set({loading:true,generatedDoc:null});
   try{
     const docNumber=await getNextNum(tab,S.user.id);
@@ -1635,7 +1658,16 @@ const nom=civStr+(travStr?" — "+travStr:"");
     setTimeout(()=>{
       window.location.href="dossiers.html?dossier="+encodeURIComponent(dos.id);
     },1500);
-  }catch(err){set({loading:false});alert("Erreur : "+err.message)}
+  }catch(err){
+    set({loading:false});
+    // La création a échoué après l'incrément du quota → rembourser le crédit
+    // pour ne pas pénaliser un utilisateur Free (erreur réseau, IA saturée…).
+    if(quotaIncremented){
+      try{await sb.rpc("refund_document_quota");}
+      catch(refundErr){console.error("Refund quota:",refundErr);}
+    }
+    alert("Erreur : "+err.message);
+  }
 };
 
 // ——— DOSSIERS ACTIONS ———

@@ -11,7 +11,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="plan-guard.js?v=1"></script>
   <script src="tour.js?v=3"></script>
-  <script>const PAGE_PLAN_REQUIRED = "solo";</script>
+  <!-- Pas de PAGE_PLAN_REQUIRED : l'historique des dossiers est accessible
+       à tous les comptes, y compris Free (consultation + actions sur ses
+       propres documents). Les fonctions réservées (émission, relances IA,
+       signature) sont gatées individuellement plus bas. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <script src="pdf-generator.js?v=1"></script>
@@ -319,7 +322,7 @@ async function hashDoc(obj){
 }
 
 async function callClaude(prompt,maxTokens=400,retries=5){
-  if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("La génération par IA nécessite un abonnement actif.");throw new Error("plan_required");}
+  if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("La génération par IA nécessite un abonnement actif.");throw new Error("plan_required");}
   const{data:{session}}=await sb.auth.getSession();
   if(!session){throw new Error("Session expirée, reconnecte-toi.");}
   for(let attempt=1;attempt<=retries;attempt++){
@@ -356,13 +359,13 @@ window.markTermine=async id=>{
   dos.statut="termine";await upsertDossier(dos);set({});
 };
 window.markAccepte=async(dosId,docNum)=>{
-  if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+  if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   dos.statut="devis_accepte";dos.documents=dos.documents.map(d=>d.docNumber===docNum?{...d,accepte:true}:d);
   await upsertDossier(dos);set({});
 };
 window.markPaye=async(dosId,docNum)=>{
-  if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+  if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const datePaye=new Date().toLocaleDateString("fr-FR");
   dos.documents=dos.documents.map(d=>d.docNumber===docNum?{...d,paye:true,date_paye:datePaye}:d);
@@ -529,6 +532,14 @@ window.copySignatureLink=async function(){
 
 window.emettreFacture=async function(dosId,docNum,opts){
   const silent=opts&&opts.silent===true;
+  // ── Émission = Solo+ (le Free consulte mais ne peut pas émettre) ──
+  // La consultation des factures reste ouverte ; l'émission électronique
+  // via la PDP nécessite un abonnement. On n'affiche le modal qu'en mode
+  // interactif (pas en silent, réservé aux appels automatiques internes).
+  if(!silent && window.PlanGuard && !window.PlanGuard.isSolo()){
+    if(window.PlanGuard.showProModal) window.PlanGuard.showProModal("Émission de facture électronique");
+    return;
+  }
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const doc=dos.documents.find(d=>d.docNumber===docNum);if(!doc)return;
   // ⚡ GARDE D'IDEMPOTENCE : si déjà émise, on ne rappelle PAS FactPulse.
@@ -587,7 +598,7 @@ window.emettreFacture=async function(dosId,docNum,opts){
 };
 
 convertToFacture=async(dosId,docNum)=>{
-  if(window.PlanGuard&&window.PlanGuard.isFree()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
+  if(window.PlanGuard&&window.PlanGuard.isReadOnly&&window.PlanGuard.isReadOnly()){_showReadonlyAlert("Action impossible en mode lecture.");return;}
   const dos=S.dossiers.find(d=>d.id===dosId);if(!dos)return;
   const devis=dos.documents.find(d=>d.docNumber===docNum);if(!devis)return;
   if(!devis.date_prestation){set({pendingConvert:{dosId,docNum},showDatePrestModal:true});return;}
@@ -734,6 +745,7 @@ function renderDossierCard(dos){
   const docsHTML=(dos.documents||[]).map(doc=>{
     const hasF=(dos.documents||[]).some(d=>d.type==="facture");
     const isPro=window.PlanGuard?.isPro();
+    const isSolo=window.PlanGuard?.isSolo(); // émission facture électronique = Solo+
     return`<div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
         <div><p style="font-size:13px;font-weight:500;color:var(--text);">${doc.label||doc.docNumber||""}</p><p style="font-size:12px;color:#888;">${doc.docNumber||""} · ${doc.date||""} · ${(doc.ttc||0).toFixed(2)} € TTC</p></div>
@@ -761,6 +773,10 @@ function renderDossierCard(dos){
             //   2. Non émise → bouton ambre "⚡ Émettre" (action volontaire de l'utilisateur)
             if (isEmise) {
               return `<span class="btn-small" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.3);cursor:default;">✅ Émise</span>`;
+            }
+            // Émission = Solo+. Free : bouton cadenassé qui ouvre le modal d'abonnement.
+            if (!isSolo) {
+              return `<button class="btn-small" style="background:rgba(255,160,40,.12);color:var(--amber);border-color:rgba(255,160,40,.3);opacity:.45;" onclick="window.PlanGuard?.showProModal('Émission de facture électronique')" title="L'émission au format électronique nécessite un abonnement Solo ou Pro">🔒 Émettre</button>`;
             }
             return `<button class="btn-small" style="background:rgba(255,160,40,.12);color:var(--amber);border-color:rgba(255,160,40,.3);" onclick="emettreFacture('${dos.id}','${doc.docNumber}')" title="Émettre cette facture au format électronique via FactPulse">${isLoading?"⏳ Envoi...":"⚡ Émettre"}</button>`;
           })()}`:""  }

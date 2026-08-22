@@ -271,8 +271,31 @@ window.PlanGuard = (() => {
     document.getElementById("pg-modal-close").addEventListener("click", () => box.remove());
   }
 
-  // ── Gater un élément ou remplacer une fonction ─────────────────
-  // target = HTMLElement → floute l'élément + badge 🔒
+  // ── Modal quota gratuit atteint ────────────────────────────────
+  // Affiché quand un compte Free a épuisé ses créations du mois.
+  // Ton ambre (offre / mise à niveau), distinct du modal Pro (violet).
+  function showQuotaModal(used, limit) {
+    injectStyles();
+    const existing = document.getElementById("pg-modal-overlay");
+    if (existing) existing.remove();
+    const lim = limit || 5;
+    const box = document.createElement("div");
+    box.id = "pg-modal-overlay";
+    box.innerHTML = `
+      <div id="pg-modal-box" style="border-color:var(--pg-amber-dim);">
+        <div id="pg-modal-badge" style="background:var(--pg-amber-dim);border-color:var(--pg-amber-dim);color:var(--pg-amber);">✦ PLAN GRATUIT</div>
+        <div id="pg-modal-title">Limite mensuelle atteinte</div>
+        <div id="pg-modal-sub">
+          Vous avez utilisé vos <strong style="color:var(--pg-amber)">${lim} créations gratuites</strong> ce mois-ci.
+          Passez à <strong style="color:var(--pg-amber)">Solo</strong> ou <strong style="color:var(--pg-purple)">Pro</strong> pour créer devis et factures sans limite.
+        </div>
+        <a id="pg-modal-cta" href="settings.html?tab=abonnement" style="background:var(--pg-amber);color:var(--pg-bg);">Voir les abonnements</a>
+        <button id="pg-modal-close">Plus tard</button>
+      </div>`;
+    document.body.appendChild(box);
+    box.addEventListener("click", e => { if (e.target === box) box.remove(); });
+    document.getElementById("pg-modal-close").addEventListener("click", () => box.remove());
+  }
   // target = Function   → retourne une fonction qui ouvre le modal
   function gate(requiredPlan, target, featureLabel) {
     const reqRank  = PLAN_RANK[requiredPlan] ?? 1;
@@ -366,26 +389,30 @@ window.PlanGuard = (() => {
 
     if (userRank >= reqRank) return; // accès OK
 
-    if (_wasSubscribed) {
-      // Ex-abonné → lecture seule, bannière discrète
-      showReadonlyBanner();
-      // Signaler aux pages via un event
-      document.dispatchEvent(new CustomEvent("pg:readonly"));
-    } else {
-      // Jamais abonné → overlay de blocage
-      showFreeOverlay();
-    }
+    // Vision A : plus de distinction ex-abonné. Tout compte sous le niveau
+    // requis (Free, qu'il ait déjà payé ou non) voit l'overlay de mise à
+    // niveau. Le mode "lecture seule" n'existe plus : un Free a un vrai
+    // plan (5 créations/mois) sur les pages ouvertes, et pas d'accès aux
+    // pages réservées (dashboard, rédaction, calendrier).
+    showFreeOverlay();
   }
 
   return {
     init,
     gate,
     showProModal,
+    showQuotaModal,
     isAdmin:        () => _isAdmin,
     isPro:          () => _plan === "pro" || _isAdmin,
     isSolo:         () => _isAdmin || _plan === "solo" || _plan === "pro",
     isFree:         () => !_isAdmin && (!_plan || _plan === "free" || _plan === "restricted"),
-    isReadOnly:     () => (_plan === "free" || _plan === "restricted") && _wasSubscribed,
+    // Vision A : le mode lecture seule n'existe plus. Un ancien abonné
+    // redevient un Free normal (5 créations/mois + historique complet).
+    // isReadOnly renvoie toujours false pour désactiver les anciens
+    // blocages de lecture seule encore présents dans certaines pages.
+    isReadOnly:     () => false,
+    // Conservé uniquement pour personnaliser le libellé du CTA
+    // ("Se réabonner" vs "Découvrir les offres"), plus pour bloquer.
     wasSubscribed:  () => _wasSubscribed,
     getPlan:        () => _plan,
     onReady:        (fn) => { if (_ready) fn(_plan); else _onReady.push(fn); },
