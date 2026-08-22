@@ -1408,16 +1408,17 @@ Instructions d'extraction:
 - client_tel: numéro de téléphone si mentionné
 - client_email: email si mentionné
 - travaux: description complète de la prestation à réaliser
-- nb_heures: nombre d'heures de travail si mentionné (ex: "3 heures" → "3"), null sinon
+- nb_heures: nombre d'heures de MAIN-D'ŒUVRE de la prestation principale, si mentionné. Capte toutes les formulations naturelles : "3 heures", "il y en a pour 4 heures de travail", "compte 5h", "une demi-journée" (→ "4"), "une journée" (→ "8"). Retourne uniquement le nombre (ex: "4"). null sinon. CES HEURES NE DOIVENT JAMAIS APPARAÎTRE AUSSI DANS pieces.
 - tva: taux de TVA en chiffre seul sans % si mentionné, null sinon
 - date_prestation: date au format YYYY-MM-DD si mentionnée ("demain", "lundi", "le 15 avril"...), null sinon
 - heure_prestation: heure de début au format HH:MM si mentionnée ("9h", "14h30"...), null sinon
 - heure_fin_prestation: heure de fin au format HH:MM si mentionnée ("jusqu'à 11h", "pendant 2h"...), null sinon
-- pieces: tableau des prestations/articles avec leur prix. Généraliser : forfait, code service, pièce, produit... (ex: "forfait lavage 39 euros" → {"description":"Forfait lavage","quantite":"1","prix_unitaire":"39"}, "code D9" → {"description":"Code D9","quantite":"1","prix_unitaire":null})
+- pieces: tableau des FOURNITURES, MATÉRIEL ou LIGNES SUPPLÉMENTAIRES facturées EN PLUS de la main-d'œuvre. À remplir UNIQUEMENT quand l'utilisateur les introduit explicitement ("ajout de", "location de", "fourniture de", "plus le matériel", "forfait", "code service", "pièce", "produit"...). Exemples : "location de matériel 1500 euros" → {"description":"Location de matériel","quantite":"1","prix_unitaire":"1500"}, "forfait lavage 39 euros" → {"description":"Forfait lavage","quantite":"1","prix_unitaire":"39"}, "code D9" → {"description":"Code D9","quantite":"1","prix_unitaire":null}.
+  RÈGLE ANTI-DOUBLON ABSOLUE : ne JAMAIS créer de ligne pieces pour la prestation principale (déjà dans "travaux") ni pour les heures de main-d'œuvre (déjà dans "nb_heures"). La main-d'œuvre est calculée automatiquement à partir de nb_heures × taux horaire — la remettre dans pieces la facturerait DEUX FOIS. Si l'utilisateur ne mentionne AUCUNE fourniture distincte, pieces DOIT rester un tableau vide []. Ex : "pose de terrasse, il y en a pour 4 heures de travail" → nb_heures:"4", pieces:[] (surtout PAS de ligne "pose de terrasse" à 4×taux).
 - template_hint: si l'utilisateur mentionne un modèle habituel ou récurrent ("comme d'habitude", "pareil que d'habitude", "modèle X", "habituel pour Y", "même chose que"), retourner le nom/mot-clé du modèle ou du client. null sinon.
 - type: "devis" si l'utilisateur veut une estimation/proposition (mots-clés: "devis", "estimation", "proposer", "je voudrais", "pour faire"), "facture" si c'est après prestation/paiement (mots-clés: "facture", "j'ai fait", "j'ai terminé", "c'est fait", "à payer", "réglé"). Par défaut "devis".
 
-Si une information n'est pas mentionnée, mettre null. Pour pieces, tableau vide [] si rien mentionné.
+Si une information n'est pas mentionnée, mettre null. Pour pieces : tableau vide [] par défaut. N'y mettre QUE des fournitures/matériel explicitement ajoutés par l'utilisateur, JAMAIS la prestation principale ni les heures de main-d'œuvre.
 
 JSON:
 {"client_nom":null,"client_adresse":null,"client_tel":null,"client_email":null,"travaux":null,"nb_heures":null,"tva":null,"date_prestation":null,"heure_prestation":null,"pieces":[],"template_hint":null,"type":"devis"}`,800);
