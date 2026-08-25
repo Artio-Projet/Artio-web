@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" href="artio-icon.png"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Artio — Espace Partenaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #080b14;
+  --surface:   #0e1220;
+  --surface-2: #141829;
+  --surface-3: #1a2035;
+  --border:    rgba(255,255,255,0.07);
+  --border-hi: rgba(255,255,255,0.13);
+  --text:      #e2e5f1;
+  --muted:     #6b7494;
+  --amber:     #f5a742;
+  --amber-2:   #e07a18;
+  --amber-dim: rgba(245,167,66,0.12);
+  --teal:      #3ecfcf;
+  --green:     #4ade80;
+  --green-dim: rgba(74,222,128,0.11);
+  --purple:    #a78bfa;
+  --fh: 'Space Grotesk', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  padding: 24px 16px 64px;
+}
+.wrap { max-width: 880px; margin: 0 auto; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo { font-family: var(--fh); font-size: 22px; font-weight: 700; color: var(--amber); }
+.brand-tag { font-size: 12px; color: var(--muted); }
+.logout-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 9px; padding: 8px 14px;
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.logout-btn:hover { color: var(--text); border-color: var(--border-hi); }
+
+h1 { font-family: var(--fh); font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+.sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px; margin-bottom: 18px;
+}
+.card.amber { border-color: rgba(245,167,66,0.28); background: linear-gradient(180deg, var(--amber-dim), var(--surface)); }
+.card-title { font-family: var(--fh); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.card-sub { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 12px; text-align: center;
+}
+.stat-num { font-family: var(--fh); font-size: 26px; font-weight: 700; }
+.stat-num.amber { color: var(--amber); }
+.stat-num.green { color: var(--green); }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.code-box {
+  background: var(--surface-2); border: 1px dashed var(--amber);
+  border-radius: 14px; padding: 20px; text-align: center; margin: 16px 0;
+}
+.code-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+.code-val { font-family: var(--fm); font-size: 28px; font-weight: 700; letter-spacing: 0.12em; color: var(--amber); }
+.copy-btn {
+  margin-top: 14px; background: var(--amber); color: #1a1a1f;
+  border: none; border-radius: 9px; padding: 10px 18px;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.copy-btn:active { transform: scale(0.97); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; padding: 10px 12px; color: var(--muted);
+  font-weight: 500; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.05em; border-bottom: 1px solid var(--border);
+}
+td { padding: 12px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge.attente { background: var(--amber-dim); color: var(--amber); }
+.badge.due     { background: var(--green-dim); color: var(--green); }
+.badge.versee  { background: rgba(107,116,148,0.15); color: var(--muted); }
+.badge.expire  { background: rgba(107,116,148,0.15); color: var(--muted); }
+.empty { text-align: center; color: var(--muted); padding: 32px 12px; font-size: 14px; }
+
+.loading { text-align: center; padding: 60px 12px; color: var(--muted); }
+.hidden { display: none; }
+.note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-logo">Artio</span>
+      <span class="brand-tag">· Espace Partenaires</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Se déconnecter</button>
+  </div>
+
+  <div id="loading" class="loading">Chargement…</div>
+
+  <div id="content" class="hidden">
+    <h1 id="hello">Bonjour</h1>
+    <p class="sub">Suivez les clients que vous avez recommandés et vos commissions.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="s-total">0</div>
+        <div class="stat-lbl">Clients apportés</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num amber" id="s-due">0 €</div>
+        <div class="stat-lbl">À verser</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num green" id="s-versee">0 €</div>
+        <div class="stat-lbl">Déjà versé</div>
+      </div>
+    </div>
+
+    <div class="card amber">
+      <div class="card-title">Votre code partenaire</div>
+      <div class="card-sub">
+        Partagez ce code à vos clients. À l'inscription sur Artio, ils bénéficient
+        de <strong>-50% sur leur premier mois</strong>. Vous touchez une commission
+        dès qu'ils règlent leur premier mois.
+      </div>
+      <div class="code-box">
+        <div class="code-lbl">Code à communiquer</div>
+        <div class="code-val" id="code-val">—</div>
+        <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copier le code</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">Détail des clients apportés</div>
+      <div id="table-wrap">
+        <div class="empty">Aucun client apporté pour l'instant.</div>
+      </div>
+      <div class="note">
+        « À verser » : le client est devenu payant, votre commission est due et sera
+        réglée prochainement. « Versée » : commission déjà payée. « En attente » :
+        client inscrit, en attente de son premier paiement.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const IS_LOCAL = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const SB_URL = IS_LOCAL ? "http://127.0.0.1:54321" : "https://mwmexkoeqeyueqgdkkni.supabase.co";
+const SB_KEY = IS_LOCAL
+  ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
+  : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bWV4a29lcWV5dWVxZ2Rra25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MDEzMzcsImV4cCI6MjA5MDk3NzMzN30.380jxCN_CpWqmnwraob5crwUeBpTQxrXsTe2YDF-Rk8";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let partnerCode = '';
+
+function euros(cents) {
+  const v = (cents || 0) / 100;
+  return v.toLocaleString('fr-FR', { minimumFractionDigits: v % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 }) + ' €';
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+async function doLogout() {
+  try { await sb.auth.signOut(); } catch (e) {}
+  window.location.href = 'login.html';
+}
+
+function copyCode() {
+  if (!partnerCode) return;
+  navigator.clipboard?.writeText(partnerCode).then(() => {
+    const b = document.getElementById('copy-btn');
+    const old = b.textContent;
+    b.textContent = 'Copié ✓';
+    setTimeout(() => { b.textContent = old; }, 1600);
+  });
+}
+
+function statutBadge(p) {
+  // p.statut : en_attente | commission_a_verser | credit_applique | expire
+  if (p.commission_versee_at) return '<span class="badge versee">Versée</span>';
+  if (p.statut === 'commission_a_verser') return '<span class="badge due">À verser</span>';
+  if (p.statut === 'en_attente') return '<span class="badge attente">En attente</span>';
+  if (p.statut === 'expire') return '<span class="badge expire">Expiré</span>';
+  return '<span class="badge attente">' + esc(p.statut) + '</span>';
+}
+
+function renderTable(rows) {
+  const wrap = document.getElementById('table-wrap');
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="empty">Aucun client apporté pour l\'instant.</div>';
+    return;
+  }
+  const body = rows.map(p => {
+    const d = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—';
+    const montant = p.commission_cents != null ? euros(p.commission_cents) : '—';
+    return `<tr>
+      <td>${d}</td>
+      <td>${statutBadge(p)}</td>
+      <td style="text-align:right;font-family:var(--fm);">${montant}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Date d'inscription</th><th>Statut</th><th style="text-align:right;">Commission</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  const userId = session.user.id;
+
+  // Vérifier le statut partenaire + récupérer le code.
+  const { data: profil, error: pErr } = await sb
+    .from('profils')
+    .select('est_partenaire, is_admin, code_parrainage, nom')
+    .eq('user_id', userId)
+    .single();
+
+  // Accès autorisé aux partenaires ET aux admins (les admins peuvent
+  // consulter la page à des fins de support / vérification).
+  const autorise = !pErr && profil && (profil.est_partenaire === true || profil.is_admin === true);
+
+  if (!autorise) {
+    // Accès refusé : ni partenaire ni admin. On renvoie vers l'app normale.
+    document.getElementById('loading').innerHTML =
+      "Cet espace est réservé aux partenaires Artio.<br><br>" +
+      '<a href="dashboard.html" style="color:var(--amber);">Retour à mon espace</a>';
+    return;
+  }
+
+  partnerCode = (profil.code_parrainage || '').trim();
+  const nom = profil.nom || 'Partenaire';
+  document.getElementById('hello').textContent = 'Bonjour ' + nom;
+  document.getElementById('code-val').textContent = partnerCode || '—';
+
+  // Récupérer tous les parrainages de type partenariat pour ce partenaire.
+  const { data: rows, error: rErr } = await sb
+    .from('parrainages')
+    .select('id, statut, type, commission_cents, commission_versee_at, created_at')
+    .eq('parrain_user_id', userId)
+    .order('created_at', { ascending: false });
+
+  const list = (rErr || !rows) ? [] : rows;
+
+  // Stats.
+  let due = 0, versee = 0;
+  for (const p of list) {
+    if (p.commission_versee_at) versee += (p.commission_cents || 0);
+    else if (p.statut === 'commission_a_verser') due += (p.commission_cents || 0);
+  }
+  document.getElementById('s-total').textContent = list.length;
+  document.getElementById('s-due').textContent = euros(due);
+  document.getElementById('s-versee').textContent = euros(versee);
+
+  renderTable(list);
+
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('content').classList.remove('hidden');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -833,7 +833,7 @@ const CONDITIONS = ["Paiement à réception","Paiement à 30 jours","Paiement à
 let user = null;
 let profil = {};
 let subscriptionStatus = "free";
-let parrainageStats = { total: 0, en_attente: 0, credites: 0 };
+let parrainageStats = { total: 0, en_attente: 0, credites: 0, plafondAtteint: false };
 let subscriptionEndDate = null;
 let isAdmin = false;
 let isFounder = false;
@@ -1030,10 +1030,18 @@ async function loadParrainageStats() {
       .select('statut')
       .eq('parrain_user_id', user.id);
     if (error || !data) return;
+    // 'credit_applique' = crédité normalement ; 'plafond_atteint' = le
+    // filleul est bien devenu client mais le plafond de 12 est atteint,
+    // donc pas de nouveau crédit. Les deux comptent comme un parrainage
+    // "réussi" côté filleul → on les additionne pour rester fidèle à la
+    // réalité, et on plafonne l'affichage des mois gagnés à 12.
+    const PLAFOND_PARRAINAGES = 12;
+    const reussis = data.filter(p => p.statut === 'credit_applique' || p.statut === 'plafond_atteint').length;
     parrainageStats = {
-      total:      data.length,
-      en_attente: data.filter(p => p.statut === 'en_attente').length,
-      credites:   data.filter(p => p.statut === 'credit_applique').length,
+      total:          data.length,
+      en_attente:     data.filter(p => p.statut === 'en_attente').length,
+      credites:       Math.min(reussis, PLAFOND_PARRAINAGES),
+      plafondAtteint: reussis >= PLAFOND_PARRAINAGES,
     };
   } catch(e) { /* non bloquant */ }
 }
@@ -2342,8 +2350,8 @@ function renderParrainageHTML() {
           <div style="font-size:11px;color:var(--muted);margin-top:2px;">En attente</div>
         </div>
         <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;">
-          <div style="font-size:24px;font-weight:700;color:var(--amber);">${parrainageStats.credites}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Mois gagné${parrainageStats.credites > 1 ? 's' : ''}</div>
+          <div style="font-size:24px;font-weight:700;color:var(--amber);">${parrainageStats.plafondAtteint ? parrainageStats.credites + ' / 12' : parrainageStats.credites}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${parrainageStats.plafondAtteint ? 'Maximum atteint' : 'Mois gagné' + (parrainageStats.credites > 1 ? 's' : '')}</div>
         </div>
       </div>
 
@@ -2367,6 +2375,11 @@ function renderParrainageHTML() {
         <sup>*</sup> Offre réservée aux abonnements mensuels. Voir les conditions du programme
         (<a href="/cgv.html#parrainage" style="color:var(--amber);text-decoration:underline;">CGV, Article 7quater</a>).
       </div>
+      ${(profil.est_partenaire || isAdmin) ? `
+      <a href="/partenaires.html" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;padding:13px;background:var(--purple-dim,rgba(167,139,250,0.11));border:1px solid var(--purple,#a78bfa);border-radius:11px;color:var(--purple,#a78bfa);font-size:13px;font-weight:700;text-decoration:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        ${isAdmin && !profil.est_partenaire ? 'Espace Partenaires (admin)' : 'Accéder à mon Espace Partenaires'}
+      </a>` : ''}
     </div>`;
 }
 
