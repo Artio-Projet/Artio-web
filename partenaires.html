@@ -61,15 +61,22 @@ h1 { font-family: var(--fh); font-size: 26px; font-weight: 700; margin-bottom: 6
 .card-title { font-family: var(--fh); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .card-sub { color: var(--muted); font-size: 13px; line-height: 1.5; }
 
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+@media (max-width: 560px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 .stat {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; padding: 18px 12px; text-align: center;
 }
+.stat.filterable { cursor: pointer; transition: border-color .15s, transform .1s; }
+.stat.filterable:hover { border-color: var(--border-hi); }
+.stat.filterable:active { transform: scale(0.98); }
+.stat.active { border-color: var(--amber); background: var(--amber-dim); }
 .stat-num { font-family: var(--fh); font-size: 26px; font-weight: 700; }
 .stat-num.amber { color: var(--amber); }
 .stat-num.green { color: var(--green); }
 .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.filter-hint { font-size: 12px; color: var(--muted); margin-bottom: 18px; text-align: center; }
+.filter-hint a { color: var(--amber); }
 
 .code-box {
   background: var(--surface-2); border: 1px dashed var(--amber);
@@ -97,6 +104,8 @@ tr:last-child td { border-bottom: none; }
   font-size: 11px; font-weight: 600;
 }
 .badge.attente { background: var(--amber-dim); color: var(--amber); }
+.badge.solo    { background: rgba(62,207,207,0.14); color: var(--teal); }
+.badge.pro     { background: rgba(167,139,250,0.16); color: var(--purple); }
 .badge.due     { background: var(--green-dim); color: var(--green); }
 .badge.versee  { background: rgba(107,116,148,0.15); color: var(--muted); }
 .badge.expire  { background: rgba(107,116,148,0.15); color: var(--muted); }
@@ -125,18 +134,26 @@ tr:last-child td { border-bottom: none; }
     <p class="sub">Suivez les clients que vous avez recommandés et vos commissions.</p>
 
     <div class="stats">
-      <div class="stat">
-        <div class="stat-num" id="s-total">0</div>
-        <div class="stat-lbl">Clients apportés</div>
+      <div class="stat filterable" id="tile-solo" onclick="setFilter('solo')">
+        <div class="stat-num" id="s-solo">0</div>
+        <div class="stat-lbl">Clients Solo</div>
+      </div>
+      <div class="stat filterable" id="tile-pro" onclick="setFilter('pro')">
+        <div class="stat-num amber" id="s-pro">0</div>
+        <div class="stat-lbl">Clients Pro</div>
+      </div>
+      <div class="stat filterable" id="tile-attente" onclick="setFilter('attente')">
+        <div class="stat-num" id="s-attente">0</div>
+        <div class="stat-lbl">En attente</div>
       </div>
       <div class="stat">
-        <div class="stat-num amber" id="s-due">0 €</div>
-        <div class="stat-lbl">À verser</div>
+        <div class="stat-num green" id="s-total-gagne">0 €</div>
+        <div class="stat-lbl">Total gagné</div>
       </div>
-      <div class="stat">
-        <div class="stat-num green" id="s-versee">0 €</div>
-        <div class="stat-lbl">Déjà versé</div>
-      </div>
+    </div>
+    <div id="filter-hint" class="filter-hint hidden">
+      Filtre actif : <strong id="filter-label"></strong> —
+      <a href="#" onclick="setFilter(null);return false;">tout afficher</a>
     </div>
 
     <div class="card amber">
@@ -159,9 +176,10 @@ tr:last-child td { border-bottom: none; }
         <div class="empty">Aucun client apporté pour l'instant.</div>
       </div>
       <div class="note">
-        « À verser » : le client est devenu payant, votre commission est due et sera
-        réglée prochainement. « Versée » : commission déjà payée. « En attente » :
-        client inscrit, en attente de son premier paiement.
+        Touchez les cases <strong>Clients Solo</strong>, <strong>Clients Pro</strong> ou
+        <strong>En attente</strong> pour filtrer la liste. « En attente » = client inscrit
+        avec votre code mais qui n'a pas encore réglé son premier mois — n'hésitez pas à le
+        relancer. Le gain est acquis dès le premier paiement du client.
       </div>
     </div>
   </div>
@@ -205,32 +223,78 @@ function copyCode() {
   });
 }
 
-function statutBadge(p) {
-  // p.statut : en_attente | commission_a_verser | credit_applique | expire
-  if (p.commission_versee_at) return '<span class="badge versee">Versée</span>';
-  if (p.statut === 'commission_a_verser') return '<span class="badge due">À verser</span>';
-  if (p.statut === 'en_attente') return '<span class="badge attente">En attente</span>';
-  if (p.statut === 'expire') return '<span class="badge expire">Expiré</span>';
-  return '<span class="badge attente">' + esc(p.statut) + '</span>';
+// Catégorie d'affichage d'une ligne :
+//  - 'solo' / 'pro' : commission acquise (client devenu payant), palier figé
+//  - 'attente'      : client inscrit, pas encore payant
+//  - 'expire'       : parrainage expiré (client jamais devenu payant)
+function categorie(p) {
+  const acquis = p.statut === 'commission_a_verser' || !!p.commission_versee_at;
+  if (acquis) {
+    const plan = (p.commission_plan || '').toLowerCase();
+    return plan === 'pro' ? 'pro' : 'solo';
+  }
+  if (p.statut === 'expire') return 'expire';
+  return 'attente';
 }
 
-function renderTable(rows) {
+function categorieBadge(cat) {
+  if (cat === 'pro')     return '<span class="badge pro">Pro</span>';
+  if (cat === 'solo')    return '<span class="badge solo">Solo</span>';
+  if (cat === 'expire')  return '<span class="badge expire">Expiré</span>';
+  return '<span class="badge attente">En attente</span>';
+}
+
+let allRows = [];
+let activeFilter = null; // null | 'solo' | 'pro' | 'attente'
+
+function setFilter(f) {
+  // Re-cliquer le filtre actif le désactive.
+  activeFilter = (activeFilter === f) ? null : f;
+
+  // Mise en valeur des tuiles.
+  ['solo', 'pro', 'attente'].forEach(k => {
+    const tile = document.getElementById('tile-' + k);
+    if (tile) tile.classList.toggle('active', activeFilter === k);
+  });
+
+  // Bandeau de filtre.
+  const hint = document.getElementById('filter-hint');
+  const lbl = document.getElementById('filter-label');
+  if (activeFilter) {
+    const labels = { solo: 'Clients Solo', pro: 'Clients Pro', attente: 'En attente' };
+    lbl.textContent = labels[activeFilter] || '';
+    hint.classList.remove('hidden');
+  } else {
+    hint.classList.add('hidden');
+  }
+
+  renderTable();
+}
+
+function renderTable() {
   const wrap = document.getElementById('table-wrap');
+  const rows = activeFilter
+    ? allRows.filter(p => categorie(p) === activeFilter)
+    : allRows;
+
   if (!rows.length) {
-    wrap.innerHTML = '<div class="empty">Aucun client apporté pour l\'instant.</div>';
+    wrap.innerHTML = '<div class="empty">Aucun client dans cette catégorie.</div>';
     return;
   }
   const body = rows.map(p => {
+    const cat = categorie(p);
     const d = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—';
-    const montant = p.commission_cents != null ? euros(p.commission_cents) : '—';
+    // Montant affiché seulement si la commission est acquise.
+    const acquis = cat === 'solo' || cat === 'pro';
+    const montant = acquis && p.commission_cents != null ? euros(p.commission_cents) : '—';
     return `<tr>
       <td>${d}</td>
-      <td>${statutBadge(p)}</td>
+      <td>${categorieBadge(cat)}</td>
       <td style="text-align:right;font-family:var(--fm);">${montant}</td>
     </tr>`;
   }).join('');
   wrap.innerHTML = `<table>
-    <thead><tr><th>Date d'inscription</th><th>Statut</th><th style="text-align:right;">Commission</th></tr></thead>
+    <thead><tr><th>Date d'inscription</th><th>Type</th><th style="text-align:right;">Gain</th></tr></thead>
     <tbody>${body}</tbody>
   </table>`;
 }
@@ -265,26 +329,29 @@ async function init() {
   document.getElementById('hello').textContent = 'Bonjour ' + nom;
   document.getElementById('code-val').textContent = partnerCode || '—';
 
-  // Récupérer tous les parrainages de type partenariat pour ce partenaire.
+  // Récupérer tous les parrainages de ce partenaire.
   const { data: rows, error: rErr } = await sb
     .from('parrainages')
-    .select('id, statut, type, commission_cents, commission_versee_at, created_at')
+    .select('id, statut, type, commission_cents, commission_plan, commission_versee_at, created_at')
     .eq('parrain_user_id', userId)
     .order('created_at', { ascending: false });
 
-  const list = (rErr || !rows) ? [] : rows;
+  allRows = (rErr || !rows) ? [] : rows;
 
   // Stats.
-  let due = 0, versee = 0;
-  for (const p of list) {
-    if (p.commission_versee_at) versee += (p.commission_cents || 0);
-    else if (p.statut === 'commission_a_verser') due += (p.commission_cents || 0);
+  let nbSolo = 0, nbPro = 0, nbAttente = 0, totalGagne = 0;
+  for (const p of allRows) {
+    const cat = categorie(p);
+    if (cat === 'solo') { nbSolo++; totalGagne += (p.commission_cents || 0); }
+    else if (cat === 'pro') { nbPro++; totalGagne += (p.commission_cents || 0); }
+    else if (cat === 'attente') { nbAttente++; }
   }
-  document.getElementById('s-total').textContent = list.length;
-  document.getElementById('s-due').textContent = euros(due);
-  document.getElementById('s-versee').textContent = euros(versee);
+  document.getElementById('s-solo').textContent = nbSolo;
+  document.getElementById('s-pro').textContent = nbPro;
+  document.getElementById('s-attente').textContent = nbAttente;
+  document.getElementById('s-total-gagne').textContent = euros(totalGagne);
 
-  renderTable(list);
+  renderTable();
 
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('content').classList.remove('hidden');
