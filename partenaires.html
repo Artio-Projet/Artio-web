@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
+:root, [data-theme="dark"] {
   --bg:        #080b14;
   --surface:   #0e1220;
   --surface-2: #141829;
@@ -24,8 +24,27 @@
   --green:     #4ade80;
   --green-dim: rgba(74,222,128,0.11);
   --purple:    #a78bfa;
+  --purple-dim:rgba(167,139,250,0.11);
   --fh: 'Space Grotesk', sans-serif;
   --fm: 'JetBrains Mono', monospace;
+}
+[data-theme="light"] {
+  --bg:        #faf8f3;
+  --surface:   #ffffff;
+  --surface-2: #f3efe6;
+  --surface-3: #ece7dc;
+  --border:    rgba(20,18,12,0.08);
+  --border-hi: rgba(20,18,12,0.16);
+  --text:      #1a1a1f;
+  --muted:     #6a6b78;
+  --amber:     #d97706;
+  --amber-2:   #b15808;
+  --amber-dim: rgba(217,119,6,0.10);
+  --teal:      #0d9488;
+  --green:     #16a34a;
+  --green-dim: rgba(22,163,74,0.10);
+  --purple:    #7c3aed;
+  --purple-dim:rgba(124,58,237,0.10);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -115,6 +134,16 @@ tr:last-child td { border-bottom: none; }
 .hidden { display: none; }
 .note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
 </style>
+<script>
+  /* THEME INIT — même mécanisme que le reste d'Artio (localStorage
+     'artio-theme' = 'light' | 'dark', défaut 'light'). Appliqué avant
+     le rendu pour éviter tout flash de thème. */
+  (function(){
+    let t='light';
+    try{ t=localStorage.getItem('artio-theme')||'light'; }catch(e){}
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 </head>
 <body>
 <div class="wrap">
