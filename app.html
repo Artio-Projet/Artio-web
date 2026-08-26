@@ -442,8 +442,8 @@ pre{white-space:pre-wrap;font-size:13px;line-height:1.75;font-family:var(--fb);c
 <script>
   /* ── THEME INIT (head) ── */
   (function(){
-    let t='dark';
-    try{t=localStorage.getItem('artio-theme')||'dark';}catch(e){}
+    let t='light';
+    try{t=localStorage.getItem('artio-theme')||'light';}catch(e){}
     document.documentElement.setAttribute('data-theme',t);
   })();
 </script>
@@ -1288,18 +1288,59 @@ async function logTokens(feature, usage){
 }
 
 // ——— VOICE ———
+// Deux moteurs de dictée :
+//   1. Web Speech API natif (Chrome / Edge / Opera / Safari) — gratuit,
+//      zéro latence réseau. Voie par défaut.
+//   2. Fallback Whisper via Groq (Firefox desktop/mobile, Brave desktop)
+//      — le Web Speech API y est absent (Firefox) ou bloqué réseau (Brave).
+//      On enregistre l'audio avec MediaRecorder et on l'envoie à l'Edge
+//      Function whisper-transcribe. Le voiceCallback (extraction JSON via
+//      Claude) est IDENTIQUE dans les deux cas — seule la SOURCE du
+//      transcript change.
+//
+// Détection : Web Speech API absent → Whisper d'emblée. Présent mais
+// erreur "network" → on mémorise (voiceUseWhisper) et on rebascule pour
+// les fois suivantes, en resituant le nom du moteur au premier échec.
 let recognition=null;
 let voiceBuffer="";
+let voicePrefix="";   // texte préexistant à préserver (dictée dans un champ)
 let lastIdx=0;
 let voiceCallback=null;
 let voiceRunning=false;
 
-function startVoiceGeneric(onResult){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert("Dictée non supportée. Utilisez Chrome.");return}
+// Fallback Whisper
+let mediaRecorder=null;
+let mediaStream=null;
+let audioChunks=[];
+let voiceMode="webspeech";           // "webspeech" | "whisper"
+// Préférence mémorisée sur la session (Brave : bascule après 1er échec réseau)
+let voiceUseWhisper=(()=>{ try{return sessionStorage.getItem("artio-voice-whisper")==="1";}catch(e){return false;} })();
+function _markWhisper(){ voiceUseWhisper=true; try{sessionStorage.setItem("artio-voice-whisper","1");}catch(e){} }
+
+function _hasWebSpeech(){ return !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
+
+// ── Point d'entrée unique : choisit le bon moteur ─────────────────
+// initialBuffer : texte existant à préserver (dictée dans un champ déjà
+// rempli). En Web Speech API la dictée s'y AJOUTE ; en Whisper (pas de
+// temps réel) le nouveau transcript est concaténé à l'existant à l'arrêt.
+function startVoiceGeneric(onResult, initialBuffer){
   voiceCallback=onResult;
-  voiceBuffer="";
+  voiceBuffer=initialBuffer||"";
+  voicePrefix=initialBuffer||"";   // mémorisé pour la concaténation Whisper
   lastIdx=0;
+
+  // Firefox (pas de SR) ou bascule déjà mémorisée (Brave) → Whisper direct
+  if(!_hasWebSpeech() || voiceUseWhisper){
+    startVoiceWhisper();
+    return;
+  }
+  startVoiceWebSpeech();
+}
+
+// ── Moteur 1 : Web Speech API (natif) ─────────────────────────────
+function startVoiceWebSpeech(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  voiceMode="webspeech";
   voiceRunning=true;
 
   let networkErrors=0;
@@ -1325,15 +1366,21 @@ function startVoiceGeneric(onResult){
     r.onerror=e=>{
       if(e.error==="no-speech"||e.error==="aborted")return;
       if(e.error==="network"){
+        // Brave : le Web Speech API existe mais Google STT est bloqué.
+        // On bascule proprement sur Whisper et on mémorise pour la session.
         networkErrors++;
         r.onend=null;
-        if(networkErrors>=3){
-          voiceRunning=false;
+        voiceRunning=false;
+        _markWhisper();
+        // Si rien n'a encore été capturé, on relance directement en Whisper
+        if(!voiceBuffer.trim()){
+          startVoiceWhisper();
+        }else{
+          // Sinon on garde ce qui a été dit et on laisse l'utilisateur
+          // arrêter normalement — le prochain démarrage sera en Whisper.
           set({voiceState:"idle"});
-          alert("La reconnaissance vocale est bloquée par votre navigateur.\nUtilisez Chrome, Edge, Opera ou Safari.");
-          return;
+          alert("Reconnaissance vocale limitée sur ce navigateur. La prochaine dictée utilisera le moteur alternatif.");
         }
-        if(voiceRunning) setTimeout(makeSession,1000);
         return;
       }
       voiceRunning=false;
@@ -1356,9 +1403,125 @@ function startVoiceGeneric(onResult){
   makeSession();
 }
 
+// ── Moteur 2 : Whisper via Groq (fallback Firefox / Brave) ────────
+async function startVoiceWhisper(){
+  voiceMode="whisper";
+  voiceRunning=true;
+  audioChunks=[];
+
+  // Choix du meilleur mime supporté par le navigateur
+  const preferred=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4"];
+  let mime="";
+  for(const m of preferred){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){ mime=m; break; } }
+
+  try{
+    mediaStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    voiceRunning=false;
+    set({voiceState:"idle"});
+    alert("Micro inaccessible. Autorise l'accès au microphone dans les réglages du navigateur.");
+    return;
+  }
+
+  try{
+    mediaRecorder=mime?new MediaRecorder(mediaStream,{mimeType:mime}):new MediaRecorder(mediaStream);
+  }catch(e){
+    // Dernier recours : MediaRecorder sans options
+    try{ mediaRecorder=new MediaRecorder(mediaStream); }
+    catch(e2){
+      voiceRunning=false;
+      _stopStream();
+      set({voiceState:"idle"});
+      alert("L'enregistrement audio n'est pas supporté par ce navigateur.");
+      return;
+    }
+  }
+
+  mediaRecorder.ondataavailable=ev=>{ if(ev.data && ev.data.size>0) audioChunks.push(ev.data); };
+  mediaRecorder.start();
+
+  // En mode Whisper, il n'y a pas de transcript en temps réel : on affiche
+  // un état d'écoute neutre. La transcription arrive après l'arrêt.
+  set({voiceState:"recording",voiceTranscript:""});
+}
+
+function _stopStream(){
+  try{ if(mediaStream){ mediaStream.getTracks().forEach(t=>t.stop()); } }catch(e){}
+  mediaStream=null;
+}
+
+// Envoie l'audio enregistré à l'Edge Function whisper-transcribe
+async function _transcribeWhisper(blob){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session) throw new Error("Session expirée, reconnecte-toi.");
+  const form=new FormData();
+  const ext=(blob.type&&blob.type.includes("mp4"))?"mp4":"webm";
+  form.append("file",blob,"dictee."+ext);
+  const res=await fetch(FUNCTIONS_URL+"/whisper-transcribe",{
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+session.access_token },
+    body:form
+  });
+  const d=await res.json().catch(()=>({}));
+  if(!res.ok){
+    throw new Error(d.error||"La transcription a échoué. Réessaie ou utilise la saisie manuelle.");
+  }
+  return (d.text||"").trim();
+}
+
 window.stopVoice=async()=>{
-  // Stopper définitivement
   voiceRunning=false;
+
+  // ── Mode Whisper : arrêter l'enregistrement, transcrire, puis callback ──
+  if(voiceMode==="whisper"){
+    if(!mediaRecorder || mediaRecorder.state==="inactive"){
+      _stopStream();
+      set({voiceState:"idle"});
+      return;
+    }
+    set({voiceState:"processing",voiceTranscript:""});
+    // Attendre la fin d'écriture du flux audio
+    const stopped=new Promise(resolve=>{ mediaRecorder.onstop=resolve; });
+    try{ mediaRecorder.stop(); }catch(e){}
+    await stopped;
+    _stopStream();
+
+    const blob=new Blob(audioChunks,{type:(mediaRecorder&&mediaRecorder.mimeType)||"audio/webm"});
+    audioChunks=[];
+    if(!blob.size){
+      alert("Aucun audio capturé. Réessaie.");
+      set({voiceState:"idle"});
+      return;
+    }
+    let transcript="";
+    try{
+      transcript=await _transcribeWhisper(blob);
+    }catch(e){
+      alert(e.message);
+      set({voiceState:"idle"});
+      return;
+    }
+    if(!transcript){
+      alert("Aucun texte capturé. Réessaie.");
+      set({voiceState:"idle"});
+      return;
+    }
+    // Concaténer à l'éventuel texte préexistant (dictée dans un champ rempli)
+    const full=voicePrefix?(voicePrefix+" "+transcript).trim():transcript;
+    voiceBuffer=full;
+    S.voiceTranscript=full;
+    set({voiceState:"processing",voiceTranscript:full});
+    try{
+      if(voiceCallback) await voiceCallback(full);
+    }catch(e){
+      alert("Erreur : "+e.message);
+    }
+    set({voiceState:"idle"});
+    setTimeout(()=>set({voiceTranscript:""}),3000);
+    return;
+  }
+
+  // ── Mode Web Speech API ──────────────────────────────────────────
   if(recognition){
     recognition.onend=null;
     // NE PAS nullifier onresult avant stop() — le navigateur envoie un dernier résultat après stop()
@@ -2040,13 +2203,12 @@ window.startVoiceContexte=function(fieldId){
   // Partir du texte existant dans le champ pour ne pas l'effacer
   const existingEl=document.querySelector(`textarea[data-fid="${fieldId}"]`);
   const existingText=(existingEl?existingEl.value:"").trim();
-  voiceBuffer=existingText; // Partir de l'existant
 
   S.voiceContextField=fieldId;
 
   // Utiliser exactement la même infrastructure que le micro principal
-  voiceCallback=async t=>{
-    // t = tout ce qui a été dit. On met à jour directement le champ
+  const cb=async t=>{
+    // t = texte existant + dictée. On met à jour directement le champ
     const el=document.querySelector(`textarea[data-fid="${fieldId}"]`);
     if(el){
       el.value=t;
@@ -2054,8 +2216,8 @@ window.startVoiceContexte=function(fieldId){
     }
   };
 
-  // Remplacer stopVoice temporairement pour gérer l'arrêt proprement
-  startVoiceGeneric(voiceCallback);
+  // Passe le texte existant comme buffer initial (préservé dans les 2 moteurs)
+  startVoiceGeneric(cb, existingText);
 };
 
 window.toggleTon=function(ton){

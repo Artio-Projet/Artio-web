@@ -1418,7 +1418,7 @@ function toggleTheme(){
 }
 
 async function init(){
-  const savedTheme = localStorage.getItem('artio-theme') || 'dark';
+  const savedTheme = localStorage.getItem('artio-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
   const { data: { user: u } } = await sb.auth.getUser();

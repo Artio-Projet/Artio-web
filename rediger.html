@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
   <meta name="robots" content="noindex, nofollow"/>
@@ -711,7 +711,7 @@ window.toggleTheme = function(){
   try{localStorage.setItem("artio-theme",next);}catch(e){}
 };
 (function(){
-  const t=(()=>{try{return localStorage.getItem("artio-theme");}catch(e){return null;}})() || "dark";
+  const t=(()=>{try{return localStorage.getItem("artio-theme");}catch(e){return null;}})() || "light";
   document.documentElement.setAttribute("data-theme",t);
 })();
 

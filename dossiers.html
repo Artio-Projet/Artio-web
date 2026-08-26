@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="robots" content="noindex, nofollow"/>
@@ -1362,7 +1362,7 @@ function setupAutoRefresh(userId){
 }
 
 async function initAuth(){
-  const theme=localStorage.getItem("artio-theme")||"dark";
+  const theme=localStorage.getItem("artio-theme")||"light";
   document.documentElement.setAttribute("data-theme",theme);
   const{data:{session}}=await sb.auth.getSession();
   if(!session){location.href="login.html";return;}
