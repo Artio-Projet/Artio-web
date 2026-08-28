@@ -16,9 +16,9 @@ const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
   const MAX_TOKENS    = 512;
   const INACTIVITY_MS = 10 * 60 * 1000; // 10 minutes
 
-  // Fin de l'offre de lancement (tarif Fondateurs) : 31 août 2026 23:59 Europe/Paris.
+  // Fin de l'offre de lancement (tarif Fondateurs) : 30 septembre 2026 23:59 Europe/Paris.
   // Passé cette date, le bot doit parler au passé de l'offre et donner les tarifs normaux.
-  const FOUNDER_OFFER_END = new Date("2026-09-01T00:00:00+02:00");
+  const FOUNDER_OFFER_END = new Date("2026-10-01T00:00:00+02:00");
 
   // Obligation de RÉCEPTION facturation électronique (toutes entreprises) : 1er sept. 2026.
   const EINVOICE_RECEPTION_START = new Date("2026-09-01T00:00:00+02:00");
@@ -32,8 +32,8 @@ const SUPABASE_KEY = IS_LOCAL ? "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
     let block = `== CONTEXTE TEMPOREL (à toujours respecter, ne jamais contredire) ==\nNous sommes le ${dateStr}.\n`;
 
     block += founderOfferActive
-      ? `L'offre de lancement (tarif Fondateurs) est ACTIVE : Solo 14 €/mois ou 140 €/an, Pro 29 €/mois ou 290 €/an, tarif figé à vie. Elle se termine le 31 août 2026 — tu peux créer un sentiment d'urgence légitime si l'utilisateur hésite.\n`
-      : `L'offre de lancement (tarif Fondateurs) est TERMINÉE depuis le 1er septembre 2026. Les tarifs normaux s'appliquent : Solo 19 €/mois ou 190 €/an, Pro 39 €/mois ou 390 €/an. N'évoque plus l'offre Fondateurs comme disponible — si l'utilisateur la mentionne, précise qu'elle a pris fin mais que les abonnés qui l'ont souscrite avant la fin du lancement gardent leur tarif figé à vie.\n`;
+      ? `L'offre de lancement (tarif Fondateurs) est ACTIVE : Solo 14 €/mois ou 140 €/an, Pro 29 €/mois ou 290 €/an, tarif figé à vie. Elle se termine le 30 septembre 2026 — tu peux créer un sentiment d'urgence légitime si l'utilisateur hésite.\n`
+      : `L'offre de lancement (tarif Fondateurs) est TERMINÉE depuis le 1er octobre 2026. Les tarifs normaux s'appliquent : Solo 19 €/mois ou 190 €/an, Pro 39 €/mois ou 390 €/an. N'évoque plus l'offre Fondateurs comme disponible — si l'utilisateur la mentionne, précise qu'elle a pris fin mais que les abonnés qui l'ont souscrite avant la fin du lancement gardent leur tarif figé à vie.\n`;
 
     block += einvoiceReceptionLive
       ? `L'obligation de RÉCEPTION des factures électroniques est déjà EN VIGUEUR pour toutes les entreprises françaises (depuis le 1er septembre 2026). Ne parle plus de cette échéance au futur.\n`
