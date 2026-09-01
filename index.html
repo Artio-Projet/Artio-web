@@ -424,6 +424,18 @@
       .wl-form { flex-direction:column; }
       .wl-input, .wl-btn { width:100%; }
     }
+    /* Petits écrans (iPhone SE/mini ~375px et moins) : le logo + les 2
+       boutons de nav (Se connecter / S'inscrire) dépassaient l'espace
+       disponible et se chevauchaient (signalé par Julien J., 01/09/2026). */
+    @media (max-width: 480px) {
+      nav { padding: 0 14px; }
+      .nav-logo { font-size: 18px; gap: 6px; }
+      .nav-logo img { width: 26px; height: 26px; }
+      .nav-right { gap: 6px; }
+      .btn-nav {
+        padding: 8px 12px; font-size: 12.5px; white-space: nowrap;
+      }
+    }
     @media (max-width: 900px) {
       #time-savings { padding:80px 20px; }
       .ts-gesture-grid { grid-template-columns:1fr; gap:20px; }
