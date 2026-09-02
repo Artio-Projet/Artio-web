@@ -1526,7 +1526,7 @@ async function deleteAccount() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
-    const res = await fetch(FUNCTIONS_URL + '/deleted-acount', {
+    const res = await fetch(FUNCTIONS_URL + '/deleted-account', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' }
     });
